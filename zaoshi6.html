@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>马力欧闯关 · 抽强乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Super Mario', cursive, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1d4b8c 0%, #3498db 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 云朵装饰 (马力欧风格) */
+        body::before {
+            content: "☁️☁️☁️☁️☁️☁️☁️☁️";
+            position: absolute;
+            top: 20px;
+            left: 0;
+            font-size: 48px;
+            opacity: 0.2;
+            white-space: nowrap;
+            animation: floatClouds 30s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes floatClouds {
+            0% { transform: translateX(-10%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* 固定画布：粒子/彩带层 */
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* 主卡片 */
+        .card {
+            position: relative;
+            z-index: 30;
+            max-width: 750px;
+            width: 100%;
+            background: #f8e9c9;
+            border-radius: 70px 70px 60px 60px;
+            box-shadow: 0 30px 40px rgba(0, 0, 0, 0.5), 0 0 0 8px #e53e3e, 0 0 0 16px #f1c40f;
+            padding: 30px 25px 40px;
+            border: 4px solid #f39c12;
+        }
+
+        /* 标题区 (马力欧风格) */
+        .title-section {
+            text-align: center;
+            margin-bottom: 15px;
+            background: #f1c40f;
+            border-radius: 60px;
+            padding: 15px 0;
+            border: 5px solid #e67e22;
+            box-shadow: 0 10px 0 #b85e0e;
+        }
+
+        .title-section h1 {
+            font-size: 3.2rem;
+            font-weight: 900;
+            color: #e02222;
+            text-shadow: 4px 4px 0 #fef9b0, 6px 6px 0 #d48b1c;
+            letter-spacing: 3px;
+        }
+
+        .sub-line {
+            font-size: 1.6rem;
+            background: #2ecc71;
+            display: inline-block;
+            padding: 8px 32px;
+            border-radius: 40px;
+            color: #fcf4d9;
+            font-weight: bold;
+            box-shadow: 0 6px 0 #1e8b4c;
+            margin-top: 8px;
+            border: 2px solid #f1c40f;
+        }
+
+        /* 系统时间 + 凭截屏领取提示 */
+        .datetime-bar {
+            background: #34495e;
+            border-radius: 50px;
+            padding: 14px 20px;
+            margin: 18px 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 4px solid #f39c12;
+            box-shadow: 0 8px 0 #1e2b38;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .system-time {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #f1c40f;
+            background: #2c3e50;
+            padding: 8px 28px;
+            border-radius: 40px;
+            border: 2px solid #e67e22;
+            letter-spacing: 1px;
+        }
+
+        .screenshot-hint {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #ffeb99;
+            background: #e67e22;
+            padding: 8px 26px;
+            border-radius: 40px;
+            border: 3px dashed #f1c40f;
+            box-shadow: inset 0 -2px 0 #b85e0e;
+        }
+
+        /* 每日次数指示器 */
+        .daily-counter {
+            background: #27ae60;
+            border-radius: 60px;
+            padding: 12px 18px;
+            margin: 10px 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border: 4px solid #f3a218;
+            box-shadow: 0 6px 0 #1e6b3b;
+        }
+
+        .counter-label {
+            font-size: 1.7rem;
+            color: #fcf4d9;
+            font-weight: bold;
+        }
+
+        .counter-value {
+            font-size: 2.4rem;
+            background: #f39c12;
+            color: #c0392b;
+            padding: 6px 32px;
+            border-radius: 50px;
+            font-weight: 800;
+            border: 3px solid #fff1b8;
+            box-shadow: inset 0 -4px 0 #b85e0e;
+        }
+
+        /* 马力欧闯关小游戏区域 */
+        .mario-game-area {
+            background: #fcdb8a;
+            border-radius: 60px;
+            padding: 25px 15px;
+            border: 6px solid #e67e22;
+            box-shadow: 0 15px 0 #b85e0e, inset 0 0 0 4px #ffe28a;
+            margin: 20px 0;
+        }
+
+        .game-scene {
+            background: #6ac5fe;
+            border-radius: 40px;
+            padding: 25px 10px;
+            border: 5px solid #2c3e50;
+            position: relative;
+            overflow: hidden;
+            min-height: 220px;
+        }
+
+        /* 地面 */
+        .ground {
+            background: #7e5c3c;
+            height: 30px;
+            width: 100%;
+            border-radius: 20px 20px 0 0;
+            margin-top: 15px;
+            border-top: 5px solid #4a3723;
+            box-shadow: 0 8px 0 #4a3723;
+        }
+
+        /* 角色和障碍物 */
+        .character-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            margin-bottom: 10px;
+        }
+
+        .mario {
+            font-size: 5rem;
+            filter: drop-shadow(4px 8px 0 #b85e0e);
+            transform: scaleX(-1);
+            transition: transform 0.15s;
+            cursor: pointer;
+        }
+
+        .mario:active {
+            transform: scaleX(-1) translateY(5px);
+        }
+
+        .enemy {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .goomba {
+            font-size: 3.5rem;
+            transition: transform 0.1s;
+            filter: drop-shadow(2px 5px 0 #4a2f1a);
+        }
+
+        .goomba.jump {
+            transform: translateY(-10px);
+        }
+
+        .goomba.squashed {
+            opacity: 0.3;
+            transform: scale(0.8) translateY(8px);
+            filter: grayscale(0.6);
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0 5px;
+        }
+
+        .jump-btn {
+            background: #e74c3c;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            border-radius: 60px;
+            box-shadow: 0 12px 0 #962d22;
+            cursor: pointer;
+            transition: 0.06s;
+            border: 4px solid #f1c40f;
+            letter-spacing: 2px;
+        }
+
+        .jump-btn:active {
+            transform: translateY(7px);
+            box-shadow: 0 5px 0 #962d22;
+        }
+
+        .jump-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .game-message {
+            background: #2c3e50;
+            color: #ffecb3;
+            font-size: 1.6rem;
+            padding: 12px;
+            border-radius: 40px;
+            text-align: center;
+            margin-top: 10px;
+            border: 3px solid #f39c12;
+        }
+
+        /* 抽奖轮盘 (闯关成功后出现) */
+        .prize-wheel-area {
+            background: #f39c12;
+            border-radius: 50px;
+            padding: 18px 15px;
+            margin: 15px 0;
+            border: 5px solid #c0392b;
+            transition: all 0.3s;
+        }
+
+        .wheel-hidden {
+            opacity: 0.3;
+            pointer-events: none;
+            filter: grayscale(0.7);
+        }
+
+        .prize-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .prize-box {
+            background: #f7d794;
+            width: 90px;
+            height: 90px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: bold;
+            box-shadow: 0 10px 0 #b85e0e;
+            cursor: pointer;
+            transition: 0.08s;
+            border: 4px solid #e67e22;
+        }
+
+        .prize-box:active {
+            transform: translateY(6px);
+            box-shadow: 0 4px 0 #b85e0e;
+        }
+
+        .prize-box.opened {
+            background: #fce2b1;
+            transform: translateY(6px);
+            box-shadow: 0 4px 0 #b85e0e;
+            cursor: default;
+            font-size: 2.5rem;
+            word-break: break-word;
+        }
+
+        .prize-message {
+            text-align: center;
+            font-size: 1.5rem;
+            background: #c0392b;
+            color: #fcf4d9;
+            padding: 12px;
+            border-radius: 40px;
+        }
+
+        /* 领奖区 */
+        .claim-area {
+            background: #e67e22;
+            border-radius: 70px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 5px solid #c0392b;
+            margin: 15px 0;
+        }
+
+        .claim-btn {
+            background: #27ae60;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            padding: 12px 40px;
+            border-radius: 60px;
+            border: none;
+            box-shadow: 0 10px 0 #1a6b3a;
+            cursor: pointer;
+            transition: 0.06s;
+            border: 3px solid #f1c40f;
+        }
+
+        .claim-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 4px 0 #1a6b3a;
+        }
+
+        .claim-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .claim-tag {
+            background: #2c3e50;
+            color: #ffeb99;
+            font-size: 1.8rem;
+            padding: 8px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            color: #f7dc6f;
+            font-size: 1.3rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks-canvas"></canvas>
+
+    <div class="card">
+        <div class="title-section">
+            <h1>🍄 马力欧·闯关抽奖 🍄</h1>
+            <div class="sub-line">踩板栗 赢实物</div>
+        </div>
+
+        <!-- 系统时间 + 凭截屏领取提示 -->
+        <div class="datetime-bar">
+            <span class="system-time" id="systemTimeDisplay">2026-03-15 周六 14:30:45</span>
+            <span class="screenshot-hint">📸 凭截屏领取奖品</span>
+        </div>
+
+        <!-- 每日次数显示 -->
+        <div class="daily-counter">
+            <span class="counter-label">🎮 今日闯关次数</span>
+            <span class="counter-value" id="chancesDisplay">3</span>
+        </div>
+
+        <!-- 马力欧闯关小游戏 -->
+        <div class="mario-game-area">
+            <div class="game-scene">
+                <div class="character-row">
+                    <span class="mario" id="mario">👨</span>
+                </div>
+                <div class="enemy" id="enemyContainer">
+                    <span class="goomba" id="goomba1">👾</span>
+                    <span class="goomba" id="goomba2">👾</span>
+                </div>
+                <div class="ground"></div>
+            </div>
+            <div class="game-controls">
+                <button class="jump-btn" id="jumpBtn">🦘 踩它！</button>
+            </div>
+            <div class="game-message" id="gameMessage">点击踩它，踩中板栗即闯关成功！</div>
+        </div>
+
+        <!-- 抽奖轮盘 (闯关成功后激活) -->
+        <div class="prize-wheel-area" id="prizeWheel">
+            <div class="prize-buttons" id="prizeBoxes">
+                <div class="prize-box" data-index="0" id="prize0">❓</div>
+                <div class="prize-box" data-index="1" id="prize1">❓</div>
+                <div class="prize-box" data-index="2" id="prize2">❓</div>
+            </div>
+            <div class="prize-message" id="prizeMessage">闯关成功即可抽奖！</div>
+        </div>
+
+        <!-- 领奖区 -->
+        <div class="claim-area">
+            <button class="claim-btn" id="claimPrizeBtn" disabled>🏆 领实物奖 🏆</button>
+            <span class="claim-tag" id="claimStatus">未领取</span>
+        </div>
+        <div class="footer" id="footerNote">每天最多闯关3次，每次闯关成功可抽奖一次</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 1. 奖品库 (实物) ----------
+            const PHYSICAL_PRIZES = [
+                '🎁 华为手环', '🧧 88元红包', '🍯 蜂蜜礼盒', '🧸 大公仔', 
+                '💄 口红', '🔋 充电宝', '📱 手机支架', '🥜 零食包',
+                '🏮 文创摆件', '🎫 视频会员', '🍄 马力欧公仔', '⭐ 星星灯'
+            ];
+
+            // ---------- 2. 音效 + 粒子 ----------
+            let audioCtx = null;
+            function playJumpSound() {
+                try {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.value = 520;
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.connect(gain).connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } catch (e) { }
+            }
+
+            function playWinSound() {
+                try {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                    const now = audioCtx.currentTime;
+                    const osc1 = audioCtx.createOscillator();
+                    const gain1 = audioCtx.createGain();
+                    osc1.type = 'sine';
+                    osc1.frequency.value = 880;
+                    gain1.gain.setValueAtTime(0.3, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                    osc1.connect(gain1).connect(audioCtx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.2);
+                    
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.value = 1320;
+                    gain2.gain.setValueAtTime(0.2, now + 0.1);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                    osc2.connect(gain2).connect(audioCtx.destination);
+                    osc2.start(now + 0.1);
+                    osc2.stop(now + 0.3);
+                } catch (e) { }
+            }
+
+            // 粒子画布
+            const canvas = document.getElementById('fireworks-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+
+            function resizeCanvas() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function createBurst(x, y) {
+                for (let i=0; i<25; i++) {
+                    const angle = Math.random()*Math.PI*2;
+                    const speed = 3+Math.random()*10;
+                    particles.push({
+                        x: x || width/2, y: y || height/2,
+                        vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed - 1,
+                        life: 1, size: 5+Math.random()*6,
+                        color: `hsl(${Math.random()*60+20}, 100%, 60%)`
+                    });
+                }
+            }
+
+            function dropConfetti() {
+                for (let i=0; i<20; i++) {
+                    particles.push({
+                        x: Math.random()*width, y: -20,
+                        vx: (Math.random()-0.5)*3, vy: Math.random()*5+3,
+                        life: 0.9, size: 6+Math.random()*8,
+                        color: `hsl(${Math.random()*60+20}, 95%, 65%)`
+                    });
+                }
+            }
+
+            function updateParticles() {
+                ctx.clearRect(0, 0, width, height);
+                for (let i=particles.length-1; i>=0; i--) {
+                    let p = particles[i];
+                    p.x += p.vx; p.y += p.vy;
+                    p.vy += 0.1;
+                    p.life -= 0.004;
+                    if (p.life<=0 || p.y>height+50) { particles.splice(i,1); continue; }
+                    ctx.globalAlpha = p.life*0.8;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size*(0.5+(1-p.life)*0.5), 0, Math.PI*2);
+                    ctx.fill();
+                }
+                requestAnimationFrame(updateParticles);
+            }
+            updateParticles();
+
+            // ---------- 3. 存储与状态 ----------
+            const STORAGE_KEY = 'MARIO_GAME_V1';
+            function getTodayStr() { let d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+
+            function defaultData() {
+                return {
+                    lastResetDate: '',
+                    playCount: 0,           // 今日已闯关次数
+                    claimed: false,
+                    gameState: {
+                        stageSuccess: false,     // 今日是否已通关(但每闯一次重置)
+                        canDraw: false,          // 当前是否可抽奖 (一次闯关成功后)
+                        prizes: ['', '', ''],    // 抽奖结果
+                        opened: [false, false, false]
+                    }
+                };
+            }
+
+            function loadData() {
+                let d = defaultData();
+                try {
+                    let stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                    d.lastResetDate = stored.lastResetDate || '';
+                    d.playCount = stored.playCount || 0;
+                    d.claimed = stored.claimed || false;
+                    d.gameState = stored.gameState || { stageSuccess: false, canDraw: false, prizes: ['','',''], opened: [false,false,false] };
+                } catch (e) {}
+                return d;
+            }
+
+            let userData = loadData();
+
+            function saveData() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            }
+
+            function resetIfNewDay() {
+                const today = getTodayStr();
+                if (userData.lastResetDate !== today) {
+                    userData.lastResetDate = today;
+                    userData.playCount = 0;
+                    userData.gameState = { stageSuccess: false, canDraw: false, prizes: ['','',''], opened: [false,false,false] };
+                    saveData();
+                }
+            }
+            resetIfNewDay();
+
+            // 获取剩余次数
+            function getRemainingPlays() {
+                return Math.max(0, 3 - userData.playCount);
+            }
+
+            // ---------- DOM ----------
+            const systemTimeSpan = document.getElementById('systemTimeDisplay');
+            const chancesSpan = document.getElementById('chancesDisplay');
+            const jumpBtn = document.getElementById('jumpBtn');
+            const gameMsg = document.getElementById('gameMessage');
+            const goomba1 = document.getElementById('goomba1');
+            const goomba2 = document.getElementById('goomba2');
+            const prizeWheel = document.getElementById('prizeWheel');
+            const prizeBoxes = [document.getElementById('prize0'), document.getElementById('prize1'), document.getElementById('prize2')];
+            const prizeMessage = document.getElementById('prizeMessage');
+            const claimBtn = document.getElementById('claimPrizeBtn');
+            const claimStatus = document.getElementById('claimStatus');
+            const footerNote = document.getElementById('footerNote');
+
+            // 更新时间显示 (每秒)
+            function updateSystemTime() {
+                const d = new Date();
+                const year = d.getFullYear();
+                const month = String(d.getMonth()+1).padStart(2,'0');
+                const day = String(d.getDate()).padStart(2,'0');
+                const weekdays = ['周日','周一','周二','周三','周四','周五','周六'];
+                const wd = weekdays[d.getDay()];
+                const hours = String(d.getHours()).padStart(2,'0');
+                const mins = String(d.getMinutes()).padStart(2,'0');
+                const secs = String(d.getSeconds()).padStart(2,'0');
+                systemTimeSpan.innerText = `${year}-${month}-${day} ${wd} ${hours}:${mins}:${secs}`;
+            }
+            setInterval(updateSystemTime, 1000);
+            updateSystemTime();
+
+            // 刷新UI
+            function refreshUI() {
+                const remain = getRemainingPlays();
+                chancesSpan.innerText = remain;
+
+                // 跳跃按钮状态
+                if (remain <= 0 || userData.gameState.canDraw) {
+                    jumpBtn.disabled = true;
+                    jumpBtn.classList.add('disabled');
+                } else {
+                    jumpBtn.disabled = false;
+                    jumpBtn.classList.remove('disabled');
+                }
+
+                // 抽奖区域状态
+                if (userData.gameState.canDraw) {
+                    prizeWheel.classList.remove('wheel-hidden');
+                } else {
+                    prizeWheel.classList.add('wheel-hidden');
+                }
+
+                // 抽奖盒子显示
+                for (let i=0; i<3; i++) {
+                    if (userData.gameState.opened[i]) {
+                        prizeBoxes[i].innerText = userData.gameState.prizes[i] || '🎁';
+                        prizeBoxes[i].classList.add('opened');
+                    } else {
+                        prizeBoxes[i].innerText = '❓';
+                        prizeBoxes[i].classList.remove('opened');
+                    }
+                }
+
+                // 如果抽奖全部打开或没有抽奖机会，隐藏可点
+                if (userData.gameState.canDraw) {
+                    prizeBoxes.forEach((box, idx) => {
+                        if (!userData.gameState.opened[idx]) box.style.pointerEvents = 'auto';
+                        else box.style.pointerEvents = 'none';
+                    });
+                } else {
+                    prizeBoxes.forEach(box => box.style.pointerEvents = 'none');
+                }
+
+                // 领奖按钮
+                const canClaim = !userData.claimed && userData.playCount > 0;
+                claimBtn.disabled = !canClaim;
+                claimStatus.innerText = userData.claimed ? '✅ 已领取' : '⏳ 未领取';
+
+                // 重置板栗视觉 (如果全部抽完或者新一天)
+                if (!userData.gameState.stageSuccess && !userData.gameState.canDraw) {
+                    goomba1.classList.remove('squashed');
+                    goomba2.classList.remove('squashed');
+                    goomba1.classList.remove('jump');
+                    goomba2.classList.remove('jump');
+                }
+            }
+
+            // 跳跃闯关逻辑
+            function onashed');
+                    goomba1.classList.remove('jump');
+                    goomba2.classList.remove('jump');
+                }
+            }
+
+            // 跳跃闯关逻辑
+            function onJump() {
+               Jump() {
+                const remain const remain = get = getRemainingRemainingPlays();
+               Plays();
+                if (remain if (remain <= <= 0 0) {
+) {
+                    gameMsg.inner                    gameMsg.innerText =Text = '今日 '今日闯关次数闯关次数已已用完！';
+                    return;
+用完！';
+                    return;
+                }
+                }
+                if (userData.gameState.canDraw) {
+                    gameMsg.innerText = '请先完成抽奖再闯关！';
+                    return                if (userData.gameState.canDraw) {
+                    gameMsg.innerText = '请先完成抽奖再闯关！';
+                    return;
+               ;
+                }
+
+                }
+
+                playJumpSound();
+
+ playJumpSound();
+
+                // 随机                // 随机决定决定是否踩中 (是否踩模拟踩中 (模拟踩板板栗,栗, 80 80%成功)
+                const success = Math.random()%成功)
+                const success = Math.random() <  < 0.0.8;
+
+8;
+
+                // 动画                //效果
+                goomba1.classList.add('jump');
+                goomba2.classList.add('jump');
+                动画效果
+                goomba1.classList.add('jump');
+                goomba2.classList.add('jump');
+                setTimeout(() => {
+ setTimeout(() => {
+                    goomba1.classList.remove('j                    goomba1.classList.remove('jump');
+ump');
+                    go                    goomba2omba2.classList.remove('j.classList.remove('jump');
+ump');
+                }, 200                }, 200);
+
+               );
+
+                if ( if (success) {
+                   success) {
+                    //  // 踩中板栗
+                   踩中板栗
+                    goomba goomba1.classList1.classList.add('squ.add('squashed');
+ashed');
+                    goomba2                    go.classList.addomba2.classList.add('squashed('s');
+                   quashed');
+                    playWin playWinSound();
+Sound();
+                    createBurst                    create(width/Burst(width/2,2, height/2. height/2.5);
+                    drop5);
+Confetti                    drop();
+
+                   Confetti();
+
+                    // 增加闯关次数 // 增加闯关次数
+                   
+                    userData.playCount userData.playCount +=  += 1;
+1;
+                                       userData.game userData.gameState.stState.stageSuccess = trueageSuccess = true;
+                   ;
+                    userData userData.gameState.canDraw.gameState.canDraw = true = true;  // 开启抽奖
+                   ;  // 开启抽奖
+                    userData.gameState userData.gameState.opened.opened = = [ [false, false,false, false, false];
+ false];
+                    user                    userData.gameData.gameState.pState.prizesrizes = [' = ['', '',', '', ''];
+ ''];
+                    save                    saveData();
+Data();
+                    refresh                    refreshUI();
+UI();
+                    game                    gameMsg.innerMsg.innerText =Text = ' '🎉🎉  闯关闯关成功！点击问号抽奖吧！';
+                    prizeMessage.innerText = '成功！点击问号抽奖吧！';
+                    prizeMessage.innerText = '选择一个箱子抽实物奖';
+                } else {
+                    // 没踩中选择一个箱子抽实物奖';
+                } else {
+                    // 没踩中，消耗次数但，消耗次数但没奖励
+                    userData.playCount没奖励
+                    userData.playCount +=  += 1;
+1;
+                    user                    userData.gameData.gameState.stState.stageSuccessageSuccess = false = false;
+                   ;
+                    userData userData.gameState.gameState.canDraw.canDraw = false = false;
+                   ;
+                    saveData saveData();
+                   ();
+                    refreshUI refreshUI();
+                   ();
+                    gameMsg gameMsg.innerText.innerText = ' = '😵😵 板 板栗跳栗跳开了...开了... 再来 再来一次！一次！';
+               ';
+                }
+            }
+            }
+
+            }
+
+            jumpBtn jumpBtn.addEventListener('click', onJump.addEventListener('click', onJump);
+
+            // 抽奖箱子点击
+            prizeBoxes.forEach((box, idx) => {
+                box.addEventListener('click', ());
+
+            // 抽奖箱子点击
+            prizeBoxes.forEach((box, idx) => {
+                box.addEventListener('click', () => {
+                    if (!userData.gameState.canDraw) return;
+                    if (userData.gameState.opened[idx]) return;
+
+                    // 随机奖品
+                    const prize = PHYSICAL_PRIZES[Math.floor(Math.random() * PHYSICAL_PRIZES.length)];
+                    userData.gameState.opened[idx] = true;
+                    userData.gameState.prizes[idx] = prize;
+
+                    // 如果所有箱子都开了，关闭抽奖模式
+                    if (userData.gameState.opened.every(v => v)) {
+                        userData.gameState.canDraw = false;
+                        userData.gameState.stageSuccess = false;
+                        prizeMessage.innerText = '抽奖完成，继续闯关吧！';
+                    } else => {
+                    if (!userData.gameState.canDraw) return;
+                    if (userData.gameState.opened[idx]) return;
+
+                    // 随机奖品
+                    const prize = PHYSICAL_PRIZES[Math.floor(Math.random() * PHYSICAL_PRIZES.length)];
+                    userData.gameState.opened[idx] = true;
+                    userData.gameState.prizes[idx] = prize;
+
+                    // 如果所有箱子都开了，关闭抽奖模式
+                    if (userData.gameState.opened.every(v => v)) {
+                        userData.gameState.canDraw = false;
+                        userData.gameState.stageSuccess = false;
+                        prizeMessage.innerText = '抽奖完成，继续闯关吧！';
+                    } else {
+                        prizeMessage.innerText = '再开一个箱子！';
+                    }
+
+                    // 播放音效
+                    playWinSound();
+                    createBurst(width/2, height/3);
+                    dropConfetti();
+
+                    saveData();
+                    refreshUI();
+                    gameMsg.innerText = `获得：${prize}`;
+                });
+            });
+
+            // 领奖
+            claimBtn.addEventListener('click', () => {
+                if (userData.claimed) return;
+                if (userData.playCount === 0) {
+                    alert('至少闯关一次才能领奖');
+                    return;
+                }
+                userData.claimed = true;
+                saveData();
+                refreshUI();
+                createBurst {
+                        prizeMessage.innerText = '再开一个箱子！';
+                    }
+
+                    // 播放音效
+                    playWinSound();
+                    createBurst(width/2, height/3);
+                    dropConfetti();
+
+                    saveData();
+                    refreshUI();
+                    gameMsg.innerText = `获得：${prize}`;
+                });
+            });
+
+            // 领奖
+            claimBtn.addEventListener('click', () => {
+                if (userData.claimed) return;
+                if (userData.playCount === 0) {
+                    alert('至少闯关一次才能领奖');
+                    return;
+                }
+                userData.claimed = true;
+                saveData();
+                refreshUI();
+                createBurst(width/(width/2,2, height/3);
+                alert('🎁 恭喜领取实物奖励！(凭截屏有效)');
+            });
+
+            // 跨日重置检测
+            setInterval(() => {
+                const oldDate = userData height/3);
+                alert('🎁 恭喜领取实物奖励！(凭截屏有效)');
+            });
+
+            // 跨日重置检测
+            setInterval(() => {
+                const oldDate = userData.lastResetDate;
+                resetIfNewDay();
+                if (oldDate !== userData.lastResetDate) {
+                    // 重置板栗
+                    goomba1.classList.remove('squashed');
+                    goomba2.classList.remove('squashed');
+.lastResetDate;
+                resetIfNewDay();
+                if (oldDate !== userData.lastResetDate) {
+                    // 重置板栗
+                    goomba1.classList.remove('squashed');
+                    goomba2.classList.remove('squashed');
+                    refreshUI();
+                }
+            }, 60000);
+
+            // 初始渲染
+            refreshUI();
+            dropConfetti();
+        })();
+    </script>
+</body>
+</html>
