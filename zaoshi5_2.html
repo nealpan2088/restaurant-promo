@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>鸿运抽强 · 实物大派送</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', cursive, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #a71f1f 0%, #d64545 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 固定画布：粒子/彩带层 (鞭炮炸裂+彩带) */
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* 主卡片 */
+        .card {
+            position: relative;
+            z-index: 30;
+            max-width: 630px;
+            width: 100%;
+            background: rgba(255, 241, 210, 0.98);
+            backdrop-filter: blur(4px);
+            border-radius: 70px 70px 60px 60px;
+            box-shadow: 0 35px 50px rgba(130, 20, 20, 0.7), 0 0 0 6px #fbcb5e, 0 0 0 14px #b02525;
+            padding: 30px 22px 38px;
+            border: 3px solid #ffb82e;
+        }
+
+        /* 标题区 */
+        .title-section {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .title-section h1 {
+            font-size: 3.6rem;
+            font-weight: 900;
+            color: #a11313;
+            text-shadow: 5px 5px 0 #ffcf5c, 7px 7px 0 rgba(230, 150, 0, 0.5);
+            letter-spacing: 5px;
+            transform: rotate(-0.5deg);
+            animation: titleShake 0.9s infinite;
+        }
+
+        @keyframes titleShake {
+            0% { transform: rotate(-0.5deg) scale(1); }
+            50% { transform: rotate(1deg) scale(1.02); }
+        }
+
+        .sub-line {
+            background: #f3c550;
+            padding: 10px 30px;
+            border-radius: 60px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #9f1a1a;
+            display: inline-block;
+            box-shadow: 0 7px 0 #b1581c;
+        }
+
+        /* 新增服务器日期栏 - 中间显眼 */
+        .server-date-bar {
+            background: #c0392b;
+            border-radius: 50px;
+            padding: 14px 20px;
+            margin: 10px 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            border: 3px solid #f9d56e;
+            box-shadow: 0 8px 0 #78281f;
+        }
+        .server-date {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffefc0;
+            letter-spacing: 2px;
+            background: #a32d2d;
+            padding: 6px 24px;
+            border-radius: 40px;
+            border: 2px solid #f3b33d;
+        }
+        .valid-hint {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #ffecb3;
+            background: #b03a3a;
+            padding: 5px 20px;
+            border-radius: 40px;
+            white-space: nowrap;
+            border: 2px dashed #f9e180;
+        }
+
+        /* 倒计时翻转卡片 */
+        .flip-box {
+            background: #7e1b1b;
+            border-radius: 70px;
+            padding: 22px 15px;
+            margin: 20px 0 15px;
+            border: 5px solid #f2ac33;
+            box-shadow: inset 0 -6px 0 #4d0e0e, 0 15px 25px rgba(0,0,0,0.6);
+        }
+
+        .flip-header {
+            text-align: center;
+            color: #ffda88;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .flip-clock {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 15px;
+        }
+
+        .flip-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 75px;
+        }
+
+        .flip-card {
+            background: #2f1b09;
+            color: #fcd34d;
+            font-size: 3.4rem;
+            font-weight: 800;
+            width: 100%;
+            text-align: center;
+            padding: 8px 0;
+            border-radius: 22px;
+            box-shadow: 0 8px 0 #4f2a0b, 0 15px 20px black;
+            line-height: 1.2;
+            border: 3px solid #f3b33d;
+            transition: transform 0.2s;
+        }
+
+        .flip-label {
+            font-size: 1.1rem;
+            color: #fdebb3;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        .cycle-badge {
+            background: #fbdd85;
+            border-radius: 50px;
+            padding: 8px 12px;
+            text-align: center;
+            font-weight: bold;
+            color: #aa2b2b;
+            font-size: 1.3rem;
+            border: 3px dashed #db6911;
+            margin-top: 12px;
+            animation: glowCycle 1.8s infinite;
+        }
+
+        @keyframes glowCycle {
+            0% { opacity: 0.95; background: #fbdd85; }
+            50% { background: #ffce5a; box-shadow: 0 0 15px #fdac2e; }
+        }
+
+        /* 游戏区域 */
+        .game-area {
+            background: #ffeecb;
+            border-radius: 65px;
+            padding: 24px 18px;
+            border: 5px solid #fc982b;
+            box-shadow: 0 15px 0 #b6470b, inset 0 2px 25px #ffe599;
+            margin: 20px 0;
+        }
+
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #bc2f2f;
+            padding: 14px 26px;
+            border-radius: 60px;
+            color: #fff3cf;
+            font-weight: bold;
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+        }
+
+        .play-count-badge {
+            background: #fed457;
+            padding: 8px 28px;
+            border-radius: 50px;
+            color: #9e2121;
+            font-size: 2rem;
+            font-weight: 800;
+        }
+
+        .doors-panel {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .door {
+            width: 110px;
+            height: 150px;
+            background: #d45e18;
+            border-radius: 45px 45px 25px 25px;
+            box-shadow: 0 18px 0 #773a0d, 0 14px 20px black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.08s linear;
+            border: 4px solid #ffca6b;
+            transform: translateY(0);
+        }
+
+        .door:active {
+            transform: translateY(9px);
+            box-shadow: 0 9px 0 #773a0d, 0 10px 15px black;
+        }
+
+        .door.opened {
+            background: #eaa45a;
+            box-shadow: 0 9px 0 #9b4513, 0 8px 15px black;
+            transform: translateY(9px);
+            cursor: default;
+        }
+
+        .message-box {
+            background: #b12222;
+            color: #fff2c2;
+            font-size: 1.7rem;
+            padding: 16px;
+            border-radius: 60px;
+            text-align: center;
+            font-weight: bold;
+            border: 4px solid #fcc23b;
+        }
+
+        /* 邀请浮层 (社交裂变) */
+        .invite-overlay {
+            background: #dc7621;
+            border-radius: 60px;
+            padding: 16px 20px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            border: 4px solid #fce28b;
+            box-shadow: 0 12px 0 #9c4514;
+        }
+
+        .invite-text {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fff1b0;
+        }
+
+        .invite-btn {
+            background: #feda5a;
+            border: none;
+            font-size: 1.7rem;
+            font-weight: 800;
+            padding: 12px 36px;
+            border-radius: 60px;
+            color: #861f1f;
+            box-shadow: 0 8px 0 #9f4c18;
+            cursor: pointer;
+            transition: 0.05s linear;
+            border: 3px solid #ffcf5c;
+        }
+
+        .invite-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 3px 0 #9f4c18;
+        }
+
+        .invite-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* 领奖区 (仅一次) */
+        .claim-area {
+            background: #ffac4a;
+            border-radius: 70px;
+            padding: 18px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 5px solid #b12727;
+        }
+
+        .claim-btn {
+            background: #d42828;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: white;
+            padding: 12px 44px;
+            border-radius: 70px;
+            border: none;
+            box-shadow: 0 11px 0 #6d1414;
+            cursor: pointer;
+            transition: 0.06s;
+            border: 3px solid #ffcd7e;
+        }
+
+        .claim-btn:active {
+            transform: translateY(7px);
+            box-shadow: 0 4px 0 #6d1414;
+        }
+
+        .claim-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .claim-tag {
+            background: #854040;
+            color: #ffeec2;
+            font-size: 1.9rem;
+            padding: 8px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+        }
+
+        .footer-hint {
+            text-align: center;
+            color: #fcd57e;
+            margin-top: 18px;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks-canvas"></canvas>
+
+    <div class="card">
+        <div class="title-section">
+            <h1>🧨 抽强暴富 🧨</h1>
+            <div class="sub-line">每日3次+邀请 · 实物大奖</div>
+        </div>
+
+        <!-- 新增服务器日期栏 (页面中间 + 截屏当天有效) -->
+        <div class="server-date-bar">
+            <span class="server-date" id="serverDateDisplay">2026-03-15 周六</span>
+            <span class="valid-hint">📸 截屏当天领取奖品有效</span>
+        </div>
+
+        <!-- 倒计时翻转卡片 + 循环重置 -->
+        <div class="flip-box">
+            <div class="flip-header">⏳ 本轮豪礼倒计时</div>
+            <div class="flip-clock" id="flipClock">
+                <div class="flip-unit"><div class="flip-card" id="flipDays">00</div><span class="flip-label">天</span></div>
+                <div class="flip-unit"><div class="flip-card" id="flipHours">00</div><span class="flip-label">时</span></div>
+                <div class="flip-unit"><div class="flip-card" id="flipMins">00</div><span class="flip-label">分</span></div>
+                <div class="flip-unit"><div class="flip-card" id="flipSecs">00</div><span class="flip-label">秒</span></div>
+            </div>
+            <div class="cycle-badge" id="cycleMessage">🔄 到期重置·新奖品池 🔄</div>
+        </div>
+
+        <!-- 小游戏区（实物概率库） -->
+        <div class="game-area">
+            <div class="stats-bar">
+                <span>🎰 今日鸿运</span>
+                <div class="play-count-badge" id="chancesDisplay">3</div>
+            </div>
+            <div class="doors-panel" id="doorContainer">
+                <div class="door" data-index="0" id="door0">❓</div>
+                <div class="door" data-index="1" id="door1">❓</div>
+                <div class="door" data-index="2" id="door2">❓</div>
+            </div>
+            <div class="message-box" id="gameMessage">点开门 抽实物壕礼</div>
+        </div>
+
+        <!-- 社交裂变浮层：邀请得额外次数 -->
+        <div class="invite-overlay" id="inviteBox">
+            <span class="invite-text">👥 邀好友得次数 (今日还可邀<span id="inviteLeft">2</span>次)</span>
+            <button class="invite-btn" id="inviteBtn">✨ 立即邀请 ✨</button>
+        </div>
+
+        <!-- 领奖区 -->
+        <div class="claim-area">
+            <button class="claim-btn" id="claimPrizeBtn" disabled>🏆 领实物 🏆</button>
+            <span class="claim-tag" id="claimStatus">未领取</span>
+        </div>
+        <div class="footer-hint" id="todayHint">今日已玩0次 剩余3次</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 1. 动态实物奖品库 (带权重) ----------
+            const PHYSICAL_PRIZES = [
+                { name: '🎁 华为手环 9', weight: 5 },
+                { name: '🧧 88元现金红包', weight: 15 },
+                { name: '🍯 蒙面小熊蜂蜜', weight: 18 },
+                { name: '🧸 迪士尼公仔', weight: 20 },
+                { name: '💄 完美日记口红', weight: 15 },
+                { name: '🔋 罗马仕2万毫安', weight: 12 },
+                { name: '📱 手机支架+指环', weight: 30 },
+                { name: '🥜 三只松鼠巨型包', weight: 18 },
+                { name: '🏮 故宫文创小摆', weight: 10 },
+                { name: '🎫 视频会员季卡', weight: 22 }
+            ];
+
+            // 权重随机函数
+            function getRandomPrize() {
+                const totalWeight = PHYSICAL_PRIZES.reduce((acc, p) => acc + p.weight, 0);
+                let rand = Math.random() * totalWeight;
+                for (let item of PHYSICAL_PRIZES) {
+                    if (rand < item.weight) return item.name;
+                    rand -= item.weight;
+                }
+                return PHYSICAL_PRIZES[0].name; // fallback
+            }
+
+            // ---------- 2. 音效反馈 (Web Audio 锣鼓声) ----------
+            let audioCtx = null;
+            function playLuckyDrum() {
+                try {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                    const now = audioCtx.currentTime;
+                    // 锣 (高频)
+                    const osc1 = audioCtx.createOscillator();
+                    const gain1 = audioCtx.createGain();
+                    osc1.type = 'triangle';
+                    osc1.frequency.value = 680;
+                    gain1.gain.setValueAtTime(0.35, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc1.connect(gain1).connect(audioCtx.destination);
+                    osc1.start(now);
+                    osc1.stop(now + 0.22);
+                    // 鼓 (低频)
+                    const osc2 = audioCtx.createOscillator();
+                    const gain2 = audioCtx.createGain();
+                    osc2.type = 'sine';
+                    osc2.frequency.value = 130;
+                    gain2.gain.setValueAtTime(0.6, now);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                    osc2.connect(gain2).connect(audioCtx.destination);
+                    osc2.start(now);
+                    osc2.stop(now + 0.28);
+                } catch (e) { /* 安静模式 */ }
+            }
+
+            // ---------- 3. 鞭炮炸裂 + 彩带粒子 (视觉动感) ----------
+            const canvas = document.getElementById('fireworks-canvas');
+            const ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+
+            function resizeCanvas() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // 创建爆炸粒子 (鞭炮效果)
+            function createBurst(x, y) {
+                const count = 32;
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 4 + Math.random() * 14;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed - 1.5;
+                    particles.push({
+                        x: x || width/2,
+                        y: y || height/2.5,
+                        vx: vx, vy: vy,
+                        life: 1.0,
+                        size: 5 + Math.random()*6,
+                        color: `hsl(${Math.random()*40 + 20}, 100%, 65%)` // 红橙黄
+                    });
+                }
+            }
+
+            // 彩带飘落 (从上方)
+            function dropConfetti() {
+                for (let i=0; i<22; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: -20 - Math.random()*30,
+                        vx: (Math.random()-0.5)*3,
+                        vy: Math.random()*4 + 4,
+                        life: 0.8 + Math.random()*0.5,
+                        size: 6 + Math.random()*8,
+                        color: `hsl(${Math.random()*50 + 20}, 95%, 60%)`
+                    });
+                }
+            }
+
+            // 对外暴露: 开启动画组合 (音效+鞭炮+彩带)
+            function fireCelebration() {
+                playLuckyDrum();
+                createBurst(width/2, height/3);
+                dropConfetti();
+            }
+
+            function updateParticles() {
+                ctx.clearRect(0, 0, width, height);
+                for (let i = particles.length-1; i>=0; i--) {
+                    let p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.1;   // 重力
+                    p.life -= 0.004;
+                    if (p.life <= 0 || p.y > height+60) {
+                        particles.splice(i,1);
+                        continue;
+                    }
+                    ctx.globalAlpha = p.life * 0.8;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * (0.6 + (1-p.life)*0.4), 0, Math.PI*2);
+                    ctx.fill();
+                }
+                requestAnimationFrame(updateParticles);
+            }
+            updateParticles();
+
+            // ---------- 4. 存储与每日状态 (包含邀请额外次数) ----------
+            const STORAGE_KEY = 'SPRING_FESTIVAL_V4';
+            function getTodayStr() { let d=new Date(); return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`; }
+            // 获取带星期几的日期显示
+            function getTodayDisplay() {
+                const d = new Date();
+                const year = d.getFullYear();
+                const month = String(d.getMonth()+1).padStart(2,'0');
+                const day = String(d.getDate()).padStart(2,'0');
+                const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                const wd = weekdays[d.getDay()];
+                return `${year}-${month}-${day} ${wd}`;
+            }
+
+            function defaultData() {
+                return {
+                    lastResetDate: '',
+                    playCount: 0,           // 当日已玩次数 (基础+邀请合并)
+                    claimed: false,
+                    extraInvites: 0,         // 当日通过邀请获得的额外次数 (最多2)
+                    gameState: { opened: [false,false,false], prizes: ['','',''], gameActive: true }
+                };
+            }
+
+            function loadData() {
+                let d = defaultData();
+                try {
+                    let stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                    d.lastResetDate = stored.lastResetDate || '';
+                    d.playCount = stored.playCount || 0;
+                    d.claimed = stored.claimed || false;
+                    d.extraInvites = stored.extraInvites || 0;
+                    d.gameState = stored.gameState || { opened: [false,false,false], prizes: ['','',''], gameActive: true };
+                } catch (e) {}
+                return d;
+            }
+
+            let userData = loadData();
+
+            function saveData() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+            }
+
+            // 重置每日 (跨日清空)
+            function resetIfNewDay() {
+                const today = getTodayStr();
+                if (userData.lastResetDate !== today) {
+                    userData.lastResetDate = today;
+                    userData.playCount = 0;
+                    userData.extraInvites = 0;
+                    userData.gameState = { opened: [false,false,false], prizes: ['','',''], gameActive: true };
+                    saveData();
+                }
+            }
+            resetIfNewDay();
+
+            // 获取可用总次数 (基础3 + 邀请)
+            function getTotalAvailable() {
+                return 3 + (userData.extraInvites || 0);
+            }
+            function getRemainingPlays() {
+                return Math.max(0, getTotalAvailable() - userData.playCount);
+            }
+
+            // ---------- DOM 绑定 ----------
+            const flipDays = document.getElementById('flipDays');
+            const flipHours = document.getElementById('flipHours');
+            const flipMins = document.getElementById('flipMins');
+            const flipSecs = document.getElementById('flipSecs');
+            const chancesDisplay = document.getElementById('chancesDisplay');
+            const gameMessage = document.getElementById('gameMessage');
+            const claimBtn = document.getElementById('claimPrizeBtn');
+            const claimStatus = document.getElementById('claimStatus');
+            const todayHint = document.getElementById('todayHint');
+            const doors = [document.getElementById('door0'), document.getElementById('door1'), document.getElementById('door2')];
+            const inviteBtn = document.getElementById('inviteBtn');
+            const inviteLeftSpan = document.getElementById('inviteLeft');
+            const cycleMsg = document.getElementById('cycleMessage');
+            const serverDateDisplay = document.getElementById('serverDateDisplay');
+
+            // 刷新UI
+            function refreshUI() {
+                const remain = getRemainingPlays();
+                chancesDisplay.innerText = remain;
+                const used = userData.playCount;
+                todayHint.innerText = `今日已玩${used}次 剩余${remain}次 (含邀请)`;
+
+                // 门状态
+                for (let i=0; i<3; i++) {
+                    if (userData.gameState.opened[i]) {
+                        doors[i].innerText = userData.gameState.prizes[i] || '🎁';
+                        doors[i].classList.add('opened');
+                    } else {
+                        doors[i].innerText = '❓';
+                        doors[i].classList.remove('opened');
+                    }
+                }
+
+                // 可点性判断
+                const gameActive = userData.gameState.gameActive && remain > 0;
+                for (let i=0; i<3; i++) {
+                    if (!gameActive || userData.gameState.opened[i]) doors[i].style.pointerEvents = 'none';
+                    else doors[i].style.pointerEvents = 'auto';
+                }
+
+                // 领奖按钮
+                const canClaim = !userData.claimed && userData.playCount > 0;
+                claimBtn.disabled = !canClaim;
+                claimStatus.innerText = userData.claimed ? '✅ 已领取' : '⏳ 未领取';
+                claimStatus.style.background = userData.claimed ? '#2a6e3b' : '#854040';
+
+                // 邀请剩余次数显示
+                const leftInvite = Math.max(0, 2 - userData.extraInvites);
+                inviteLeftSpan.innerText = leftInvite;
+                if (leftInvite === 0) {
+                    inviteBtn.classList.add('disabled');
+                    inviteBtn.disabled = true;
+                } else {
+                    inviteBtn.classList.remove('disabled');
+                    inviteBtn.disabled = false;
+                }
+
+                // 更新服务器日期 (实时)
+                serverDateDisplay.innerText = getTodayDisplay();
+            }
+
+            // 门点击处理
+            function onDoorClick(idx) {
+                if (userData.gameState.opened[idx]) return;
+                const remain = getRemainingPlays();
+                if (remain <= 0 || !userData.gameState.gameActive) {
+                    gameMessage.innerText = '没机会啦，邀请好友或明天再来';
+                    return;
+                }
+
+                // 开启动效+音效+粒子
+                fireCelebration();
+
+                // 按权重抽取实物
+                const prize = getRandomPrize();
+                userData.playCount += 1;
+                userData.gameState.opened[idx] = true;
+                userData.gameState.prizes[idx] = prize;
+
+                // 更新游戏激活状态
+                if (getRemainingPlays() <= 0 || userData.gameState.opened.every(v => v)) {
+                    userData.gameState.gameActive = false;
+                } else {
+                    userData.gameState.gameActive = true;
+                }
+
+                saveData();
+                refreshUI();
+                gameMessage.innerText = `🧧 恭喜获得： ${prize} 🧧`;
+            }
+
+            doors.forEach((d, i) => d.addEventListener('click', () => onDoorClick(i)));
+
+            // 领奖
+            claimBtn.addEventListener('click', () => {
+                if (userData.claimed || userData.playCount === 0) return;
+                userData.claimed = true;
+                saveData();
+                refreshUI();
+                fireCelebration(); // 领奖也要庆祝
+                alert('🎉 实物奖励已记录，等待派奖 (演示)');
+            });
+
+            // 邀请裂变 (增加额外次数)
+            inviteBtn.addEventListener('click', () => {
+                if (userData.extraInvites >= 2) { alert('今日邀请已达上限'); return; }
+                userData.extraInvites += 1;
+                // 如果之前因次数用完而gameActive = false, 现在有机会可重新激活
+                if (getRemainingPlays() > 0 && !userData.gameState.gameActive) {
+                    userData.gameState.gameActive = true;
+                }
+                saveData();
+                refreshUI();
+                fireCelebration(); // 邀请成功也放个小彩带
+                alert('邀请成功！获得一次额外机会 (每日最多+2)');
+            });
+
+            // ---------- 5. 倒计时翻转 + 循环重置奖品池 (到期重置门 & 新奖品) ----------
+            let countdownTarget = Date.now() + 40000; // 40秒循环 (演示用)
+
+            function updateFlipClock() {
+                const diff = countdownTarget - Date.now();
+                if (diff <= 0) {
+                    // 重置游戏门 (关门、清空奖品、如果还有剩余次数则激活)
+                    userData.gameState.opened = [false, false, false];
+                    userData.gameState.prizes = ['', '', ''];
+                    const remain = getRemainingPlays();
+                    userData.gameState.gameActive = (remain > 0);
+                    saveData();
+                    refreshUI();
+
+                    // 重置倒计时目标 (再过40秒)
+                    countdownTarget = Date.now() + 40000;
+                    // 额外庆祝：重置瞬间放粒子
+                    createBurst(width/2, height/2.5);
+                    dropConfetti();
+                    cycleMsg.innerText = '🎁 奖品池已刷新 · 新轮开始 🎁';
+                    setTimeout(() => cycleMsg.innerText = '🔄 到期重置·新奖品池 🔄', 2500);
+                } else {
+                    const secs = Math.floor(diff/1000) % 60;
+                    const mins = Math.floor(diff/1000/60) % 60;
+                    const hours = Math.floor(diff/1000/60/60) % 24;
+                    const days = Math.floor(diff/1000/60/60/24);
+                    flipDays.innerText = days < 10 ? '0'+days : days;
+                    flipHours.innerText = hours < 10 ? '0'+hours : hours;
+                    flipMins.innerText = mins < 10 ? '0'+mins : mins;
+                    flipSecs.innerText = secs < 10 ? '0'+secs : secs;
+                }
+                requestAnimationFrame(updateFlipClock);
+            }
+            updateFlipClock();
+
+            // 跨日检测 (每分钟)
+            setInterval(() => {
+                const oldDate = userData.lastResetDate;
+                resetIfNewDay();
+                if (oldDate !== userData.lastResetDate) {
+                    refreshUI();
+                    fireCelebration(); // 新的一天放礼花
+                }
+            }, 60000);
+
+            // 初始渲染
+            refreshUI();
+
+            // 启动时小小气氛
+            setTimeout(() => { dropConfetti(); }, 200);
+        })();
+    </script>
+</body>
+</html>
