@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>火线跳跃 · 障碍抽奖</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 火辣科技风背景：黑红渐变 + 动态网格 + 流动光效 */
+        body {
+            min-height: 100vh;
+            background: #0a0505;
+            background-image: 
+                linear-gradient(45deg, #ff2800 0%, #b01c0e 30%, #1a0500 80%),
+                repeating-linear-gradient(0deg, rgba(255, 60, 0, 0.3) 0px, transparent 2px, transparent 8px, rgba(255, 200, 0, 0.2) 10px),
+                repeating-linear-gradient(90deg, rgba(255, 100, 0, 0.4) 0px, transparent 3px, transparent 12px, #ff400020 15px);
+            background-blend-mode: overlay, screen, normal;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            font-family: 'Segoe UI', 'Arial Black', 'Impact', 'Roboto', sans-serif;
+            animation: bgGridMove 8s infinite linear;
+        }
+
+        @keyframes bgGridMove {
+            0% { background-position: 0 0, 0 0, 0 0; }
+            100% { background-position: 0 0, 40px 40px, 60px 60px; }
+        }
+
+        /* 浮动霓虹光晕 */
+        body::before {
+            content: "";
+            position: fixed;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: radial-gradient(circle at 30% 40%, #ff5e0022, transparent 40%),
+                        radial-gradient(circle at 80% 70%, #ff2200aa, transparent 50%);
+            animation: huePulse 5s infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes huePulse {
+            0% { opacity: 0.4; filter: hue-rotate(0deg); }
+            100% { opacity: 0.9; filter: hue-rotate(15deg); }
+        }
+
+        /* 主卡片——燃烧的金属质感 */
+        .game-container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 800px;
+            background: #1f100c;
+            background: linear-gradient(145deg, #3f1c14, #1f0802);
+            border: 4px solid #ff5e2e;
+            border-radius: 60px 60px 40px 40px;
+            padding: 25px 20px 30px;
+            box-shadow: 0 0 40px #ff2a00, 0 20px 30px #510000, inset 0 0 30px #ff7b3a;
+            backdrop-filter: blur(2px);
+        }
+
+        /* 火辣标题 */
+        .hot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #2e0b00;
+            padding: 15px 25px;
+            border-radius: 80px;
+            border: 2px solid #ff6a37;
+            box-shadow: 0 0 30px #ff4d1c;
+            margin-bottom: 20px;
+        }
+        .game-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: #ffc896;
+            text-shadow: 0 0 15px #ff4000, 4px 4px 0 #a02200;
+            letter-spacing: 4px;
+        }
+        .hot-chip {
+            background: #ff3300;
+            color: #ffefb0;
+            font-size: 2rem;
+            font-weight: bold;
+            padding: 8px 30px;
+            border-radius: 60px;
+            box-shadow: 0 0 25px #ffbb33, 0 6px 0 #832000;
+            border: 2px solid #ffb482;
+        }
+
+        /* 跳跃游戏画板——火辣障碍 */
+        .game-canvas-area {
+            background: #2f140e;
+            border-radius: 40px;
+            padding: 15px;
+            border: 3px solid #ff6723;
+            box-shadow: inset 0 0 30px #ff2200, 0 15px 0 #731e00;
+            margin-bottom: 20px;
+        }
+        #jumpCanvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            background: #130605;
+            background-image: linear-gradient(0deg, #ff4d1c22 0%, #ffb56b22 100%),
+                              repeating-linear-gradient(45deg, #ff8c42 0px, #ff8c42 2px, transparent 2px, transparent 12px);
+            border-radius: 30px;
+            border: 3px solid #ff9666;
+            cursor: pointer;
+            box-shadow: 0 0 40px #ff2b00;
+        }
+
+        /* 抽奖信息 + 手气展示 */
+        .prize-dashboard {
+            background: #1f0a00;
+            border-radius: 50px;
+            padding: 18px 20px;
+            border: 2px solid #ff7633;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 15px 0 10px;
+            box-shadow: 0 8px 0 #a03200, 0 0 30px #ff2200;
+        }
+        .chance-badge {
+            background: #ff2800;
+            font-size: 2rem;
+            font-weight: 900;
+            padding: 10px 25px;
+            border-radius: 40px;
+            color: #ffeca2;
+            text-shadow: 0 0 10px #ffd900;
+            box-shadow: inset 0 -5px 0 #941f00, 0 6px 0 #731100;
+        }
+        .prize-slot {
+            background: #0e0300;
+            font-size: 1.9rem;
+            padding: 12px 35px;
+            border-radius: 40px;
+            border: 3px solid #ff984f;
+            color: #ffdcaa;
+            font-weight: bold;
+            min-width: 180px;
+            text-align: center;
+            box-shadow: inset 0 0 20px #ff7b2e;
+        }
+
+        /* 跳一跳提示 */
+        .action-hint {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 10px 0 20px;
+            color: #ffb38b;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-shadow: 0 0 15px red;
+        }
+        .action-hint span {
+            background: #3f1a0b;
+            padding: 10px 30px;
+            border-radius: 40px;
+            border: 2px solid #ff944d;
+            box-shadow: 0 0 20px #ff4116;
+        }
+
+        /* 底部科技店铺 + 吉祥话(火辣版) */
+        .fiery-footer {
+            background: #230b01;
+            border-radius: 50px 50px 30px 30px;
+            padding: 20px 20px 18px;
+            border: 2px solid #ff8040;
+            box-shadow: 0 12px 0 #621d00, inset 0 0 40px #ff6a2e;
+            margin-top: 15px;
+        }
+        .hot-shop {
+            font-size: 2rem;
+            font-weight: 900;
+            text-align: center;
+            color: #ffd296;
+            text-shadow: 0 0 20px #ff5e00, 2px 2px 0 #9b2800;
+            letter-spacing: 3px;
+        }
+        .fiery-words {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0 15px;
+        }
+        .fiery-words span {
+            background: #ff3300;
+            color: #fff2c0;
+            padding: 10px 25px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 40px;
+            border: 3px solid #ffae70;
+            box-shadow: 0 0 20px #ffb347;
+            text-shadow: 2px 2px 0 #5f2600;
+        }
+        .shop-address {
+            text-align: center;
+            color: #ffae70;
+            font-size: 1.3rem;
+            border-top: 2px solid #f55;
+            padding-top: 16px;
+            font-weight: 600;
+        }
+        .screenshot-reminder {
+            background: #d02c0c;
+            color: #ffebb0;
+            padding: 15px 10px;
+            font-size: 2rem;
+            font-weight: 900;
+            text-align: center;
+            border-radius: 60px;
+            margin: 15px 0 -10px;
+            border: 3px solid #ffbc7a;
+            box-shadow: 0 0 35px #ff7b2e;
+            animation: snapFlash 1.3s infinite;
+        }
+        @keyframes snapFlash {
+            0% { background: #d50000; }
+            50% { background: #ff4800; text-shadow: 0 0 25px gold; }
+        }
+
+        /* 重置按钮 */
+        .reset-btn {
+            background: #ff6500;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #1e0700;
+            border-bottom: 8px solid #961d00;
+            width: fit-content;
+            margin: 10px auto 0;
+            cursor: pointer;
+            transition: 0.05s linear;
+            box-shadow: 0 0 30px #ff0d00;
+        }
+        .reset-btn:active {
+            transform: translateY(5px);
+            border-bottom-width: 3px;
+        }
+
+        /* 提示 */
+        .audio-hint {
+            color: #ffaa66;
+            text-align: center;
+            margin-top: 10px;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 火辣顶栏 系统时间稍下融入 -->
+        <div class="hot-header">
+            <div class="game-title">🔥 障碍火心跳 🔥</div>
+            <div class="hot-chip" id="chanceDisplay">❤️ 3</div>
+        </div>
+
+        <!-- 游戏画布: 跳跃过障碍 -->
+        <div class="game-canvas-area">
+            <canvas id="jumpCanvas" width="700" height="300"></canvas>
+        </div>
+
+        <!-- 抽奖反馈区域 + 剩余机会 -->
+        <div class="prize-dashboard">
+            <div class="chance-badge" id="remainChances">3 次抽奖</div>
+            <div class="prize-slot" id="prizeDisplay">🎲 点击起跳</div>
+        </div>
+
+        <!-- 操作提示: 点击画面跳跃 弹跳抽奖 -->
+        <div class="action-hint">
+            <span>👇 戳画面 👇</span>
+            <span>🔥 跳过障碍抽奖 🔥</span>
+        </div>
+
+        <!-- 系统时间 + 凭截屏优惠 (整合一起) -->
+        <div style="background: #2a0d02; border-radius: 80px; padding: 18px 20px; border: 2px solid #ff7433; margin: 15px 0; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 2.2rem; font-family: monospace; color: #ffb48a; text-shadow: 0 0 10px #ff7b2e;" id="liveClock">--:--:--</span>
+            <span style="background: #fd4600; padding: 8px 25px; border-radius: 40px; color: #fff5c6; font-weight: 900; font-size: 1.5rem; box-shadow: 0 0 20px #ffc107;">📸 截屏立减</span>
+        </div>
+
+        <!-- 底部店铺+火辣吉祥话 -->
+        <div class="fiery-footer">
+            <div class="hot-shop">🏮 火舞炭烧 · 总店 🏮</div>
+            <div class="fiery-words">
+                <span>红红火火</span>
+                <span>越跳越旺</span>
+                <span>日进斗金</span>
+                <span>鸿运当头</span>
+                <span>暴富辣</span>
+            </div>
+            <div class="shop-address">
+                🔥 烧烤大道 1888 号 · 火焰大厦 🔥
+            </div>
+        </div>
+
+        <!-- 截屏大字提醒 -->
+        <div class="screenshot-reminder">
+            📸 凭此截屏 到店送烤串 📸
+        </div>
+
+        <!-- 重置按钮 (再来一局) -->
+        <div style="display: flex; justify-content: center;">
+            <button class="reset-btn" id="resetGame">🔥 再火一把 · 重置 🔥</button>
+        </div>
+        <div class="audio-hint">⚡ 点击跳跃即有火辣音效+粒子 ⚡</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 画布与弹跳物理 ----------
+            const canvas = document.getElementById('jumpCanvas');
+            const ctx = canvas.getContext('2d');
+            const width = canvas.width = 700;  // 固定宽高
+            const height = canvas.height = 300;
+
+            // 玩家属性
+            let player = {
+                x: 120,
+                y: 210,          // 地面高度210 (y向下)
+                width: 22,
+                height: 32,
+                vy: 0,
+                gravity: 0.5,
+                jumpPower: -11,
+                grounded: true
+            };
+
+            // 障碍物
+            let obstacles = [];
+            let frame = 0;
+            const obstacleInterval = 70;  // 帧数间隔生成
+            const obstacleSpeed = 4.5;
+
+            // 游戏状态
+            let gameOver = false;
+            let chances = 3;                // 剩余抽奖次数 (最多3次)
+            let currentPrize = '🏆 等待跳跃';
+            let canWinPrize = false;        // 是否在安全跳过障碍后触发抽奖(每次障碍通过只触发一次)
+            let passedObstacleThisFrame = false; // 用于防止一次跳过多重触发
+
+            // 奖品池 (火辣风格)
+            const prizePool = [
+                '🔥 火焰牛排', '🌶️ 辣王挑战券', '🍢 十串霸王筋', 
+                '🧧 88元红包', '🍺 火啤一扎', '🎫 免单机会',
+                '🥩 和牛券', '🔥 火辣大礼包'
+            ];
+
+            // 界面元素
+            const chanceDisplay = document.getElementById('chanceDisplay');
+            const remainChancesSpan = document.getElementById('remainChances');
+            const prizeDisplay = document.getElementById('prizeDisplay');
+
+            // 重置游戏状态
+            function resetGame() {
+                player.y = 210;
+                player.vy = 0;
+                player.grounded = true;
+                obstacles = [];
+                gameOver = false;
+                chances = 3;
+                canWinPrize = false;
+                passedObstacleThisFrame = false;
+                currentPrize = '🏁 重新开始';
+                prizeDisplay.innerText = currentPrize;
+                chanceDisplay.innerText = '❤️ 3';
+                remainChancesSpan.innerText = '3 次抽奖';
+                frame = 0;
+            }
+
+            // 跳跃 (点击触发)
+            function jump() {
+                if (gameOver) return;
+                // 只有在地面才能跳
+                if (player.grounded) {
+                    player.vy = player.jumpPower;
+                    player.grounded = false;
+                    // 每次跳跃都放个简单的音效提醒 (用Web Audio)
+                    playFirePop();
+                    spawnParticles('jump');  // 跳跃粒子
+                }
+            }
+
+            // ---------- 粒子特效 (火辣火星) ----------
+            let particles = [];
+            function spawnParticles(type) {
+                for (let i=0; i<12; i++) {
+                    particles.push({
+                        x: player.x + player.width/2,
+                        y: player.y + player.height/2,
+                        vx: (Math.random()-0.5)*6,
+                        vy: (Math.random()-1)*5 - 2,
+                        life: 1.0,
+                        color: `hsl(${Math.random()*30 + 10}, 100%, 60%)` // 红橙色
+                    });
+                }
+            }
+
+            function spawnHitParticles(x, y) {
+                for (let i=0; i<20; i++) {
+                    particles.push({
+                        x: x, y: y,
+                        vx: (Math.random()-0.5)*10,
+                        vy: (Math.random()-1)*8,
+                        life: 1.2,
+                        color: `hsl(${Math.random()*20 + 350}, 100%, 65%)`
+                    });
+                }
+            }
+
+            // 音频上下文 播放简单嘟嘟(火辣提示)
+            let audioCtx = null;
+            function initAudio() {
+                if (audioCtx) return;
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                } catch(e) {}
+            }
+            function playFirePop() {
+                if (!audioCtx) initAudio();
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(340, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now+0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now+0.2);
+                osc.connect(gain).connect(audioCtx.destination);
+                osc.start(now); osc.stop(now+0.2);
+            }
+            function playWinSound() {
+                if (!audioCtx) initAudio();
+                if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                if (!audioCtx || audioCtx.state !== 'running') return;
+                const now = audioCtx.currentTime;
+                const osc1 = audioCtx.createOscillator();
+                const gain1 = audioCtx.createGain();
+                osc1.frequency.setValueAtTime(880, now);
+                osc1.frequency.exponentialRampToValueAtTime(440, now+0.2);
+                gain1.gain.setValueAtTime(0.2, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now+0.3);
+                osc1.connect(gain1).connect(audioCtx.destination);
+                osc1.start(now); osc1.stop(now+0.3);
+                // 第二个音
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.frequency.setValueAtTime(540, now+0.1);
+                osc2.frequency.exponentialRampToValueAtTime(880, now+0.25);
+                gain2.gain.setValueAtTime(0.15, now+0.1);
+                gain2.gain.exponentialRampToValueAtTime(0.01, now+0.35);
+                osc2.connect(gain2).connect(audioCtx.destination);
+                osc2.start(now+0.1); osc2.stop(now+0.4);
+            }
+
+            // ---------- 抽奖逻辑 ----------
+            function grantPrize() {
+                if (chances <= 0 || gameOver) return;
+                // 随机抽取
+                const prize = prizePool[Math.floor(Math.random() * prizePool.length)];
+                currentPrize = prize;
+                prizeDisplay.innerText = prize;
+                chances--;
+                chanceDisplay.innerText = `❤️ ${chances}`;
+                remainChancesSpan.innerText = `${chances} 次抽奖`;
+                // 播放欢快音效
+                playWinSound();
+                // 彩带/火星粒子大量
+                for (let i=0; i<30; i++) {
+                    particles.push({
+                        x: width/2 + (Math.random()-0.5)*200,
+                        y: height/2,
+                        vx: (Math.random()-0.5)*8,
+                        vy: (Math.random()-1)*6,
+                        life: 1.0,
+                        color: `hsl(${Math.random()*60 + 20}, 100%, 60%)`
+                    });
+                }
+            }
+
+            // ---------- 更新画布 ----------
+            function update() {
+                if (gameOver) {
+                    draw();
+                    requestAnimationFrame(update);
+                    return;
+                }
+
+                // 物理跳跃
+                player.vy += player.gravity;
+                player.y += player.vy;
+
+                // 地板碰撞
+                if (player.y >= 210) {
+                    player.y = 210;
+                    player.vy = 0;
+                    player.grounded = true;
+                } else {
+                    player.grounded = false;
+                }
+
+                // 移动障碍物 + 碰撞检测
+                passedObstacleThisFrame = false;
+                for (let i = obstacles.length - 1; i >= 0; i--) {
+                    const obs = obstacles[i];
+                    obs.x -= obstacleSpeed;
+
+                    // 碰撞检测 (玩家和障碍)
+                    if (!gameOver) {
+                        const playerRect = { x: player.x, y: player.y, w: player.width, h: player.height };
+                        const obsRect = { x: obs.x, y: obs.y - obs.h, w: obs.w, h: obs.h }; // obs.y 是底边坐标
+                        if (playerRect.x < obsRect.x + obsRect.w &&
+                            playerRect.x + playerRect.w > obsRect.x &&
+                            playerRect.y < obsRect.y + obsRect.h &&
+                            playerRect.y + playerRect.h > obsRect.y) {
+                            // 碰撞！游戏结束
+                            gameOver = true;
+                            spawnHitParticles(obsRect.x + obsRect.w/2, obsRect.y - obsRect.h/2);
+                            playFirePop(); // 失败音
+                            currentPrize = '💥 撞车啦';
+                            prizeDisplay.innerText = currentPrize;
+                        }
+                    }
+
+                    // 当障碍物完全通过玩家左侧 (并且未标记通过) 且玩家存活且未gameover，并且障碍物在玩家后面
+                    if (!gameOver && !passedObstacleThisFrame && obs.x + obs.w < player.x && !obs.passed) {
+                        obs.passed = true; // 标记已通过，防止重复
+                        passedObstacleThisFrame = true;
+                        // 成功跳过障碍, 抽奖!
+                        grantPrize();
+                    }
+
+                    // 移除屏幕外的障碍
+                    if (obs.x + obs.w < 0) {
+                        obstacles.splice(i, 1);
+                    }
+                }
+
+                // 生成新障碍
+                frame++;
+                if (frame % obstacleInterval === 0 && !gameOver) {
+                    const obsHeight = 20 + Math.floor(Math.random() * 30); // 20~50
+                    obstacles.push({
+                        x: width,
+                        y: 250,           // 地面高度250(地面在210, 障碍y是底边)
+                        w: 18,
+                        h: obsHeight,
+                        passed: false
+                    });
+                }
+
+                // 粒子更新
+                for (let i=particles.length-1; i>=0; i--) {
+                    let p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.08;
+                    p.life -= 0.01;
+                    if (p.life <= 0 || p.y > height+50) particles.splice(i,1);
+                }
+
+                draw();
+                requestAnimationFrame(update);
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                // 背景火焰网格
+                ctx.fillStyle = '#2f1008';
+                ctx.fillRect(0, 0, width, height);
+                // 发光线条
+                ctx.strokeStyle = '#ff5e2e';
+                ctx.lineWidth = 2;
+                for (let i=0; i<width; i+=40) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i-20, height);
+                    ctx.strokeStyle = '#ff5e2e30';
+                    ctx.stroke();
+                }
+
+                // 画地面
+                ctx.fillStyle = '#ff6523';
+                ctx.fillRect(0, 230, width, 8);
+                ctx.fillStyle = '#ff2800';
+                ctx.fillRect(0, 238, width, 5);
+                ctx.shadowColor = '#ff3300';
+                ctx.shadowBlur = 20;
+
+                // 画障碍 (燃烧的柱子)
+                obstacles.forEach(obs => {
+                    ctx.fillStyle = '#ff2d00';
+                    ctx.shadowBlur = 25;
+                    ctx.shadowColor = '#ff9900';
+                    ctx.fillRect(obs.x, obs.y - obs.h, obs.w, obs.h);
+                    // 内焰
+                    ctx.fillStyle = '#ffb273';
+                    ctx.fillRect(obs.x+2, obs.y - obs.h + 2, obs.w-4, obs.h-4);
+                });
+
+                // 画玩家 (火辣火柴人)
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = '#ff7b2e';
+                // 身体 (红色)
+                ctx.fillStyle = '#ff5a1a';
+                ctx.beginPath();
+                ctx.roundRect(player.x, player.y, player.width, player.height, 8);
+                ctx.fill();
+                // 眼睛 白色高光
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(player.x+6, player.y+10, 4, 0, 2*Math.PI);
+                ctx.arc(player.x+16, player.y+10, 4, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#200';
+                ctx.beginPath();
+                ctx.arc(player.x+8, player.y+11, 2, 0, 2*Math.PI);
+                ctx.arc(player.x+18, player.y+11, 2, 0, 2*Math.PI);
+                ctx.fill();
+
+                // 粒子
+                particles.forEach(p => {
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, 6, 3);
+                    ctx.globalAlpha = 1;
+                });
+                ctx.shadowBlur = 0;
+            }
+
+            // 工具
+            ctx.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.moveTo(x + r, y);
+                this.lineTo(x + w - r, y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r);
+                this.lineTo(x + w, y + h - r);
+                this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                this.lineTo(x + r, y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r);
+                this.lineTo(x, y + r);
+                this.quadraticCurveTo(x, y, x + r, y);
+            };
+
+            // ---------- 事件绑定 ----------
+            canvas.addEventListener('click', (e) => {
+                e.stopPropagation();
+                jump();
+            });
+
+            // 触摸事件兼容
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                jump();
+            });
+
+            // 重置
+            document.getElementById('resetGame').addEventListener('click', () => {
+                resetGame();
+                particles = [];
+            });
+
+            // 系统时间
+            function updateTime() {
+                const now = new Date();
+                document.getElementById('liveClock').innerText = now.toLocaleTimeString('zh-CN', { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' });
+            }
+            setInterval(updateTime, 200);
+            updateTime();
+
+            // 启动游戏循环
+            resetGame();  // 初始状态
+            update();
+
+            // 音频初始化手势
+            document.body.addEventListener('touchstart', ()=>initAudio(), {once:true});
+            document.body.addEventListener('click', ()=>initAudio(), {once:true});
+            initAudio();
+
+            // 额外优化：游戏结束重置逻辑，保证剩余机会同步
+        })();
+    </script>
+</body>
+</html>
