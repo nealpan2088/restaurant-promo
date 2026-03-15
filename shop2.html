@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>本店福利 · 扫码领券</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: #f7f3e9;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 0;
+        }
+
+        /* 主要容器 - 模拟小程序卡片风格 */
+        .app-container {
+            max-width: 420px;
+            width: 100%;
+            background: #ffffff;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* 门店封面图区域 */
+        .store-cover {
+            height: 200px;
+            background: linear-gradient(145deg, #fb8b67, #f85a3a);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            color: white;
+            overflow: hidden;
+        }
+
+        .store-cover::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .store-cover::after {
+            content: '🍜';
+            position: absolute;
+            bottom: 10px;
+            right: 20px;
+            font-size: 80px;
+            opacity: 0.2;
+            transform: rotate(15deg);
+        }
+
+        .store-badge {
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 14px;
+            align-self: flex-start;
+            margin-bottom: 15px;
+            z-index: 2;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .store-name {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 5px;
+            z-index: 2;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .store-desc {
+            font-size: 16px;
+            opacity: 0.95;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .store-desc span {
+            background: rgba(0,0,0,0.2);
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 14px;
+        }
+
+        /* 扫码提示横幅 */
+        .scan-banner {
+            background: #fff9e6;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ffeecc;
+        }
+
+        .scan-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scan-icon {
+            background: #f85a3a;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+        }
+
+        .scan-text h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #8b6f4c;
+        }
+
+        .scan-text p {
+            font-size: 13px;
+            color: #b99e7c;
+        }
+
+        .scan-btn {
+            background: #f85a3a;
+            color: white;
+            padding: 10px 22px;
+            border-radius: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 5px 15px rgba(248,90,58,0.3);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .scan-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(248,90,58,0.4);
+        }
+
+        /* 优惠券区域 - 模拟真实卡券 */
+        .coupon-section {
+            padding: 20px;
+            background: #faf7f2;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .section-title h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #3a2c1b;
+            position: relative;
+            padding-left: 10px;
+        }
+
+        .section-title h2::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            bottom: 4px;
+            width: 4px;
+            background: linear-gradient(135deg, #f85a3a, #fb8b67);
+            border-radius: 4px;
+        }
+
+        .more-link {
+            color: #b99e7c;
+            font-size: 14px;
+        }
+
+        .coupon-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* 真实卡券设计 */
+        .coupon-card {
+            background: white;
+            border-radius: 16px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+            border: 1px solid #ffe5d0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .coupon-card:active {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(248,90,58,0.15);
+        }
+
+        /* 半圆镂空装饰 */
+        .coupon-card::before {
+            content: '';
+            position: absolute;
+            left: 100px;
+            top: -8px;
+            width: 16px;
+            height: 16px;
+            background: #faf7f2;
+            border-radius: 50%;
+            border: 1px solid #ffe5d0;
+            z-index: 2;
+        }
+
+        .coupon-card::after {
+            content: '';
+            position: absolute;
+            left: 100px;
+            bottom: -8px;
+            width: 16px;
+            height: 16px;
+            background: #faf7f2;
+            border-radius: 50%;
+            border: 1px solid #ffe5d0;
+            z-index: 2;
+        }
+
+        .coupon-left {
+            width: 100px;
+            background: linear-gradient(145deg, #fef6e8, #fff);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 5px;
+            border-right: 2px dashed #ffd8b5;
+            position: relative;
+        }
+
+        .coupon-price {
+            font-size: 32px;
+            font-weight: 800;
+            color: #f85a3a;
+            line-height: 1;
+        }
+
+        .coupon-price small {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .coupon-limit {
+            font-size: 11px;
+            color: #b99e7c;
+            margin-top: 4px;
+        }
+
+        .coupon-right {
+            flex: 1;
+            padding: 15px;
+            position: relative;
+        }
+
+        .coupon-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #3a2c1b;
+            margin-bottom: 4px;
+            padding-right: 30px;
+        }
+
+        .coupon-desc {
+            font-size: 13px;
+            color: #8b6f4c;
+            margin-bottom: 12px;
+        }
+
+        .coupon-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .coupon-stock {
+            background: #ffeee8;
+            color: #f85a3a;
+            padding: 4px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .receive-btn {
+            background: #f85a3a;
+            color: white;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 3px 8px rgba(248,90,58,0.3);
+        }
+
+        .receive-btn:active {
+            transform: scale(0.92);
+            background: #e04a2a;
+        }
+
+        .receive-btn.received {
+            background: #b99e7c;
+            box-shadow: none;
+            pointer-events: none;
+        }
+
+        .hot-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #ffd700;
+            color: #3a2c1b;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 30px;
+            transform: rotate(5deg);
+        }
+
+        /* 3D 转盘区域 - 重点打造逼真效果 */
+        .wheel-section {
+            padding: 20px 20px 30px;
+            background: linear-gradient(180deg, #faf7f2 0%, #f0e8dc 100%);
+            text-align: center;
+            border-radius: 30px 30px 0 0;
+            margin-top: 10px;
+        }
+
+        .wheel-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .wheel-title h3 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #3a2c1b;
+            background: linear-gradient(135deg, #f85a3a, #fb8b67);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .wheel-title span {
+            background: #ffeee8;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            color: #f85a3a;
+        }
+
+        /* 3D转盘容器 */
+        .wheel-3d-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 30px;
+            perspective: 1200px;
+            cursor: pointer;
+        }
+
+        /* 转盘本体 - 使用3D效果 */
+        .wheel-3d {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: rotateX(6deg) rotateY(0deg) rotateZ(0deg);
+            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 50%;
+            box-shadow: 
+                0 15px 30px rgba(0,0,0,0.3),
+                0 0 0 8px #f0d5b0,
+                0 0 0 12px #cfa776;
+        }
+
+        /* 转盘切片 - 8个扇形 */
+        .wheel-segment {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            top: 50%;
+            left: 50%;
+            margin-left: -70px;
+            margin-top: -70px;
+            background: conic-gradient(from 0deg, 
+                #FF6B6B 0deg 45deg, 
+                #FFD93D 45deg 90deg, 
+                #6BCB77 90deg 135deg, 
+                #4D96FF 135deg 180deg, 
+                #FFB347 180deg 225deg, 
+                #9D65C9 225deg 270deg, 
+                #FF8A5C 270deg 315deg, 
+                #F9ED69 315deg 360deg);
+            border-radius: 50%;
+            clip-path: polygon(50% 50%, 100% 50%, 100% 0%, 50% 0%);
+            transform-origin: left top;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            backface-visibility: hidden;
+            box-shadow: inset -2px -2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 定位每个切片 */
+        .seg1 { transform: rotate(0deg) translateX(-50%) translateY(-50%); }
+        .seg2 { transform: rotate(45deg) translateX(-50%) translateY(-50%); }
+        .seg3 { transform: rotate(90deg) translateX(-50%) translateY(-50%); }
+        .seg4 { transform: rotate(135deg) translateX(-50%) translateY(-50%); }
+        .seg5 { transform: rotate(180deg) translateX(-50%) translateY(-50%); }
+        .seg6 { transform: rotate(225deg) translateX(-50%) translateY(-50%); }
+        .seg7 { transform: rotate(270deg) translateX(-50%) translateY(-50%); }
+        .seg8 { transform: rotate(315deg) translateX(-50%) translateY(-50%); }
+
+        /* 转盘上的奖品图标 */
+        .prize-icon {
+            position: absolute;
+            font-size: 24px;
+            transform: translate(-50%, -50%) rotate(0deg);
+            top: 25%;
+            left: 75%;
+            color: white;
+            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .seg1 .prize-icon { transform: rotate(22.5deg) translate(20px, -20px); }
+        .seg2 .prize-icon { transform: rotate(67.5deg) translate(15px, -25px); }
+        .seg3 .prize-icon { transform: rotate(112.5deg) translate(5px, -25px); }
+        .seg4 .prize-icon { transform: rotate(157.5deg) translate(-5px, -25px); }
+        .seg5 .prize-icon { transform: rotate(202.5deg) translate(-15px, -20px); }
+        .seg6 .prize-icon { transform: rotate(247.5deg) translate(-20px, -10px); }
+        .seg7 .prize-icon { transform: rotate(292.5deg) translate(-20px, 5px); }
+        .seg8 .prize-icon { transform: rotate(337.5deg) translate(-15px, 15px); }
+
+        /* 转盘中心装饰 */
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) translateZ(20px);
+            width: 50px;
+            height: 50px;
+            background: radial-gradient(circle at 30% 30%, #ffd966, #b8860b);
+            border-radius: 50%;
+            border: 4px solid #fff2d7;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.3), inset 0 2px 5px rgba(255,255,200,0.8);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3a2c1b;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        /* 指针 */
+        .wheel-pointer {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%) rotate(180deg);
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 45px solid #f85a3a;
+            filter: drop-shadow(0 8px 5px rgba(0,0,0,0.2));
+            z-index: 30;
+        }
+
+        .wheel-pointer::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: -10px;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffd700, #b8860b);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        /* 抽奖按钮 */
+        .spin-btn {
+            background: linear-gradient(145deg, #f85a3a, #d43f1f);
+            color: white;
+            border: none;
+            padding: 18px 45px;
+            border-radius: 60px;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin: 10px auto 15px;
+            box-shadow: 0 15px 25px rgba(248,90,58,0.4), 0 5px 0 #a52f13;
+            transition: all 0.1s;
+            cursor: pointer;
+            position: relative;
+            z-index: 40;
+            width: fit-content;
+            border: 2px solid #ffb08e;
+        }
+
+        .spin-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 8px 15px rgba(248,90,58,0.3), 0 2px 0 #a52f13;
+        }
+
+        .spin-btn:disabled {
+            opacity: 0.7;
+            transform: translateY(5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2), 0 2px 0 #a52f13;
+            pointer-events: none;
+        }
+
+        /* 抽奖结果弹窗 */
+        .prize-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .popup-content {
+            background: white;
+            border-radius: 40px;
+            padding: 30px;
+            max-width: 320px;
+            text-align: center;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.5);
+            animation: popupShow 0.3s;
+            border: 4px solid #f85a3a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .popup-content::before {
+            content: '🎉';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 100px;
+            opacity: 0.1;
+            transform: rotate(20deg);
+        }
+
+        @keyframes popupShow {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .popup-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+
+        .popup-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #f85a3a;
+            margin-bottom: 10px;
+        }
+
+        .popup-prize {
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(145deg, #3a2c1b, #8b6f4c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 10px 0;
+            padding: 5px;
+        }
+
+        .popup-desc {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .popup-btn {
+            background: #f85a3a;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: 700;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        /* 用户福利栏 */
+        .user-benefits {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: white;
+            margin: 0 20px 20px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .benefit-item {
+            text-align: center;
+        }
+
+        .benefit-emoji {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .benefit-text {
+            font-size: 13px;
+            color: #8b6f4c;
+        }
+
+        /* 底部 */
+        .footer {
+            background: #2c1e12;
+            color: #cfa776;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .qr-note {
+            background: #3a2c1b;
+            padding: 8px;
+            border-radius: 30px;
+            color: #ffd8b5;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        /* 我的券入口 */
+        .my-coupon {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f85a3a;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px rgba(248,90,58,0.5);
+            z-index: 50;
+            border: 3px solid white;
+            font-size: 12px;
+            gap: 2px;
+        }
+
+        .my-coupon span {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app">
+        <!-- 门店封面 -->
+        <div class="store-cover">
+            <div class="store-badge">✨ 今日推荐 · 招牌烤鱼</div>
+            <div class="store-name">川香小馆</div>
+            <div class="store-desc">
+                <span>🔥 口味榜第1</span>
+                <span>🕒 11:00-22:00</span>
+            </div>
+        </div>
+
+        <!-- 扫码领券横幅 (模拟扫码) -->
+        <div class="scan-banner" id="scanBanner">
+            <div class="scan-left">
+                <div class="scan-icon">📱</div>
+                <div class="scan-text">
+                    <h3>扫码即领 新人礼包</h3>
+                    <p>已有 <span id="scanCount">1,284</span> 人领取</p>
+                </div>
+            </div>
+            <button class="scan-btn" id="scanBtn">立即扫码</button>
+        </div>
+
+        <!-- 优惠券列表 -->
+        <div class="coupon-section">
+            <div class="section-title">
+                <h2>门店专享券</h2>
+                <div class="more-link" onclick="showMyCoupons()">我的券 <span style="font-size:16px;">→</span></div>
+            </div>
+            <div class="coupon-list" id="couponList">
+                <!-- 优惠券1 -->
+                <div class="coupon-card" data-id="1">
+                    <div class="coupon-left">
+                        <div class="coupon-price">¥38</div>
+                        <div class="coupon-limit">满100可用</div>
+                    </div>
+                    <div class="coupon-right">
+                        <div class="coupon-title">招牌烤鱼立减券</div>
+                        <div class="coupon-desc">仅限堂食 · 每天18:00前可用</div>
+                        <div class="coupon-footer">
+                            <span class="coupon-stock">🔥 剩56张</span>
+                            <button class="receive-btn" onclick="receiveCoupon(this, 1)">立即领取</button>
+                        </div>
+                        <div class="hot-tag">热销</div>
+                    </div>
+                </div>
+
+                <!-- 优惠券2 -->
+                <div class="coupon-card" data-id="2">
+                    <div class="coupon-left">
+                        <div class="coupon-price">¥58</div>
+                        <div class="coupon-limit">满200可用</div>
+                    </div>
+                    <div class="coupon-right">
+                        <div class="coupon-title">双人套餐抵扣券</div>
+                        <div class="coupon-desc">含主食+饮品+小菜</div>
+                        <div class="coupon-footer">
+                            <span class="coupon-stock">🔥 剩32张</span>
+                            <button class="receive-btn" onclick="receiveCoupon(this, 2)">立即领取</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 优惠券3 -->
+                <div class="coupon-card" data-id="3">
+                    <div class="coupon-left">
+                        <div class="coupon-price">5折</div>
+                        <div class="coupon-limit">指定套餐</div>
+                    </div>
+                    <div class="coupon-right">
+                        <div class="coupon-title">毛血旺套餐5折</div>
+                        <div class="coupon-desc">原价128，现仅需64</div>
+                        <div class="coupon-footer">
+                            <span class="coupon-stock">⚡️ 剩18张</span>
+                            <button class="receive-btn" onclick="receiveCoupon(this, 3)">立即领取</button>
+                        </div>
+                        <div class="hot-tag">限量</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 用户福利栏 -->
+        <div class="user-benefits">
+            <div class="benefit-item">
+                <div class="benefit-emoji">🎁</div>
+                <div class="benefit-text">进店送酸梅汤</div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-emoji">🍚</div>
+                <div class="benefit-text">米饭免费续</div>
+            </div>
+            <div class="benefit-item">
+                <div class="benefit-emoji">🅿️</div>
+                <div class="benefit-text">停车2小时</div>
+            </div>
+        </div>
+
+        <!-- 3D幸运大转盘 -->
+        <div class="wheel-section">
+            <div class="wheel-title">
+                <h3>幸运大转盘</h3>
+                <span>每日3次机会</span>
+            </div>
+
+            <!-- 3D转盘 -->
+            <div class="wheel-3d-container" onclick="event.stopPropagation()">
+                <div class="wheel-3d" id="wheel3d">
+                    <!-- 8个扇形切片，每个切片上放置奖品图标 -->
+                    <div class="wheel-segment seg1">
+                        <span class="prize-icon">🍲</span>
+                    </div>
+                    <div class="wheel-segment seg2">
+                        <span class="prize-icon">🧋</span>
+                    </div>
+                    <div class="wheel-segment seg3">
+                        <span class="prize-icon">🍚</span>
+                    </div>
+                    <div class="wheel-segment seg4">
+                        <span class="prize-icon">💰</span>
+                    </div>
+                    <div class="wheel-segment seg5">
+                        <span class="prize-icon">🎫</span>
+                    </div>
+                    <div class="wheel-segment seg6">
+                        <span class="prize-icon">🍗</span>
+                    </div>
+                    <div class="wheel-segment seg7">
+                        <span class="prize-icon">🍺</span>
+                    </div>
+                    <div class="wheel-segment seg8">
+                        <span class="prize-icon">🙏</span>
+                    </div>
+                </div>
+                <div class="wheel-center">⭐</div>
+                <div class="wheel-pointer"></div>
+            </div>
+
+            <!-- 抽奖按钮 -->
+            <button class="spin-btn" id="spinWheelBtn" onclick="spinWheel()">免费抽奖</button>
+            <p style="color:#b99e7c; font-size:13px; margin-top:5px;">今日剩余 <span id="spinChance">3</span> 次机会</p>
+        </div>
+
+        <!-- 抽奖结果弹窗 -->
+        <div class="prize-popup" id="prizePopup">
+            <div class="popup-content">
+                <div class="popup-icon" id="prizeEmoji">🎉</div>
+                <div class="popup-title">恭喜获得</div>
+                <div class="popup-prize" id="prizeName">招牌烤鱼券</div>
+                <div class="popup-desc" id="prizeDesc">已存入我的卡包</div>
+                <button class="popup-btn" onclick="closePopup()">查看我的奖品</button>
+            </div>
+        </div>
+
+        <!-- 我的券入口（模拟） -->
+        <div class="my-coupon" onclick="showMyCoupons()">
+            <span>🎫</span>
+            我的券
+        </div>
+
+        <!-- 底部 -->
+        <div class="footer">
+            <p>川香小馆 · 地道川味</p>
+            <p>📞 185-1234-5678</p>
+            <p>📍 幸福路88号（近地铁站）</p>
+            <div class="qr-note">✨ 长按保存本页面 · 下次从相册扫码可直接进入 ✨</div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 数据存储 ====================
+        // 模拟本地存储，记录已领取的优惠券
+        let myCoupons = JSON.parse(localStorage.getItem('myCoupons')) || [];
+        // 模拟抽奖剩余次数
+        let spinChance = parseInt(localStorage.getItem('spinChance')) || 3;
+        // 上次抽奖时间（用于每日重置）
+        let lastSpinDate = localStorage.getItem('lastSpinDate') || '';
+
+        // 检查并重置每日抽奖次数
+        function checkAndResetSpinChance() {
+            const today = new Date().toDateString();
+            if (lastSpinDate !== today) {
+                spinChance = 3;
+                localStorage.setItem('spinChance', spinChance);
+                localStorage.setItem('lastSpinDate', today);
+            }
+            document.getElementById('spinChance').innerText = spinChance;
+        }
+
+        // 初始化
+        checkAndResetSpinChance();
+
+        // ==================== 扫码领券功能 ====================
+        document.getElementById('scanBtn').addEventListener('click', function() {
+            // 模拟扫码动画
+            this.innerHTML = '识别中...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                // 模拟扫码成功，自动领取新人券
+                const scanCount = document.getElementById('scanCount');
+                scanCount.innerText = (parseInt(scanCount.innerText.replace(',', '')) + 1).toLocaleString();
+                
+                // 弹出扫码成功提示
+                alert('✅ 扫码成功！新人礼包已发放到“我的券”');
+                
+                // 自动领取一张新人券（ID为4）
+                const newCoupon = {
+                    id: 'new',
+                    title: '新人专属满减券',
+                    value: '¥20',
+                    desc: '满80可用，有效期7天'
+                };
+                myCoupons.push(newCoupon);
+                localStorage.setItem('myCoupons', JSON.stringify(myCoupons));
+                
+                this.innerHTML = '立即扫码';
+                this.disabled = false;
+                
+                // 高亮显示我的券入口
+                document.querySelector('.my-coupon').style.animation = 'shake 0.5s';
+                setTimeout(() => {
+                    document.querySelector('.my-coupon').style.animation = '';
+                }, 500);
+            }, 800);
+        });
+
+        // ==================== 领券功能 ====================
+        function receiveCoupon(btn, couponId) {
+            if (btn.classList.contains('received')) return;
+            
+            // 按钮动画
+            btn.innerHTML = '领取中...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                // 领取成功
+                btn.innerHTML = '已领取';
+                btn.classList.add('received');
+                
+                // 根据ID获取优惠券信息
+                let couponInfo = {};
+                if (couponId === 1) couponInfo = {title: '招牌烤鱼立减券', value: '¥38'};
+                else if (couponId === 2) couponInfo = {title: '双人套餐抵扣券', value: '¥58'};
+                else if (couponId === 3) couponInfo = {title: '毛血旺套餐5折券', value: '5折'};
+                
+                // 存入我的券
+                myCoupons.push({
+                    id: couponId,
+                    title: couponInfo.title,
+                    value: couponInfo.value,
+                    desc: '有效期至2025-12-31'
+                });
+                localStorage.setItem('myCoupons', JSON.stringify(myCoupons));
+                
+                // 更新库存显示
+                const stockSpan = btn.closest('.coupon-card').querySelector('.coupon-stock');
+                const stockText = stockSpan.innerText;
+                const stockNum = parseInt(stockText.match(/\d+/)[0]);
+                if (stockNum > 0) {
+                    stockSpan.innerHTML = stockSpan.innerHTML.replace(/\d+/, stockNum - 1);
+                }
+                
+                // 提示
+                alert('🎉 优惠券已存入“我的券”');
+            }, 500);
+        }
+
+        // ==================== 3D转盘抽奖 ====================
+        let isSpinning = false;
+        let currentRotation = 0;
+        const wheel = document.getElementById('wheel3d');
+        
+        // 奖品配置 (按顺序对应8个扇形，从指针处顺时针)
+        const prizes = [
+            { name: '招牌烤鱼券', emoji: '🍲', desc: '价值38元，满100
