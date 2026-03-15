@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>店庆狂欢 · 火柴人跳跳乐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            user-select: none;
+        }
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #fda4af 0%, #f87171 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+        .card {
+            max-width: 500px;
+            width: 100%;
+            background: #fffbe6;
+            border-radius: 48px 48px 32px 32px;
+            box-shadow: 0 20px 30px rgba(180, 40, 40, 0.4), 0 8px 0 #b91c1c inset, 0 -4px 0 #b45309 inset;
+            border: 4px solid #fbbf24;
+            padding: 24px 20px 30px;
+            position: relative;
+        }
+        /* 飘旗装饰 */
+        .card::before {
+            content: "🎉";
+            font-size: 2.4rem;
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            transform: rotate(-15deg);
+            filter: drop-shadow(2px 6px 0 #a16207);
+        }
+        .card::after {
+            content: "🎊";
+            font-size: 2.4rem;
+            position: absolute;
+            top: -18px;
+            right: 20px;
+            transform: rotate(10deg);
+            filter: drop-shadow(2px 6px 0 #a16207);
+        }
+
+        /* 头部提示 + 时间区 */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fef9c3;
+            padding: 12px 18px;
+            border-radius: 60px;
+            border: 3px solid #d97706;
+            margin-bottom: 20px;
+            box-shadow: inset 0 2px 6px #fbbf24, 0 4px 0 #b45309;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #7b341e;
+        }
+        .hint {
+            background: #dc2626;
+            color: #fffbeb;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            box-shadow: 0 3px 0 #991b1b;
+        }
+        .system-time {
+            background: #1e293b;
+            color: #fde047;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            border: 2px solid #fbbf24;
+            box-shadow: 0 2px 0 #0f172a;
+        }
+
+        /* 游戏画板 */
+        .game-container {
+            background: #86b486;
+            background-image: radial-gradient(circle at 30% 40%, #a7d4a7 5%, transparent 15%),
+                              linear-gradient(0deg, #4b7b4b 0%, #6ba36b 100%);
+            border-radius: 40px;
+            border: 6px solid #3f621b;
+            box-shadow: 0 12px 0 #2d4a1e, inset 0 0 0 4px #cfe6b0;
+            padding: 20px 10px 10px;
+            margin-bottom: 18px;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            aspect-ratio: 400 / 200;
+            background: #b6e1b6;
+            border-radius: 30px;
+            border: 4px solid #527a3c;
+            cursor: pointer;
+            margin-bottom: 10px;
+            box-shadow: inset 0 -6px 0 #3f6730;
+        }
+        .lives-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 5px 15px;
+            background: #fffbeb;
+            border-radius: 50px;
+            border: 3px solid #b45309;
+            width: fit-content;
+            margin: 0 auto 8px;
+            box-shadow: 0 3px 0 #92400e;
+        }
+        .lives {
+            display: flex;
+            gap: 8px;
+        }
+        .heart {
+            font-size: 2rem;
+            line-height: 1;
+            filter: drop-shadow(0 3px 0 #991b1b);
+            transition: 0.1s;
+        }
+        .heart.used {
+            opacity: 0.2;
+            filter: grayscale(1);
+        }
+        .score-badge {
+            background: #b45309;
+            color: #fef9c3;
+            border-radius: 40px;
+            padding: 6px 18px;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* 抽奖区域 + 时间显示（二次确认） */
+        .prize-area {
+            background: #fef08a;
+            border-radius: 80px;
+            padding: 18px 15px;
+            border: 4px solid #e07c1f;
+            box-shadow: 0 6px 0 #b45309, inset 0 2px 10px #ffdd99;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .draw-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: white;
+            padding: 5px 20px 5px 10px;
+            border-radius: 60px;
+            border: 3px solid #ca8a04;
+        }
+        .draw-btn {
+            background: #eab308;
+            border: none;
+            font-size: 2rem;
+            padding: 6px 24px;
+            border-radius: 60px;
+            font-weight: 800;
+            color: #2d1f00;
+            box-shadow: 0 5px 0 #a16207, 0 6px 8px black(0,0,0,0.3);
+            transition: 0.07s linear;
+            cursor: pointer;
+            border: 2px solid #fde047;
+        }
+        .draw-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 1px 0 #a16207, 0 4px 8px black;
+        }
+        .draw-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            filter: grayscale(0.6);
+            transform: none;
+        }
+        .draw-times {
+            font-size: 1.6rem;
+            font-weight: bold;
+            background: #422006;
+            color: #fde047;
+            padding: 0 12px;
+            border-radius: 40px;
+            min-width: 70px;
+            text-align: center;
+        }
+        .time-on-prize {
+            font-family: 'Courier New', monospace;
+            background: #2b2b2b;
+            color: #9ef073;
+            padding: 8px 15px;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: 2px solid #facc15;
+            letter-spacing: 2px;
+        }
+
+        /* 截屏提示 */
+        .screenshot-note {
+            background: #fee4b8;
+            border: 3px dashed #e07c1f;
+            border-radius: 40px;
+            padding: 12px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #a1300b;
+            margin: 20px 0 20px;
+            box-shadow: 0 4px 0 #b95e1a;
+            transform: rotate(-0.5deg);
+        }
+        .screenshot-note span {
+            background: #fbbf24;
+            padding: 5px 20px;
+            border-radius: 40px;
+            display: inline-block;
+        }
+
+        /* 小店介绍 + 吉祥话 */
+        .shop-info {
+            background: #ffedd5;
+            border-radius: 30px 30px 50px 50px;
+            padding: 18px 16px 16px;
+            border: 4px solid #b45309;
+            box-shadow: inset 0 -4px 0 #dc843a, 0 8px 0 #7b341e;
+            text-align: center;
+        }
+        .shop-name {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #b6490e;
+            text-shadow: 3px 3px 0 #fdba74;
+            letter-spacing: 2px;
+        }
+        .shop-desc {
+            font-size: 1.1rem;
+            background: #fff7d6;
+            border-radius: 40px;
+            padding: 12px;
+            margin: 12px 0;
+            border: 2px solid #ea9024;
+            color: #5d3a1a;
+        }
+        .blessings {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #c2410c;
+            flex-wrap: wrap;
+        }
+        .blessings span {
+            background: #fde68a;
+            padding: 6px 15px;
+            border-radius: 60px;
+            border: 2px solid #b45309;
+            box-shadow: 0 4px 0 #92400e;
+        }
+
+        /* 小提示 */
+        .footnote {
+            text-align: center;
+            color: #642d0b;
+            margin-top: 16px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <!-- 上方提示 + 系统时间 -->
+    <div class="header-row">
+        <div class="hint">🎂 店庆截屏领奖 🎂</div>
+        <div class="system-time" id="liveTime">--:--:--</div>
+    </div>
+
+    <!-- 火柴人游戏区 -->
+    <div class="game-container">
+        <canvas id="gameCanvas" width="400" height="200"></canvas>
+        <!-- 生命值显示 -->
+        <div class="lives-bar">
+            <span style="font-weight:800;">❤️ 生命</span>
+            <div class="lives" id="livesContainer">
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+                <span class="heart">❤️</span>
+            </div>
+            <div class="score-badge" id="obstacleCounter">0 / 3</div>
+        </div>
+    </div>
+
+    <!-- 抽奖模块 + 旁边系统时间(强化显示) -->
+    <div class="prize-area">
+        <div class="draw-box">
+            <button class="draw-btn" id="drawBtn">🎁 抽奖</button>
+            <span class="draw-times" id="drawChances">0</span>
+        </div>
+        <div class="time-on-prize" id="prizeTime">00:00:00</div>
+    </div>
+
+    <!-- 凭截屏领取奖品 (醒目) -->
+    <div class="screenshot-note">
+        <span>📸 凭此截屏到店领取奖品 📸</span>
+    </div>
+
+    <!-- 餐饮小店铺介绍 + 吉祥话 -->
+    <div class="shop-info">
+        <div class="shop-name">🍜 老饕小馆 · 庆生宴 🍻</div>
+        <div class="shop-desc">
+            ⭐ 本店招牌：红烧牛肉面 · 秘制烤猪蹄 · 酸梅汤 ⭐<br>
+            地址：幸福路108号 · 店庆期间全场88折
+        </div>
+        <div class="blessings">
+            <span>🧧 客似云来</span>
+            <span>🧨 财源广进</span>
+            <span>🍊 大吉大利</span>
+        </div>
+    </div>
+    <div class="footnote">点击画面跳跃 (火柴人避开障碍)</div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 系统时间实时刷新 ----------
+        function updateClock() {
+            const now = new Date();
+            const hh = String(now.getHours()).padStart(2, '0');
+            const mm = String(now.getMinutes()).padStart(2, '0');
+            const ss = String(now.getSeconds()).padStart(2, '0');
+            const timeStr = `${hh}:${mm}:${ss}`;
+            document.getElementById('liveTime').innerText = timeStr;
+            document.getElementById('prizeTime').innerText = timeStr;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // ---------- 游戏全局变量 ----------
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 生命值 (三点生命)
+        let lives = 3;                     
+        // 障碍物计数 (每轮跳过的障碍物累加, 达到3重置并增加一次抽奖机会)
+        let currentObstacleStreak = 0;     
+        // 抽奖次数
+        let drawChances = 0;               
+
+        // 障碍物数组
+        let obstacles = [];
+        const OBSTACLE_WIDTH = 16;
+        const OBSTACLE_HEIGHT = 18;
+        const MIN_OBS_Y = 150;  // 地面高度 (canvas 200, 人物站140~150)
+        const GRAVITY = 0.5;
+        const JUMP_FORCE = -10;
+
+        // 火柴人物属性
+        let player = {
+            x: 70,
+            y: 150,          // 站在地面 y≈150 (0在上方)
+            vy: 0,
+            width: 15,
+            height: 28,
+            grounded: true
+        };
+
+        let gameOver = false;   // 生命为0时游戏停止
+        let animationFrame;
+        let frameCounter = 0;
+
+        // 障碍物生成参数
+        const OBSTACLE_SPAWN_RATE = 80;   // 大约每80帧生成一个
+        const BASE_SPEED = 3.5;
+
+        // DOM 元素
+        const livesHearts = document.querySelectorAll('.heart');
+        const obstacleSpan = document.getElementById('obstacleCounter');
+        const drawChancesSpan = document.getElementById('drawChances');
+        const drawBtn = document.getElementById('drawBtn');
+
+        // 更新UI: 生命红心, 障碍计数, 抽奖次数显示
+        function refreshUI() {
+            // 更新红心
+            livesHearts.forEach((heart, idx) => {
+                if (idx < lives) {
+                    heart.classList.remove('used');
+                } else {
+                    heart.classList.add('used');
+                }
+            });
+
+            // 障碍物计数显示 (当前/3)
+            obstacleSpan.innerText = `${currentObstacleStreak} / 3`;
+
+            // 抽奖次数
+            drawChancesSpan.innerText = drawChances;
+            if (drawChances > 0) {
+                drawBtn.classList.remove('disabled');
+            } else {
+                drawBtn.classList.add('disabled');
+            }
+        }
+
+        // 抽奖按钮点击
+        drawBtn.addEventListener('click', function() {
+            if (drawChances > 0 && !gameOver) {
+                drawChances--;
+                refreshUI();
+                // 模拟抽奖弹窗 (店庆气氛)
+                const prizes = ['🧧 折上折券', '🍗 招牌菜一份', '🧃 酸梅汤买一送一', '🎫 满50减10', '🍨 甜品一份', '🎁 小礼品'];
+                const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+                alert(`✨ 恭喜抽中：${randomPrize} ✨\n请截屏保存此页面到店兑换！`);
+            } else if (drawChances <= 0) {
+                alert('暂时没有抽奖机会，多跳过障碍吧！');
+            } else if (gameOver) {
+                alert('游戏结束，刷新页面重新挑战吧~');
+            }
+        });
+
+        // 重置障碍物计数并累加抽奖机会
+        function addDrawChanceByStreak() {
+            // 当累计跳过三个障碍，加一次抽奖机会，然后归零计数
+            if (currentObstacleStreak >= 3) {
+                drawChances++;
+                currentObstacleStreak = 0;   // 归零，重新计数
+            }
+            refreshUI();
+        }
+
+        // 游戏重置 (生命用尽后可以手动刷新, 这里提供软重启: 重新开始)
+        function restartGame() {
+            lives = 3;
+            currentObstacleStreak = 0;
+            drawChances = 0;
+            obstacles = [];
+            player.y = 150;
+            player.vy = 0;
+            player.grounded = true;
+            gameOver = false;
+            refreshUI();
+        }
+
+        // 碰撞检测 (矩形重叠)
+        function checkCollision(obs) {
+            return (player.x < obs.x + obs.w &&
+                    player.x + player.width > obs.x &&
+                    player.y < obs.y + obs.h &&
+                    player.y + player.height > obs.y);
+        }
+
+        // 更新游戏逻辑
+        function updateGame() {
+            if (gameOver) return;
+
+            // 1. 玩家物理
+            player.vy += GRAVITY;
+            player.y += player.vy;
+
+            // 地面碰撞 (y=150)
+            if (player.y >= 150) {
+                player.y = 150;
+                player.vy = 0;
+                player.grounded = true;
+            } else {
+                player.grounded = false;
+            }
+
+            // 2. 障碍物移动 + 碰撞 + 越界统计
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
+                obs.x -= BASE_SPEED;
+
+                // 碰撞检测 (仅当玩家存活且游戏未结束)
+                if (!gameOver && checkCollision(obs)) {
+                    // 生命减一，移除障碍物，并检查是否游戏结束
+                    lives--;
+                    if (lives < 0) lives = 0;
+                    obstacles.splice(i, 1);   // 障碍消失
+                    refreshUI();
+
+                    if (lives <= 0) {
+                        gameOver = true;
+                        // 游戏结束清空障碍
+                        obstacles = [];
+                        break;  // 跳出循环
+                    }
+                    continue; // 障碍已移除，继续下一个
+                }
+
+                // 如果障碍完全移出左侧屏幕 (x + width < 0) 且未被移除, 说明玩家成功躲过一个障碍
+                if (obs.x + obs.w < 0) {
+                    obstacles.splice(i, 1);
+                    if (!gameOver) {
+                        currentObstacleStreak++;
+                        refreshUI();
+                        // 检查是否达到3次，增加抽奖
+                        if (currentObstacleStreak >= 3) {
+                            // 注意：累加抽奖次数，然后归零计数在函数内
+                            addDrawChanceByStreak(); 
+                        }
+                    }
+                }
+            }
+
+            // 如果游戏结束，停止更新逻辑但继续渲染
+        }
+
+        // 生成障碍物 (每隔一些帧调用)
+        function spawnObstacleIfNeeded() {
+            if (gameOver) return;
+            // 随机生成，避免堆积
+            if (Math.random() < 0.02) {   // 每帧2%概率生成
+                obstacles.push({
+                    x: 400,
+                    y: 150,   // 地面高度
+                    w: OBSTACLE_WIDTH,
+                    h: OBSTACLE_HEIGHT
+                });
+            }
+        }
+
+        // 绘制一切
+        function drawScene() {
+            ctx.clearRect(0, 0, 400, 200);
+
+            // 画草地纹理
+            ctx.fillStyle = '#8cb87a';
+            ctx.fillRect(0, 160, 400, 40);
+            for (let i=0;i<20;i++) {
+                ctx.fillStyle = '#5d9440';
+                ctx.beginPath();
+                ctx.arc(i*25 + (frameCounter%20), 170, 4, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // 障碍物 (小木箱/石墩)
+            obstacles.forEach(obs => {
+                ctx.fillStyle = '#7a2e1a';
+                ctx.shadowColor = '#3d1e0e';
+                ctx.shadowBlur = 6;
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                ctx.fillStyle = '#b95b2a';
+                ctx.fillRect(obs.x+2, obs.y-3, obs.w-4, 5);
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = 'transparent';
+            });
+
+            // 绘制火柴人 (玩家)
+            // 头
+            ctx.beginPath();
+            ctx.arc(player.x+7, player.y-10, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = '#f7d96b';
+            ctx.fill();
+            ctx.strokeStyle = '#b75d1a';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            // 眼睛
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(player.x+4, player.y-13, 1.5, 0, 2*Math.PI);
+            ctx.arc(player.x+10, player.y-13, 1.5, 0, 2*Math.PI);
+            ctx.fill();
+            // 身体 (线)
+            ctx.beginPath();
+            ctx.moveTo(player.x+7, player.y-2);
+            ctx.lineTo(player.x+7, player.y+10);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#2b2118';
+            ctx.stroke();
+            // 胳膊
+            ctx.beginPath();
+            ctx.moveTo(player.x+7, player.y+2);
+            ctx.lineTo(player.x-2, player.y-2);
+            ctx.moveTo(player.x+7, player.y+2);
+            ctx.lineTo(player.x+16, player.y-2);
+            ctx.strokeStyle = '#3e2e1f';
+            ctx.stroke();
+            // 腿
+            ctx.beginPath();
+            ctx.moveTo(player.x+7, player.y+10);
+            ctx.lineTo(player.x-2, player.y+20);
+            ctx.moveTo(player.x+7, player.y+10);
+            ctx.lineTo(player.x+16, player.y+20);
+            ctx.stroke();
+
+            // 如果游戏结束，显示遮罩文字
+            if (gameOver) {
+                ctx.fillStyle = '#000000aa';
+                ctx.fillRect(0, 0, 400, 200);
+                ctx.font = 'bold 24px "Segoe UI"';
+                ctx.fillStyle = '#fef3c7';
+                ctx.shadowColor = '#b91c1c';
+                ctx.shadowBlur = 14;
+                ctx.fillText('💔 游戏结束', 90, 110);
+                ctx.shadowBlur = 0;
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillText('刷新页面再来一局', 110, 155);
+            }
+        }
+
+        // 主循环
+        function gameLoop() {
+            if (!gameOver) {
+                spawnObstacleIfNeeded();
+                updateGame();
+            }
+            drawScene();
+            frameCounter++;
+            animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        // 跳跃监听 (点击canvas)
+        canvas.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (gameOver) {
+                // 如果想软重启，可以调用 restartGame()，但为避免混淆，这里提示刷新
+                // 为了用户体验，轻按重启（可选的）
+                if (lives === 0) {
+                    restartGame();
+                }
+                return;
+            }
+            // 只有在地面才能跳
+            if (player.grounded) {
+                player.vy = JUMP_FORCE;
+                player.grounded = false;
+            }
+        });
+
+        // 触屏事件同样
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameOver) {
+                if (lives === 0) restartGame();
+                return;
+            }
+            if (player.grounded) {
+                player.vy = JUMP_FORCE;
+                player.grounded = false;
+            }
+        });
+
+        // 开始游戏循环
+        restartGame();  // 初始化状态
+        animationFrame = requestAnimationFrame(gameLoop);
+
+        // 清理animation (理论页面关闭自动终止)
+        window.addEventListener('beforeunload', ()=>{
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+        });
+
+        // 抽奖按钮旁边的时间一直在更新，无需额外操作
+        // 完成！
+    })();
+</script>
+</body>
+</html>
