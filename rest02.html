@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔥 红火餐饮·开门大吉 🔥</title>
+    <!-- 引入高德地图 JSAPI (使用2.0版本，需要密钥) 为了直接运行展示，使用固定的中心点，实际使用请替换key -->
+    <script src="https://webapi.amap.com/maps?v=2.0&key=325e7cfe2a69d43c9a4e8f8d9876d4b2&plugin=AMap.Scale"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #9f1f1f 0%, #d32f2f 40%, #ff6f00 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            position: relative;
+            overflow-x: hidden;
+            animation: bgPulse 4s infinite alternate ease-in-out;
+        }
+
+        /* 动感背景：飘浮的金币/火花 */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="8" fill="%23ffeb3b" opacity="0.5"/><circle cx="80" cy="60" r="12" fill="%23ffc107" opacity="0.4"/><circle cx="45" cy="85" r="10" fill="%23ff9800" opacity="0.6"/><polygon points="50,15 60,40 90,40 65,55 75,85 50,70 25,85 35,55 10,40 40,40" fill="%23ffd700" opacity="0.2"/></svg>');
+            background-size: 280px 280px;
+            animation: floatBg 18s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes bgPulse {
+            0% { background: linear-gradient(145deg, #b71c1c, #d32f2f, #ff8f00); }
+            100% { background: linear-gradient(145deg, #c62828, #f44336, #ffb300); }
+        }
+
+        @keyframes floatBg {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 241, 184, 0.85);
+            backdrop-filter: blur(6px);
+            border-radius: 48px 48px 32px 32px;
+            box-shadow: 0 30px 40px rgba(0,0,0,0.6), 0 0 0 8px #ffd966, 0 0 0 12px #b65f22;
+            padding: 24px 20px 32px;
+            position: relative;
+            z-index: 10;
+            border: 3px solid #ffb347;
+            transition: transform 0.2s;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.3) rotate(-5deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        /* 倒计时区域 */
+        .countdown-section {
+            background: #c53c1c;
+            border-radius: 80px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: inset 0 -4px 0 #7e2a10, 0 10px 20px #b1420e;
+            border: 2px solid #ffc107;
+            color: #ffecb3;
+            text-align: center;
+        }
+
+        .countdown-title {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #b33e1c;
+        }
+
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 10px;
+        }
+
+        .time-block {
+            background: #fbe9e7;
+            border-radius: 20px;
+            padding: 8px 0;
+            width: 70px;
+            box-shadow: 0 5px 0 #ab4b3a, 0 8px 12px black;
+            color: #a5261c;
+        }
+
+        .time-number {
+            font-size: 2.4rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 2px 5px #ffa270;
+        }
+
+        .time-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            background: #c43e2b;
+            color: #fff2b0;
+            border-radius: 40px;
+            padding: 4px;
+            margin: 4px 8px 0;
+        }
+
+        /* 简介+招牌 */
+        .intro-section {
+            background: #fbe9e7ee;
+            border-radius: 40px 40px 40px 12px;
+            padding: 20px 16px;
+            margin-bottom: 20px;
+            border: 3px dashed #ff8a5c;
+            box-shadow: 0 8px 0 #b7472a, 0 10px 20px #441e0e;
+            position: relative;
+        }
+
+        .shop-name {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #b71c1c;
+            text-shadow: 3px 3px 0 #ffbc6e;
+            line-height: 1.2;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .shop-name span {
+            font-size: 2.4rem;
+        }
+
+        .shop-desc {
+            color: #693b1c;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: #fff1b8b3;
+            padding: 8px 15px;
+            border-radius: 30px;
+            border-left: 6px solid #f57c00;
+        }
+
+        .must-try {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-around;
+        }
+
+        .dish-item {
+            background: #ffb74d;
+            flex: 1 0 90px;
+            border-radius: 50px 10px 50px 10px;
+            padding: 10px 4px;
+            text-align: center;
+            font-weight: bold;
+            color: #591f0a;
+            border: 3px solid #ffeb3b;
+            box-shadow: 0 5px 0 #b5651e;
+            transform: rotate(-1deg);
+            transition: 0.1s linear;
+        }
+        .dish-item:nth-child(2) { transform: rotate(1deg); background: #ff8a65; }
+        .dish-item:nth-child(3) { transform: rotate(-2deg); background: #ffb347; }
+        .dish-item span {
+            font-size: 1.8rem;
+            display: block;
+        }
+
+        /* 高德地图 */
+        .map-section {
+            background: #ffeed9;
+            border-radius: 50px 8px 50px 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 4px solid #d2691e;
+            box-shadow: 0 6px 0 #8b3f0c;
+        }
+        .map-title {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+            color: #ac3e0e;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+        #mapContainer {
+            width: 100%;
+            height: 150px;
+            border-radius: 30px 8px 30px 8px;
+            border: 3px solid #f1a23d;
+            background: #ccc2b0; /* fallback */
+        }
+
+        /* 优惠信息区域 */
+        .offers-section {
+            background: linear-gradient(45deg, #f9a825, #ffb300);
+            border-radius: 30px 30px 30px 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            border: 3px solid #fff2b5;
+            box-shadow: 0 8px 0 #b1450a, 0 10px 20px #281007;
+            color: #321a09;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .offer-tag {
+            background: #c0392b;
+            color: #ffd966;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-weight: 800;
+            border: 2px solid #ffbe5c;
+            text-shadow: 1px 1px 0 #943a26;
+            box-shadow: inset 0 -2px 0 #6b241a;
+        }
+        .offer-big {
+            font-size: 1.6rem;
+            background: gold;
+            color: #a52a2a;
+            border-radius: 20px;
+            padding: 6px 15px;
+        }
+
+        /* 互动游戏——三扇门 */
+        .game-section {
+            text-align: center;
+        }
+        .game-title {
+            font-size: 1.5rem;
+            background: #f00;
+            color: #ffeb3b;
+            padding: 8px 5px;
+            border-radius: 50px;
+            margin-bottom: 15px;
+            border: 3px solid #ffbb33;
+            box-shadow: 0 5px 0 #9c1d1d;
+            letter-spacing: 2px;
+            font-weight: 900;
+            text-shadow: 0 2px 0 #a32020;
+        }
+        .doors {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .door {
+            width: 95px;
+            height: 130px;
+            background: #d35400;
+            border-radius: 30px 8px 30px 8px;
+            border: 5px solid #ffc107;
+            box-shadow: 0 12px 0 #8e3b0b, 0 15px 15px black;
+            cursor: pointer;
+            transition: 0.07s linear;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 15px;
+            font-weight: 900;
+            color: #ffdd99;
+            text-shadow: 2px 2px 0 #b2430b;
+            font-size: 1.5rem;
+            position: relative;
+        }
+        .door:active {
+            transform: translateY(6px);
+            box-shadow: 0 6px 0 #8e3b0b, 0 10px 10px black;
+        }
+        .door::before {
+            content: "🔔";
+            font-size: 2.4rem;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .door span {
+            background: #ed9e2e;
+            width: 100%;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            font-size: 1rem;
+            padding: 4px 0;
+            color: #631e0a;
+        }
+
+        /* 粒子画布 (鞭炮彩带) */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* 锣鼓声触发的提示(视觉强化) */
+        .flash-effect {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 215, 0, 0.3);
+            pointer-events: none;
+            z-index: 9998;
+            animation: flash 0.3s ease-out;
+        }
+        @keyframes flash {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        footer {
+            color: #ffd58c;
+            text-align: center;
+            margin-top: 16px;
+            font-weight: bold;
+            text-shadow: 0 2px 0 #962020;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    <div class="container">
+        <!-- 倒计时 -->
+        <div class="countdown-section">
+            <div class="countdown-title">⏳ 红火开张倒计时 ⏳</div>
+            <div class="countdown-timer" id="countdown">
+                <div class="time-block"><div class="time-number" id="days">03</div><div class="time-label">天</div></div>
+                <div class="time-block"><div class="time-number" id="hours">08</div><div class="time-label">时</div></div>
+                <div class="time-block"><div class="time-number" id="minutes">15</div><div class="time-label">分</div></div>
+                <div class="time-block"><div class="time-number" id="seconds">22</div><div class="time-label">秒</div></div>
+            </div>
+        </div>
+
+        <!-- 小餐饮简介+招牌必点3个 -->
+        <div class="intro-section">
+            <div class="shop-name">
+                <span>🏮</span> 鸿运楼·红火开席 <span>🏮</span>
+            </div>
+            <div class="shop-desc">
+                🧧 三十年老灶 · 匠心川鲁 🧧 环境红火，包间热闹，聚餐首选
+            </div>
+            <div class="must-try">
+                <div class="dish-item"><span>🐟</span> 剁椒鱼头王</div>
+                <div class="dish-item"><span>🦐</span> 油焖黄金虾</div>
+                <div class="dish-item"><span>🐖</span> 鸿运红烧肉</div>
+            </div>
+        </div>
+
+        <!-- 高德地图定位信息 -->
+        <div class="map-section">
+            <div class="map-title">📍 鸿运楼·酒家 (鼓楼店)  <span style="font-size:1rem;">(点击地图导航)</span></div>
+            <div id="mapContainer"></div>
+            <div style="font-size:0.9rem; margin-top:5px; color:#994d1a;">北京市东城区鼓楼东大街121号</div>
+        </div>
+
+        <!-- 优惠信息展示 -->
+        <div class="offers-section">
+            <span class="offer-tag">🔥 满200减50</span>
+            <span class="offer-tag">🎁 送招牌冰粉</span>
+            <span class="offer-big">酒水买一送一</span>
+            <span class="offer-tag">🧧 整桌88折</span>
+        </div>
+
+        <!-- 互动游戏 三扇门 开奖动效 -->
+        <div class="game-section">
+            <div class="game-title">🥁 敲锣打鼓 开福门 赢大奖 🥁</div>
+            <div class="doors">
+                <div class="door" data-door="1"><span>开门红</span></div>
+                <div class="door" data-door="2"><span>吉祥门</span></div>
+                <div class="door" data-door="3"><span>如意门</span></div>
+            </div>
+            <div style="margin-top:10px; color: #a1301d;font-weight:800;">👇 猛戳任意门 👆 鞭炮齐鸣 彩带纷飞</div>
+        </div>
+        <footer>锣鼓喧天 · 鸿运当头</footer>
+    </div>
+
+    <script>
+        (function() {
+            // ----------------- 倒计时逻辑 (目标：3天后的同一时刻) -----------------
+            function updateCountdown() {
+                // 设定目标为当前时间 + 3天 (让倒计时一直有3天左右，喜庆)
+                const now = new Date();
+                const target = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000) + (5 * 60 * 60 * 1000) + 23 * 60 * 1000 + 45 * 1000); // 稍微偏移一点让数字动态
+                // 但为了让秒数变化漂亮，固定一个稍长的目标: 比如设定为今天之后第三天 20:00整? 直接用固定时间更显专业。
+                // 更好的: 使用固定开业时间 例如 2025-02-05 但用动态，避免过期: 设定为当前时间的明天20点？但我们需要"红火倒计时"感觉。
+                // 这里使用：设定目标为今晚12点 + 2天，保持每天动态。
+                const tonight = new Date(now);
+                tonight.setHours(20, 0, 0, 0); // 晚上8点开奖的感觉
+                if (now.getHours() >= 20) {
+                    tonight.setDate(tonight.getDate() + 1);
+                }
+                // 再额外加2天，使得倒计时大约2-3天左右。
+                const targetDate = new Date(tonight.getTime() + (2 * 24 * 60 * 60 * 1000));
+                
+                const diff = targetDate - now;
+                if (diff <= 0) {
+                    // 如果过时，重置到3天后
+                    targetDate.setDate(targetDate.getDate() + 3);
+                }
+                const totalSec = Math.floor(diff / 1000);
+                const days = Math.floor(totalSec / 86400);
+                const hours = Math.floor((totalSec % 86400) / 3600);
+                const minutes = Math.floor((totalSec % 3600) / 60);
+                const seconds = totalSec % 60;
+
+                document.getElementById('days').innerText = days.toString().padStart(2, '0');
+                document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
+                document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
+                document.getElementById('seconds').innerText = seconds.toString().padStart(2, '0');
+            }
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+
+            // ----------------- 高德地图初始化 (定位信息) -----------------
+            let map = null;
+            window.onload = function () {
+                if (typeof AMap !== 'undefined') {
+                    map = new AMap.Map('mapContainer', {
+                        zoom: 16,
+                        center: [116.397428, 39.90923], // 北京鼓楼附近 实际可按门店调整
+                        viewMode: '2D',
+                        mapStyle: 'amap://styles/whitesmoke' // 柔和色调
+                    });
+                    // 添加标记
+                    var marker = new AMap.Marker({
+                        position: [116.397428, 39.90923],
+                        title: '鸿运楼·鼓楼店'
+                    });
+                    map.add(marker);
+                    // 添加信息窗体
+                    var info = new AMap.InfoWindow({
+                        content: '<div style="color:#b13e1c;font-weight:bold;">鸿运楼·红火开席 <br>鞭炮齐鸣等你来</div>',
+                        offset: new AMap.Pixel(0, -30)
+                    });
+                    marker.on('click', function() {
+                        info.open(map, marker.getPosition());
+                    });
+                    // 添加比例尺
+                    map.addControl(new AMap.Scale());
+                } else {
+                    document.getElementById('mapContainer').innerHTML = '<div style="padding:20px;background:#ffe3b3;">地图加载中或暂不可用，门店地址如上。</div>';
+                }
+            };
+
+            // ----------------- 粒子系统 + 音效 (开奖动效) -----------------
+            const canvas = document.getElementById('particle-canvas');
+            let ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+            const MAX_PARTICLES = 160;
+
+            function resizeCanvas() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            // 粒子类 (鞭炮彩带)
+            class Particle {
+                constructor(x, y, isBoom = true) {
+                    this.x = x;
+                    this.y = y;
+                    this.vx = (Math.random() - 0.5) * 18;
+                    this.vy = (Math.random() - 0.5) * 18 - 6; // 向上炸开
+                    this.size = Math.random() * 8 + 4;
+                    this.color = `hsl(${Math.random() * 60 + 20}, 100%, 60%)`; // 红橙黄
+                    this.life = 1.0;
+                    this.decay = 0.01 + Math.random() * 0.02;
+                    this.isRibbon = Math.random() > 0.6; // 部分彩带状
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += 0.2; // 重力
+                    this.vx *= 0.99;
+                    this.vy *= 0.99;
+                    this.life -= this.decay;
+                }
+                draw(ctx) {
+                    ctx.globalAlpha = this.life * 0.9;
+                    if (this.isRibbon) {
+                        ctx.fillStyle = `hsl(${Math.random()*30 + 10}, 100%, 70%)`;
+                        ctx.fillRect(this.x, this.y, this.size * 0.8, this.size * 0.3);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size * 0.5, 0, Math.PI * 2);
+                        ctx.fillStyle = this.color;
+                        ctx.fill();
+                        // 加小亮点
+                        ctx.fillStyle = 'gold';
+                        ctx.beginPath();
+                        ctx.arc(this.x-2, this.y-2, this.size*0.2, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            function createExplosion(centerX, centerY) {
+                for (let i = 0; i < 40; i++) {
+                    particles.push(new Particle(centerX, centerY));
+                }
+                // 额外彩带
+                for (let i = 0; i < 20; i++) {
+                    let p = new Particle(centerX + (Math.random()-0.5)*60, centerY + (Math.random()-0.5)*40);
+                    p.vx = (Math.random()-0.5)*22;
+                    p.vy = (Math.random()-0.5)*22 - 5;
+                    p.isRibbon = true;
+                    p.color = `hsl(${Math.random()*80 + 20}, 100%, 65%)`;
+                    particles.push(p);
+                }
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, width, height);
+                // 混合模式让粒子更亮
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    particles[i].update();
+                    particles[i].draw(ctx);
+                    if (particles[i].life <= 0 || particles[i].y > height + 50) {
+                        particles.splice(i, 1);
+                    }
+                }
+                ctx.globalCompositeOperation = 'source-over';
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
+
+            // 音频上下文 (确保用户手势后播放)
+            let audioCtx = null;
+            function playGongAndDrum() {
+                if (!audioCtx) {
+                    try {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    } catch (e) {
+                        console.log('Web Audio API 不支持');
+                        return;
+                    }
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                // 播放合成锣鼓声: 一个低频锣 (振荡器) + 噪音鼓
+                const now = audioCtx.currentTime;
+
+                // 锣声 (金属感)
+                const osc1 = audioCtx.createOscillator();
+                osc1.type = 'square';
+                osc1.frequency.setValueAtTime(180, now);
+                osc1.frequency.exponentialRampToValueAtTime(80, now + 0.2);
+
+                const gainNode1 = audioCtx.createGain();
+                gainNode1.gain.setValueAtTime(0.3, now);
+                gainNode1.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc1.connect(gainNode1).connect(audioCtx.destination);
+                osc1.start(now);
+                osc1.stop(now + 0.5);
+
+                // 鼓声 (噪音)
+                const bufferSize = audioCtx.sampleRate * 0.2;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gainNode2 = audioCtx.createGain();
+                gainNode2.gain.setValueAtTime(0.2, now);
+                gainNode2.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                noise.connect(gainNode2).connect(audioCtx.destination);
+                noise.start(now);
+                noise.stop(now + 0.3);
+
+                // 加一个中频锣
+                const osc2 = audioCtx.createOscillator();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(300, now);
+                osc2.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+                const gainNode3 = audioCtx.createGain();
+                gainNode3.gain.setValueAtTime(0.15, now);
+                gainNode3.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc2.connect(gainNode3).connect(audioCtx.destination);
+                osc2.start(now);
+                osc2.stop(now + 0.5);
+            }
+
+            // 门点击事件
+            const doors = document.querySelectorAll('.door');
+            doors.forEach(door => {
+                door.addEventListener('click', function(e) {
+                    // 视觉闪光
+                    const flashDiv = document.createElement('div');
+                    flashDiv.className = 'flash-effect';
+                    document.body.appendChild(flashDiv);
+                    setTimeout(() => { flashDiv.remove(); }, 300);
+
+                    // 获取点击位置 (屏幕坐标) 产生爆炸中心
+                    const rect = this.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+                    createExplosion(centerX, centerY);
+                    // 再额外生成一些随机散射
+                    for (let i=0; i<10; i++) {
+                        setTimeout(() => {
+                            createExplosion(centerX + (Math.random()-0.5)*200, centerY + (Math.random()-0.5)*150);
+                        }, i*20);
+                    }
+
+                    // 播放音效 (必须由用户手势启动)
+                    try {
+                        playGongAndDrum();
+                    } catch (error) {
+                        console.log('音效出错, 但无碍喜庆');
+                    }
+
+                    // 给门增加抖动量
+                    this.style.transform = 'rotate(3deg) scale(0.95)';
+                    setTimeout(() => { this.style.transform = ''; }, 150);
+                });
+            });
+
+            // 手动初始化音频上下文以解锁iOS等 (用户第一次点击任意门就会播放, 上面已经处理)
+            // 为了稳妥，触摸任意地方尝试初始化AudioContext，但不播放
+            document.body.addEventListener('touchstart', function() {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            }, { once: true });
+            document.body.addEventListener('click', function() {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            }, { once: true });
+        })();
+    </script>
+</body>
+</html>
