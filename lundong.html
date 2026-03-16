@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🔥 炙焰烧烤·火爆开张 🔥</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #b64926 0%, #d64531 40%, #f09330 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            position: relative;
+            overflow-x: hidden;
+            animation: bgPulse 6s infinite alternate ease-in-out;
+        }
+
+        /* 动感背景：火星/辣椒/孜然颗粒 */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="20" r="6" fill="%23ff8c42" opacity="0.7"/><circle cx="80" cy="40" r="10" fill="%23ff4d4d" opacity="0.5"/><polygon points="50,10 58,30 80,30 63,45 70,70 50,55 30,70 37,45 20,30 42,30" fill="%23ffb347" opacity="0.4"/><rect x="65" cy="80" width="8" height="20" fill="%23d2691e" opacity="0.5" transform="rotate(25)"/></svg>');
+            background-size: 200px 200px;
+            animation: floatBg 16s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes bgPulse {
+            0% { background: linear-gradient(145deg, #b64926, #d64531, #f09330); }
+            100% { background: linear-gradient(145deg, #c0392b, #e67e22, #f39c12); }
+        }
+
+        @keyframes floatBg {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        .container {
+            max-width: 550px;
+            width: 100%;
+            background: rgba(255, 238, 186, 0.9);
+            backdrop-filter: blur(5px);
+            border-radius: 50px 50px 35px 35px;
+            box-shadow: 0 30px 40px rgba(0,0,0,0.7), 0 0 0 8px #ffb347, 0 0 0 12px #b94e1f;
+            padding: 22px 20px 10px 20px;
+            position: relative;
+            z-index: 10;
+            border: 3px solid #ffa726;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.3) rotate(-4deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0); }
+        }
+
+        /* 倒计时 */
+        .countdown-section {
+            background: #c0392b;
+            border-radius: 80px;
+            padding: 14px 16px;
+            margin-bottom: 22px;
+            box-shadow: inset 0 -4px 0 #832b1f, 0 10px 20px #b64926;
+            border: 2px solid #f39c12;
+            color: #ffecb3;
+            text-align: center;
+        }
+        .countdown-title {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            font-weight: bold;
+            text-shadow: 2px 2px 0 #9e2b1c;
+        }
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .time-block {
+            background: #fbe9e7;
+            border-radius: 20px;
+            padding: 6px 0;
+            width: 65px;
+            box-shadow: 0 5px 0 #ab4b3a, 0 8px 12px black;
+            color: #a5261c;
+        }
+        .time-number {
+            font-size: 2.2rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 2px 5px #ffa270;
+        }
+        .time-label {
+            font-size: 0.75rem;
+            font-weight: bold;
+            background: #c43e2b;
+            color: #fff2b0;
+            border-radius: 40px;
+            padding: 3px;
+            margin: 2px 6px 0;
+        }
+
+        /* 烧烤店招牌+简介 */
+        .intro-section {
+            background: #fbe9e7ee;
+            border-radius: 40px 40px 40px 12px;
+            padding: 18px 14px;
+            margin-bottom: 22px;
+            border: 3px dashed #ff8c42;
+            box-shadow: 0 8px 0 #b64926, 0 10px 20px #442112;
+        }
+        .shop-name {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #b64926;
+            text-shadow: 3px 3px 0 #ffbc6e;
+            line-height: 1.2;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .shop-name span { font-size: 2.2rem; }
+        .shop-desc {
+            color: #693b1c;
+            font-weight: 600;
+            margin-bottom: 14px;
+            background: #fff1b8b3;
+            padding: 6px 12px;
+            border-radius: 30px;
+            border-left: 6px solid #e67e22;
+            font-size: 0.95rem;
+        }
+        .must-try {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-around;
+        }
+        .dish-item {
+            background: #ff8c42;
+            flex: 1 0 90px;
+            border-radius: 50px 10px 50px 10px;
+            padding: 8px 2px;
+            text-align: center;
+            font-weight: bold;
+            color: #3f1a0a;
+            border: 3px solid #ffd966;
+            box-shadow: 0 5px 0 #b5511e;
+            transform: rotate(-1deg);
+        }
+        .dish-item:nth-child(2) { transform: rotate(1deg); background: #ff7043; }
+        .dish-item:nth-child(3) { transform: rotate(-2deg); background: #f57c00; }
+        .dish-item span { font-size: 1.6rem; display: block; }
+
+        /* 优惠信息 */
+        .offers-section {
+            background: linear-gradient(45deg, #e67e22, #f39c12);
+            border-radius: 30px 30px 30px 8px;
+            padding: 14px;
+            margin-bottom: 22px;
+            border: 3px solid #fff2b5;
+            box-shadow: 0 8px 0 #b64926, 0 10px 20px #281007;
+            color: #2c1205;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .offer-tag {
+            background: #c0392b;
+            color: #ffd966;
+            border-radius: 40px;
+            padding: 6px 16px;
+            font-weight: 800;
+            border: 2px solid #ffbe5c;
+            text-shadow: 1px 1px 0 #943a26;
+            box-shadow: inset 0 -2px 0 #6b241a;
+            font-size: 0.95rem;
+        }
+        .offer-big {
+            font-size: 1.5rem;
+            background: gold;
+            color: #a52a2a;
+            border-radius: 20px;
+            padding: 4px 14px;
+        }
+
+        /* 互动游戏——三扇门 */
+        .game-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .game-title {
+            font-size: 1.5rem;
+            background: #d35400;
+            color: #ffeb3b;
+            padding: 8px 5px;
+            border-radius: 50px;
+            margin-bottom: 12px;
+            border: 3px solid #ffbb33;
+            box-shadow: 0 5px 0 #9c1d1d;
+            font-weight: 900;
+            text-shadow: 0 2px 0 #a32020;
+        }
+        .click-counter {
+            background: #ffd835;
+            color: #ac2500;
+            font-size: 1.2rem;
+            padding: 5px 15px;
+            border-radius: 40px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            border: 2px solid #ff6f00;
+        }
+        .doors {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .door {
+            width: 95px;
+            height: 130px;
+            background: #d35400;
+            border-radius: 30px 8px 30px 8px;
+            border: 5px solid #ffc107;
+            box-shadow: 0 12px 0 #8e3b0b, 0 15px 15px black;
+            cursor: pointer;
+            transition: 0.05s linear;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 12px;
+            font-weight: 900;
+            color: #ffdd99;
+            text-shadow: 2px 2px 0 #b2430b;
+            font-size: 1.5rem;
+            position: relative;
+        }
+        .door:active {
+            transform: translateY(6px);
+            box-shadow: 0 6px 0 #8e3b0b, 0 10px 10px black;
+        }
+        .door::before {
+            content: "🔥";
+            font-size: 2.4rem;
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .door span {
+            background: #ed9e2e;
+            width: 100%;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+            font-size: 1rem;
+            padding: 4px 0;
+            color: #631e0a;
+        }
+
+        /* ===== 五重风格滚动评价区 ===== */
+        .reviews-zone {
+            width: 100%;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            background: #c0392b;
+            border-radius: 40px 40px 25px 25px;
+            padding: 16px 12px 16px 12px;
+            border: 4px solid #f39c12;
+            box-shadow: 0 -6px 0 #982d1a, 0 10px 20px #331007;
+        }
+        
+        .zone-title {
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #ffd966;
+            text-shadow: 3px 3px 0 #a1301d;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+        
+        /* 五个不同风格的滚动条 */
+        .review-row {
+            margin-bottom: 18px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 60px;
+            padding: 8px 6px;
+            border-left: 6px solid #f1c40f;
+            border-right: 6px solid #f1c40f;
+        }
+        .review-row:last-child {
+            margin-bottom: 5px;
+        }
+        
+        .row-label {
+            display: inline-block;
+            background: #ffb300;
+            color: #631e0a;
+            font-weight: 800;
+            padding: 4px 16px;
+            border-radius: 40px;
+            margin-left: 10px;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            border: 2px solid #ffe484;
+            box-shadow: 0 2px 0 #a05c15;
+        }
+        
+        .scroll-area {
+            width: 100%;
+            overflow: hidden;
+            background: #2b1106;
+            border-radius: 40px;
+            padding: 10px 0;
+            border: 2px solid #ff8c42;
+        }
+        
+        /* 风格1: 经典走马灯 (匀速) */
+        .marquee-classic {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollClassic 24s linear infinite;
+            padding-left: 100%;
+        }
+        @keyframes scrollClassic {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* 风格2: 快闪节奏 (快速 + 停顿效果) */
+        .marquee-fast {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollFast 18s ease-in-out infinite;
+            padding-left: 100%;
+        }
+        @keyframes scrollFast {
+            0% { transform: translateX(0); }
+            10% { transform: translateX(-10%); }
+            50% { transform: translateX(-60%); }
+            90% { transform: translateX(-90%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* 风格3: 弹跳感 (左右晃动) */
+        .marquee-bounce {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollBounce 20s cubic-bezier(0.25, 1.5, 0.5, 1) infinite;
+            padding-left: 100%;
+        }
+        @keyframes scrollBounce {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-20%); }
+            40% { transform: translateX(-40%) scale(1.02); }
+            60% { transform: translateX(-60%); }
+            80% { transform: translateX(-80%) scale(0.98); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* 风格4: 闪烁+变速 */
+        .marquee-blinking {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollBlink 22s step-start infinite;
+            padding-left: 100%;
+        }
+        @keyframes scrollBlink {
+            0% { transform: translateX(0); opacity: 1; }
+            25% { transform: translateX(-30%); opacity: 0.7; }
+            50% { transform: translateX(-60%); opacity: 1; }
+            75% { transform: translateX(-80%); opacity: 0.8; }
+            100% { transform: translateX(-100%); opacity: 1; }
+        }
+        
+        /* 风格5: 反向 + 彩色渐变 */
+        .marquee-reverse {
+            display: inline-block;
+            white-space: nowrap;
+            animation: scrollReverse 28s linear infinite;
+            padding-right: 100%;
+            direction: rtl;
+        }
+        @keyframes scrollReverse {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        
+        /* 评价项卡片 */
+        .review-badge {
+            display: inline-block;
+            background: #f39c12;
+            color: #3d1c07;
+            padding: 8px 25px;
+            margin-right: 25px;
+            border-radius: 40px 10px 40px 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border: 2px solid #ffe066;
+            box-shadow: 0 4px 0 #aa4e1c;
+            transform: rotate(0.5deg);
+        }
+        .review-badge span {
+            font-size: 1.4rem;
+            margin-right: 8px;
+        }
+        /* 不同风格微调色 */
+        .review-badge:nth-child(odd) { background: #ff7043; }
+        .review-badge:nth-child(3n) { background: #ffb347; }
+
+        /* 抽奖弹窗 */
+        .prize-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -70%);
+            background: #fff3cd;
+            border: 8px solid #ffb347;
+            border-radius: 60px 20px 60px 20px;
+            padding: 24px 30px;
+            box-shadow: 0 20px 30px black, 0 0 0 6px #ffd700;
+            z-index: 10000;
+            text-align: center;
+            color: #a1301d;
+            font-weight: 900;
+            font-size: 2.2rem;
+            animation: popWin 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+        @keyframes popWin {
+            0% { opacity: 0; transform: translate(-50%, -30%) scale(0.2); }
+            100% { opacity: 1; transform: translate(-50%, -70%) scale(1); }
+        }
+        .prize-popup small {
+            font-size: 1.2rem;
+            display: block;
+            color: #b1450a;
+        }
+
+        /* 粒子画布 */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .flash-effect {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 215, 0, 0.4);
+            pointer-events: none;
+            z-index: 9998;
+            animation: flash 0.3s ease-out;
+        }
+        @keyframes flash {
+            0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; }
+        }
+        footer {
+            color: #ffd58c;
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            text-shadow: 0 2px 0 #962020;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="container">
+        <!-- 倒计时 -->
+        <div class="countdown-section">
+            <div class="countdown-title">⏳ 炙焰烧烤 火爆开张 ⏳</div>
+            <div class="countdown-timer" id="countdown">
+                <div class="time-block"><div class="time-number" id="days">03</div><div class="time-label">天</div></div>
+                <div class="time-block"><div class="time-number" id="hours">08</div><div class="time-label">时</div></div>
+                <div class="time-block"><div class="time-number" id="minutes">15</div><div class="time-label">分</div></div>
+                <div class="time-block"><div class="time-number" id="seconds">22</div><div class="time-label">秒</div></div>
+            </div>
+        </div>
+
+        <!-- 烧烤店简介+招牌必点3个 -->
+        <div class="intro-section">
+            <div class="shop-name">
+                <span>🔥</span> 炙焰·烧烤酒肆 <span>🍖</span>
+            </div>
+            <div class="shop-desc">
+                🧂 自选鲜肉 · 炭火直烤 · 秘制蘸料 🧂 每晚驻唱，越夜越嗨
+            </div>
+            <div class="must-try">
+                <div class="dish-item"><span>🍗</span> 招牌羊排串</div>
+                <div class="dish-item"><span>🦐</span> 蒜蓉烤大虾</div>
+                <div class="dish-item"><span>🥩</span> 蜜汁五花肉</div>
+            </div>
+        </div>
+
+        <!-- 优惠信息 -->
+        <div class="offers-section">
+            <span class="offer-tag">🍻 啤酒买二送一</span>
+            <span class="offer-tag">🔥 满200减40</span>
+            <span class="offer-big">储值300送100</span>
+            <span class="offer-tag">🧧 周一至周四88折</span>
+        </div>
+
+        <!-- 互动游戏 -->
+        <div class="game-section">
+            <div class="game-title">🥩 敲炭攒好运 赢霸王餐 🥩</div>
+            <div class="click-counter" id="clickCounter">已敲 🔨 0 / 30~100 随机开奖</div>
+            <div class="doors">
+                <div class="door" data-door="1"><span>牛羊之门</span></div>
+                <div class="door" data-door="2"><span>海鲜之门</span></div>
+                <div class="door" data-door="3"><span>蔬菜之门</span></div>
+            </div>
+            <div style="margin-top:10px; color: #a1301d;font-weight:800;">👇 敲任意门攒次数，满30~100下跳出大奖 👆</div>
+        </div>
+        
+        <!-- ===== 五重风格滚动评价区 ===== -->
+        <div class="reviews-zone">
+            <div class="zone-title">🍖 撸串儿群众说好才是真的好 🍖</div>
+            
+            <!-- 风格1: 经典匀速滚动 -->
+            <div class="review-row">
+                <span class="row-label">🏮 经典老客评价 · 匀速滚动</span>
+                <div class="scroll-area">
+                    <div class="marquee-classic" id="marquee1"></div>
+                </div>
+            </div>
+            
+            <!-- 风格2: 快闪节奏 -->
+            <div class="review-row">
+                <span class="row-label">⚡ 夜猫子快评 · 快闪节奏</span>
+                <div class="scroll-area">
+                    <div class="marquee-fast" id="marquee2"></div>
+                </div>
+            </div>
+            
+            <!-- 风格3: 弹跳感 -->
+            <div class="review-row">
+                <span class="row-label">🤸 弹幕附体 · 弹跳感</span>
+                <div class="scroll-area">
+                    <div class="marquee-bounce" id="marquee3"></div>
+                </div>
+            </div>
+            
+            <!-- 风格4: 闪烁+变速 -->
+            <div class="review-row">
+                <span class="row-label">✨ 闪光少女 · 闪烁变速</span>
+                <div class="scroll-area">
+                    <div class="marquee-blinking" id="marquee4"></div>
+                </div>
+            </div>
+            
+            <!-- 风格5: 反向彩色 -->
+            <div class="review-row">
+                <span class="row-label">🌈 反向彩虹 · 右向左渐变</span>
+                <div class="scroll-area">
+                    <div class="marquee-reverse" id="marquee5"></div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>炭火正旺 · 好评如潮</footer>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- 倒计时 ----------
+            function updateCountdown() {
+                const now = new Date();
+                const target = new Date(now);
+                target.setDate(target.getDate() + 2);
+                target.setHours(20, 0, 0, 0);
+                const diff = target - now;
+                const totalSec = Math.floor(diff / 1000);
+                const days = Math.floor(totalSec / 86400);
+                const hours = Math.floor((totalSec % 86400) / 3600);
+                const minutes = Math.floor((totalSec % 3600) / 60);
+                const seconds = totalSec % 60;
+                document.getElementById('days').innerText = days.toString().padStart(2,'0');
+                document.getElementById('hours').innerText = hours.toString().padStart(2,'0');
+                document.getElementById('minutes').innerText = minutes.toString().padStart(2,'0');
+                document.getElementById('seconds').innerText = seconds.toString().padStart(2,'0');
+            }
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+
+            // ---------- 奖品 ----------
+            const PRIZES = ["🍖 霸王餐一份", "🍻 精酿一扎", "🧧 整单68折"];
+
+            // ---------- 累积点击 ----------
+            let clickCount = 0;
+            const counterEl = document.getElementById('clickCounter');
+            let targetThreshold = Math.floor(Math.random() * 71) + 30;
+
+            function updateCounterDisplay() {
+                counterEl.innerText = `已敲 🔨 ${clickCount} / ${targetThreshold} 随机开奖`;
+            }
+
+            function showPrize() {
+                const prize = PRIZES[Math.floor(Math.random() * PRIZES.length)];
+                const popupDiv = document.createElement('div');
+                popupDiv.className = 'prize-popup';
+                popupDiv.innerHTML = `🎉 恭喜获得 🎉<br>${prize}<small>到店兑换</small>`;
+                document.body.appendChild(popupDiv);
+                const centerX = window.innerWidth / 2;
+                const centerY = window.innerHeight / 3;
+                createExplosion(centerX, centerY);
+                for (let i=0; i<12; i++) {
+                    setTimeout(() => {
+                        createExplosion(centerX + (Math.random()-0.5)*300, centerY + (Math.random()-0.5)*200);
+                    }, i*30);
+                }
+                setTimeout(() => { popupDiv.remove(); }, 3000);
+                clickCount = 0;
+                targetThreshold = Math.floor(Math.random() * 71) + 30;
+                updateCounterDisplay();
+            }
+
+            // ---------- 粒子 ----------
+            const canvas = document.getElementById('particle-canvas');
+            let ctx = canvas.getContext('2d');
+            let width, height;
+            let particles = [];
+
+            function resizeCanvas() {
+                width = window.innerWidth;
+                height = window.innerHeight;
+                canvas.width = width;
+                canvas.height = height;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            class Particle {
+                constructor(x, y) {
+                    this.x = x; this.y = y;
+                    this.vx = (Math.random() - 0.5) * 20;
+                    this.vy = (Math.random() - 0.5) * 20 - 5;
+                    this.size = Math.random() * 9 + 4;
+                    this.color = `hsl(${Math.random() * 40 + 10}, 100%, 60%)`;
+                    this.life = 1.0;
+                    this.decay = 0.01 + Math.random()*0.02;
+                    this.isRibbon = Math.random() > 0.5;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.vy += 0.2;
+                    this.vx *= 0.99; this.vy *= 0.99;
+                    this.life -= this.decay;
+                }
+                draw(ctx) {
+                    ctx.globalAlpha = this.life * 0.9;
+                    if (this.isRibbon) {
+                        ctx.fillStyle = `hsl(${Math.random()*30+20}, 100%, 65%)`;
+                        ctx.fillRect(this.x, this.y, this.size*0.7, this.size*0.2);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.size*0.5, 0, Math.PI*2);
+                        ctx.fillStyle = this.color;
+                        ctx.fill();
+                    }
+                }
+            }
+
+            function createExplosion(cx, cy) {
+                for (let i=0; i<30; i++) particles.push(new Particle(cx, cy));
+                for (let i=0; i<15; i++) {
+                    let p = new Particle(cx+(Math.random()-0.5)*70, cy+(Math.random()-0.5)*50);
+                    p.isRibbon = true;
+                    particles.push(p);
+                }
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0,0,width,height);
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i=particles.length-1;i>=0;i--) {
+                    particles[i].update();
+                    particles[i].draw(ctx);
+                    if (particles[i].life<=0 || particles[i].y>height+50) particles.splice(i,1);
+                }
+                ctx.globalCompositeOperation = 'source-over';
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
+
+            // ---------- 音效 ----------
+            let audioCtx = null;
+            function playGongAndDrum() {
+                if (!audioCtx) {
+                    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return; }
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const osc1 = audioCtx.createOscillator();
+                osc1.type = 'square';
+                osc1.frequency.setValueAtTime(180, now);
+                osc1.frequency.exponentialRampToValueAtTime(70, now+0.2);
+                const gain1 = audioCtx.createGain();
+                gain1.gain.setValueAtTime(0.3, now);
+                gain1.gain.exponentialRampToValueAtTime(0.01, now+0.5);
+                osc1.connect(gain1).connect(audioCtx.destination);
+                osc1.start(now); osc1.stop(now+0.5);
+                const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate*0.2, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i=0; i<buffer.length; i++) data[i] = Math.random()*2-1;
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const gain2 = audioCtx.createGain();
+                gain2.gain.setValueAtTime(0.25, now);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now+0.3);
+                noise.connect(gain2).connect(audioCtx.destination);
+                noise.start(now); noise.stop(now+0.3);
+                const osc2 = audioCtx.createOscillator();
+                osc2.type = 'sine';
+                osc2.frequency.setValueAtTime(300, now);
+                osc2.frequency.exponentialRampToValueAtTime(120, now+0.3);
+                const gain3 = audioCtx.createGain();
+                gain3.gain.setValueAtTime(0.15, now);
+                gain3.gain.exponentialRampToValueAtTime(0.01, now+0.5);
+                osc2.connect(gain3).connect(audioCtx.destination);
+                osc2.start(now); osc2.stop(now+0.5);
+            }
+
+            // 门点击
+            const doors = document.querySelectorAll('.door');
+            doors.forEach(door => {
+                door.addEventListener('click', function(e) {
+                    const flash = document.createElement('div');
+                    flash.className = 'flash-effect';
+                    document.body.appendChild(flash);
+                    setTimeout(()=>flash.remove(),300);
+                    const rect = this.getBoundingClientRect();
+                    const cx = rect.left + rect.width/2;
+                    const cy = rect.top + rect.height/2;
+                    createExplosion(cx, cy);
+                    for (let i=0;i<5;i++) {
+                        setTimeout(()=>{
+                            createExplosion(cx+(Math.random()-0.5)*120, cy+(Math.random()-0.5)*100);
+                        }, i*20);
+                    }
+                    try { playGongAndDrum(); } catch(e) {}
+                    clickCount++;
+                    updateCounterDisplay();
+                    if (clickCount >= targetThreshold) showPrize();
+                    this.style.transform = 'rotate(3deg) scale(0.93)';
+                    setTimeout(()=> this.style.transform = '', 150);
+                });
+            });
+
+            document.body.addEventListener('touchstart', function initAudio() {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, { once: true });
+            document.body.addEventListener('click', function initAudio() {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, { once: true });
+
+            // ========== 烧烤店好评列表 ==========
+            const bbqReviews = [
+                { emoji: "🍖", text: "羊排串绝了，肥瘦相间" },
+                { emoji: "🦐", text: "烤大虾蒜蓉入味，必点" },
+                { emoji: "🍺", text: "啤酒配烧烤，快乐加倍" },
+                { emoji: "🥩", text: "蜜汁五花肉甜香不腻" },
+                { emoji: "🌽", text: "烤玉米粒焦香好吃" },
+                { emoji: "🔥", text: "炭火气十足，有烟火味" },
+                { emoji: "🧂", text: "蘸料一绝，秘制香辣" },
+                { emoji: "👨‍👩‍👧", text: "全家都爱，每周必来" },
+                { emoji: "⭐", text: "五星推荐，环境热闹" },
+                { emoji: "🎤", text: "驻唱小哥唱得好" }
+            ];
+            
+            // 生成评价卡片HTML
+            function generateReviewCards() {
+                let html = '';
+                for (let repeat = 0; repeat < 4; repeat++) { // 重复多次填满滚动条
+                    for (let i = 0; i < bbqReviews.length; i++) {
+                        const r = bbqReviews[i];
+                        html += `<div class="review-badge"><span>${r.emoji}</span>${r.text} ⭐⭐⭐⭐</div>`;
+                    }
+                }
+                return html;
+            }
+            
+            // 填充五个滚动区
+            document.getElementById('marquee1').innerHTML = generateReviewCards();
+            document.getElementById('marquee2').innerHTML = generateReviewCards();
+            document.getElementById('marquee3').innerHTML = generateReviewCards();
+            document.getElementById('marquee4').innerHTML = generateReviewCards();
+            document.getElementById('marquee5').innerHTML = generateReviewCards();
+            
+            // 定期补充新评价，保持新鲜感
+            setInterval(() => {
+                if (Math.random() > 0.6) { // 随机补充
+                    const extra = `<div class="review-badge"><span>${bbqReviews[Math.floor(Math.random()*bbqReviews.length)].emoji}</span>新鲜热评 ⭐⭐⭐⭐</div>`;
+                    document.getElementById('marquee1').innerHTML += extra;
+                    document.getElementById('marquee3').innerHTML += extra;
+                    document.getElementById('marquee5').innerHTML += extra;
+                }
+            }, 8000);
+        })();
+    </script>
+</body>
+</html>
