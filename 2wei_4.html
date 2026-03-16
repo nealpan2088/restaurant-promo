@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>科技餐店 · 星际闯关抽奖</title>
+    <!-- 高德地图 JS API (请替换为您自己的KEY) -->
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=您的高德地图KEY&plugin=AMap.Geolocation"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Helvetica Neue', 'Orbitron', system-ui, sans-serif;
+        }
+        body {
+            background-color: #0a0f1e;
+            padding-bottom: 30px;
+        }
+        .page {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: rgba(10, 20, 30, 0.85);
+            backdrop-filter: blur(8px);
+            min-height: 100vh;
+            position: relative;
+            border-left: 1px solid rgba(0, 255, 255, 0.2);
+            border-right: 1px solid rgba(0, 255, 255, 0.2);
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.3);
+            overflow: hidden;
+        }
+        /* 科技感动态背景：粒子网格 + 流动光线 */
+        .page::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(0, 255, 255, 0.15) 0%, transparent 30%),
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 255, 255, 0.1) 2px, rgba(0, 255, 255, 0.1) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0, 255, 255, 0.1) 2px, rgba(0, 255, 255, 0.1) 4px);
+            transform: rotate(0deg);
+            animation: bgShift 20s linear infinite;
+            z-index: -1;
+        }
+        @keyframes bgShift {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(1deg) scale(1.02); }
+            100% { transform: rotate(0deg) scale(1); }
+        }
+        /* 浮动光点 */
+        .page::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(255, 100, 255, 0.1) 0%, transparent 30%),
+                        radial-gradient(circle at 80% 70%, rgba(0, 255, 255, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+            animation: glowPulse 8s ease-in-out infinite;
+        }
+        @keyframes glowPulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* 店头区域：图形化背景 */
+        .shop-cover {
+            width: 100%;
+            height: 220px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(145deg, #001d3d, #003566, #001d3d);
+            border-bottom: 2px solid #00ffff;
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.5);
+        }
+        .shop-cover canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        /* 科技图形元素 (纯css图形) */
+        .cyber-graphics {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        .cyber-graphics::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            width: 100px;
+            height: 100px;
+            border: 3px solid rgba(0, 255, 255, 0.6);
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            box-shadow: 0 0 20px cyan, inset 0 0 20px cyan;
+            animation: morph 12s linear infinite;
+        }
+        .cyber-graphics::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 150px;
+            height: 80px;
+            background: repeating-linear-gradient(45deg, rgba(0,255,255,0.2) 0px, rgba(0,255,255,0.2) 10px, transparent 10px, transparent 20px);
+            clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
+        }
+        @keyframes morph {
+            0% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+            50% { border-radius: 70% 30% 30% 70% / 70% 70% 30% 30%; }
+            100% { border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; }
+        }
+
+        .shop-name-badge {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
+            z-index: 10;
+            text-shadow: 0 0 10px cyan, 2px 2px 4px rgba(0,0,0,0.8);
+            background: rgba(0, 20, 40, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 40px 40px 40px 4px;
+            border: 1px solid cyan;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        .shop-name-badge h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            margin-bottom: 4px;
+            background: linear-gradient(45deg, cyan, #ff77ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .shop-name-badge p {
+            font-size: 1rem;
+            opacity: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            color: #ccf;
+        }
+
+        .draw-float-btn {
+            position: sticky;
+            bottom: 30px;
+            left: 100%;
+            transform: translateX(-110%);
+            width: 65px;
+            height: 65px;
+            background: #00ffff;
+            border-radius: 50%;
+            box-shadow: 0 0 30px cyan, 0 4px 20px rgba(0,255,255,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #001d3d;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 99;
+            cursor: pointer;
+            border: 2px solid white;
+            transition: 0.2s;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { bottom: 30px; }
+            50% { bottom: 40px; }
+            100% { bottom: 30px; }
+        }
+        .draw-float-btn span {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .section {
+            padding: 20px 18px;
+            background: rgba(10, 25, 45, 0.7);
+            backdrop-filter: blur(20px);
+            margin: 12px 10px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+        }
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: cyan;
+            text-shadow: 0 0 10px cyan;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-left: 4px solid cyan;
+            padding-left: 12px;
+        }
+
+        /* 菜品卡片 科技风 */
+        .dish-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+        .dish-main {
+            grid-column: 1 / -1;
+            background: rgba(0, 40, 60, 0.6);
+            border-radius: 30px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid cyan;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        .dish-main .dish-img {
+            width: 100px;
+            height: 100px;
+            background: #004466;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            border: 2px solid cyan;
+        }
+        .dish-info h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 8px cyan;
+        }
+        .dish-desc {
+            color: #aaf;
+            font-size: 0.9rem;
+            margin: 4px 0 6px;
+        }
+        .dish-price {
+            font-weight: 700;
+            color: #ff77ff;
+            font-size: 1.3rem;
+            text-shadow: 0 0 10px magenta;
+        }
+        .dish-card {
+            background: rgba(0, 30, 50, 0.6);
+            border-radius: 24px;
+            padding: 12px;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+        }
+        .dish-card .dish-img {
+            width: 100%;
+            height: 120px;
+            background: #003366;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            margin-bottom: 8px;
+            border: 1px solid cyan;
+        }
+        .dish-card .dish-name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: white;
+        }
+        .dish-card .dish-price {
+            font-size: 1.1rem;
+            margin-top: 4px;
+        }
+
+        /* 好评轮播 */
+        .review-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 8px 2px 16px;
+        }
+        .review-card {
+            flex: 0 0 260px;
+            background: rgba(20, 40, 60, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 16px;
+            border: 1px solid cyan;
+            box-shadow: 0 0 20px rgba(0,255,255,0.3);
+        }
+        .review-avatar {
+            width: 40px; height: 40px;
+            background: #00aacc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            border: 1px solid cyan;
+        }
+        .review-content {
+            font-size: 0.95rem;
+            color: #eef;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 20px;
+            border-left: 4px solid cyan;
+        }
+        .review-img {
+            width: 100%;
+            height: 80px;
+            background: #114466;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #aaf;
+            font-size: 14px;
+            border: 1px dashed cyan;
+        }
+
+        /* 地图区域 */
+        .map-container {
+            width: 100%;
+            height: 200px;
+            border-radius: 30px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            border: 2px solid cyan;
+            box-shadow: 0 0 30px rgba(0,255,255,0.5);
+        }
+        .shop-contact {
+            background: rgba(0, 30, 50, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 30px;
+            padding: 16px;
+            margin-bottom: 10px;
+            border: 1px solid cyan;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            color: #ccf;
+        }
+        .nav-btn {
+            background: linear-gradient(45deg, cyan, #0066ff);
+            color: #001d3d;
+            border: none;
+            padding: 16px 0;
+            width: 100%;
+            border-radius: 60px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            margin-top: 18px;
+            box-shadow: 0 0 30px cyan;
+            cursor: pointer;
+            border: 1px solid white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* ========= 互动小游戏：星际闯关 ========= */
+        .game-wrapper {
+            background: rgba(0, 10, 30, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid cyan;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+        }
+        .game-title {
+            font-size: 2rem;
+            font-weight: 900;
+            color: cyan;
+            text-shadow: 0 0 20px cyan;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+        .galaxy {
+            background: #000a1a;
+            border-radius: 50px;
+            padding: 25px 10px;
+            margin: 15px 0;
+            border: 1px solid #00ffff;
+            box-shadow: inset 0 0 50px rgba(0,255,255,0.2);
+        }
+        .question {
+            font-size: 1.6rem;
+            color: #fff;
+            text-shadow: 0 0 10px cyan;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .option-btn {
+            background: rgba(0, 100, 200, 0.3);
+            border: 2px solid cyan;
+            color: cyan;
+            font-size: 1.3rem;
+            padding: 12px 25px;
+            border-radius: 60px;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 0 15px cyan;
+            flex: 1 0 120px;
+        }
+        .option-btn.selected {
+            background: cyan;
+            color: #000;
+            box-shadow: 0 0 40px cyan;
+        }
+        .next-btn {
+            background: linear-gradient(45deg, magenta, cyan);
+            border: none;
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 800;
+            padding: 16px 40px;
+            border-radius: 60px;
+            margin: 15px 0;
+            box-shadow: 0 0 30px magenta;
+            cursor: pointer;
+            border: 2px solid white;
+            width: 100%;
+        }
+        .game-status {
+            color: cyan;
+            font-size: 1.2rem;
+            margin-top: 15px;
+            text-shadow: 0 0 8px cyan;
+        }
+        .prize-pool {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px 12px;
+            margin: 20px 0 10px;
+        }
+        .prize-chip {
+            background: rgba(255, 0, 255, 0.2);
+            border: 2px solid magenta;
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 1.1rem;
+            color: white;
+            text-shadow: 0 0 8px magenta;
+            backdrop-filter: blur(5px);
+        }
+        .draw-result {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 60px;
+            border: 2px solid cyan;
+            margin: 15px 0;
+        }
+        .text-small {
+            color: #99f;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="page" id="app">
+    <!-- 店头区域: 图形背景 (canvas动态粒子 + css图形) -->
+    <div class="shop-cover">
+        <canvas id="cyberCanvas" width="600" height="300"></canvas>
+        <div class="cyber-graphics"></div>
+        <div class="shop-name-badge">
+            <h1>{{ shopName }}</h1>
+            <p>📍 {{ shopAddress }} · 📞 {{ shopTel }}</p>
+        </div>
+    </div>
+
+    <!-- 悬浮闯关按钮 (快速跳转) -->
+    <div class="draw-float-btn" @click="scrollToGame">
+        <span>🚀</span>
+        闯关
+    </div>
+
+    <!-- 招牌菜区域 -->
+    <div class="section">
+        <div class="section-title">🔥 星际招牌菜</div>
+        <div class="dish-grid">
+            <div class="dish-main">
+                <div class="dish-img">🍲</div>
+                <div class="dish-info">
+                    <h3>{{ dishName1 }}</h3>
+                    <div class="dish-desc">{{ dishDesc1 }}</div>
+                    <div class="dish-price">¥{{ dishPrice1 }}</div>
+                </div>
+            </div>
+            <div class="dish-card">
+                <div class="dish-img">🍤</div>
+                <div class="dish-name">{{ dishName2 }}</div>
+                <div class="dish-desc" style="font-size:0.8rem;">{{ dishDesc2 }}</div>
+                <div class="dish-price">¥{{ dishPrice2 }}</div>
+            </div>
+            <div class="dish-card">
+                <div class="dish-img">🥘</div>
+                <div class="dish-name">{{ dishName3 }}</div>
+                <div class="dish-desc" style="font-size:0.8rem;">{{ dishDesc3 }}</div>
+                <div class="dish-price">¥{{ dishPrice3 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地图定位 -->
+    <div class="section" style="padding-top: 0;">
+        <div class="section-title">📍 星际坐标</div>
+        <div id="mapContainer" class="map-container"></div>
+        <div class="shop-contact">
+            <div class="contact-item">🏠 <span>{{ shopAddress }}</span></div>
+            <div class="contact-item">📞 <span>{{ shopTel }}</span></div>
+            <div class="contact-item">🕒 虫洞时间 10:00 - 22:00</div>
+        </div>
+        <button class="nav-btn" @click="openNavigation">🚀 开启导航</button>
+    </div>
+
+    <!-- 好评反馈 -->
+    <div class="section">
+        <div class="section-title">💬 银河好评</div>
+        <div class="review-scroll">
+            <div class="review-card" v-for="(r, idx) in reviews" :key="idx">
+                <div class="review-header" style="display: flex; gap: 10px;">
+                    <div class="review-avatar">{{ r.avatar }}</div>
+                </div>
+                <div class="review-content">{{ r.text }}</div>
+                <div class="review-img">{{ r.imgEmoji }} 光子实拍</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 互动小游戏: 星际闯关 + 抽奖 (奖项文字可由参数传入) -->
+    <div class="section" id="gameSection">
+        <div class="game-wrapper">
+            <div class="game-title">⚡ 星际闯关 ⚡</div>
+            <div class="galaxy">
+                <div class="question">{{ currentQuestion.text }}</div>
+                <div class="options">
+                    <button v-for="(opt, idx) in currentQuestion.options" :key="idx"
+                        class="option-btn" :class="{ selected: selectedOption === idx }"
+                        @click="selectOption(idx)">
+                        {{ opt }}
+                    </button>
+                </div>
+                <button class="next-btn" @click="nextQuestion" v-if="!gameFinished">▶ 跃迁至下一关</button>
+                
+                <!-- 闯关成功/失败后显示抽奖区 -->
+                <div v-if="gameFinished">
+                    <div class="game-status" v-if="gameSuccess">✅ 闯关成功！开启量子抽奖</div>
+                    <div class="game-status" v-else>❌ 闯关失败，能量不足...再来一次</div>
+                    
+                    <!-- 奖品池 (动态从参数获取) -->
+                    <div class="prize-pool">
+                        <span class="prize-chip" v-for="(p, idx) in prizeList" :key="idx">{{ p.name }}</span>
+                    </div>
+                    
+                    <button class="next-btn" @click="drawPrize" :disabled="prizeDrawn">🎲 抽取量子奖励</button>
+                    <div class="draw-result" v-if="drawMessage">{{ drawMessage }}</div>
+                    <button class="next-btn" @click="resetGame" style="background:linear-gradient(45deg, cyan, magenta);">🔄 重新闯关</button>
+                </div>
+            </div>
+            <div class="text-small">⚡ 每关答对才能进入下一关，三关通过即可抽奖 ⚡</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/vue@2/dist/vue.js"></script>
+<script>
+(function() {
+    // ---------- 默认值 + 参数合并 (奖项文字支持参数) ----------
+    var DEFAULT_VALUES = {
+        shop: '赛博食堂',
+        addr: '银河系·幸福里108号',
+        tel: '020-8888 6666',
+        lat: '39.908823',
+        lng: '116.39747',
+        dish1: '量子红烧肉',
+        desc1: '分子料理，肥而不腻',
+        price1: '49',
+        dish2: '等离子蒜香骨',
+        desc2: '蒜香爆裂',
+        price2: '69',
+        dish3: '黑洞酸菜鱼',
+        desc3: '活鱼现杀',
+        price3: '79',
+        // 奖项文字：默认五个，可通过参数 prize1~prize5 覆盖
+        prize1: '免单大奖',
+        prize2: '满50减10',
+        prize3: '第二份半价',
+        prize4: '赠饮料',
+        prize5: '满30减3'
+    };
+
+    function getParamsFromUrl() {
+        var params = {};
+        var hash = window.location.hash.substring(1);
+        if (hash && hash.includes('=')) {
+            hash.split('&').forEach(function(pair) {
+                var kv = pair.split('=');
+                if (kv[0]) params[decodeURIComponent(kv[0])] = kv[1] ? decodeURIComponent(kv[1]) : '';
+            });
+        }
+        var query = window.location.search.substring(1);
+        if (query) {
+            query.split('&').forEach(function(pair) {
+                var kv = pair.split('=');
+                if (kv[0]) params[decodeURIComponent(kv[0])] = kv[1] ? decodeURIComponent(kv[1]) : '';
+            });
+        }
+        return params;
+    }
+
+    var urlParams = getParamsFromUrl();
+    console.log('参数：', urlParams);
+
+    function getValue(paramName, defaultValue) {
+        return (urlParams[paramName] !== undefined && urlParams[paramName].trim() !== '') ? urlParams[paramName].trim() : defaultValue;
+    }
+
+    // 构建奖项数组 (从prize1～prize5)
+    var prizeArray = [
+        { name: getValue('prize1', DEFAULT_VALUES.prize1), type: 'P1' },
+        { name: getValue('prize2', DEFAULT_VALUES.prize2), type: 'P2' },
+        { name: getValue('prize3', DEFAULT_VALUES.prize3), type: 'P3' },
+        { name: getValue('prize4', DEFAULT_VALUES.prize4), type: 'P4' },
+        { name: getValue('prize5', DEFAULT_VALUES.prize5), type: 'P5' }
+    ];
+
+    var shopData = {
+        name: getValue('shop', DEFAULT_VALUES.shop),
+        address: getValue('addr', DEFAULT_VALUES.addr),
+        tel: getValue('tel', DEFAULT_VALUES.tel),
+        lat: parseFloat(getValue('lat', DEFAULT_VALUES.lat)),
+        lng: parseFloat(getValue('lng', DEFAULT_VALUES.lng)),
+        dishName1: getValue('dish1', DEFAULT_VALUES.dish1),
+        dishDesc1: getValue('desc1', DEFAULT_VALUES.desc1),
+        dishPrice1: getValue('price1', DEFAULT_VALUES.price1),
+        dishName2: getValue('dish2', DEFAULT_VALUES.dish2),
+        dishDesc2: getValue('desc2', DEFAULT_VALUES.desc2),
+        dishPrice2: getValue('price2', DEFAULT_VALUES.price2),
+        dishName3: getValue('dish3', DEFAULT_VALUES.dish3),
+        dishDesc3: getValue('desc3', DEFAULT_VALUES.desc3),
+        dishPrice3: getValue('price3', DEFAULT_VALUES.price3)
+    };
+
+    new Vue({
+        el: '#app',
+        data: {
+            shopName: shopData.name,
+            shopAddress: shopData.address,
+            shopTel: shopData.tel,
+            lat: shopData.lat,
+            lng: shopData.lng,
+            dishName1: shopData.dishName1,
+            dishDesc1: shopData.dishDesc1,
+            dishPrice1: shopData.dishPrice1,
+            dishName2: shopData.dishName2,
+            dishDesc2: shopData.dishDesc2,
+            dishPrice2: shopData.dishPrice2,
+            dishName3: shopData.dishName3,
+            dishDesc3: shopData.dishDesc3,
+            dishPrice3: shopData.dishPrice3,
+            reviews: [
+                { avatar: '👾', name: '吃货舰长', text: '量子红烧肉太绝了，下次跃迁还来', imgEmoji: '🌌' },
+                { avatar: '🤖', name: '赛博张', text: '服务机器人很热情，酸菜鱼满分', imgEmoji: '🤖' },
+                { avatar: '🧑‍🚀', name: '领航员Cici', text: '环境充满科技感，送的小菜也好吃', imgEmoji: '✨' }
+            ],
+            // 奖项文字来自参数/默认
+            prizeList: prizeArray,
+            // 游戏相关
+            currentLevel: 0,
+            selectedOption: null,
+            gameFinished: false,
+            gameSuccess: false,
+            prizeDrawn: false,
+            drawMessage: '',
+            questions: [
+                { text: '第一关: 餐厅招牌菜是什么口味？', options: ['麻辣', '量子鲜甜', '蒜香'], correct: 1 },
+                { text: '第二关: 以下哪个是赛博朋克元素？', options: ['霓虹灯', '蒸汽机', '魔法'], correct: 0 },
+                { text: '第三关: 哪位是餐厅主厨？', options: ['AI-3000', '章大厨', '机器人R2'], correct: 2 }
+            ]
+        },
+        computed: {
+            currentQuestion: function() {
+                return this.questions[this.currentLevel] || this.questions[0];
+            }
+        },
+        mounted: function() {
+            this.$nextTick(() => {
+                this.initMap();
+                this.initCanvas();
+            });
+        },
+        methods: {
+            initCanvas() {
+                const canvas = document.getElementById('cyberCanvas');
+                const ctx = canvas.getContext('2d');
+                let w = canvas.width, h = canvas.height;
+                function drawGrid() {
+                    ctx.clearRect(0, 0, w, h);
+                    ctx.strokeStyle = 'cyan';
+                    ctx.lineWidth = 0.5;
+                    for (let i = 0; i < w; i += 30) {
+                        ctx.beginPath();
+                        ctx.moveTo(i, 0);
+                        ctx.lineTo(i, h);
+                        ctx.strokeStyle = 'rgba(0,255,255,0.2)';
+                        ctx.stroke();
+                    }
+                    for (let i = 0; i < h; i += 30) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, i);
+                        ctx.lineTo(w, i);
+                        ctx.stroke();
+                    }
+                    // 粒子
+                    for (let s = 0; s < 50; s++) {
+                        ctx.fillStyle = `rgba(0,255,255,${Math.random()*0.5})`;
+                        ctx.beginPath();
+                        ctx.arc(Math.random()*w, Math.random()*h, Math.random()*3, 0, 2*Math.PI);
+                        ctx.fill();
+                    }
+                }
+                drawGrid();
+                setInterval(() => {
+                    drawGrid();
+                }, 200);
+            },
+            initMap: function() {
+                var lng = isNaN(this.lng) ? 116.39747 : this.lng;
+                var lat = isNaN(this.lat) ? 39.908823 : this.lat;
+                var map = new AMap.Map('mapContainer', { zoom: 16, center: [lng, lat], viewMode: '2D' });
+                var marker = new AMap.Marker({ position: [lng, lat], title: this.shopName });
+                map.add(marker);
+                AMap.plugin('AMap.Geolocation', function() {});
+            },
+            openNavigation: function() {
+                var lng = isNaN(this.lng) ? 116.39747 : this.lng;
+                var lat = isNaN(this.lat) ? 39.908823 : this.lat;
+                if (typeof wx !== 'undefined' && wx.openLocation) {
+                    wx.openLocation({ latitude: lat, longitude: lng, name: this.shopName, address: this.shopAddress });
+                } else {
+                    window.open('https://uri.amap.com/marker?position=' + lng + ',' + lat + '&name=' + encodeURIComponent(this.shopName), '_system');
+                }
+            },
+            scrollToGame: function() {
+                document.getElementById('gameSection').scrollIntoView({ behavior: 'smooth' });
+            },
+            // 游戏逻辑
+            selectOption(idx) {
+                this.selectedOption = idx;
+            },
+            nextQuestion() {
+                if (this.selectedOption === null) {
+                    alert('请选择一个选项');
+                    return;
+                }
+                // 判断是否正确
+                if (this.selectedOption === this.currentQuestion.correct) {
+                    if (this.currentLevel === this.questions.length - 1) {
+                        // 通关
+                        this.gameFinished = true;
+                        this.gameSuccess = true;
+                    } else {
+                        this.currentLevel++;
+                        this.selectedOption = null;
+                    }
+                } else {
+                    // 答错，闯关失败
+                    this.gameFinished = true;
+                    this.gameSuccess = false;
+                }
+            },
+            drawPrize() {
+                if (this.prizeDrawn) return;
+                // 随机抽取奖项
+                var idx = Math.floor(Math.random() * this.prizeList.length);
+                this.drawMessage = '✨ 恭喜获得: ' + this.prizeList[idx].name + ' ✨';
+                this.prizeDrawn = true;
+                alert('优惠券已存入星际卡包');
+            },
+            resetGame() {
+                this.currentLevel = 0;
+                this.selectedOption = null;
+                this.gameFinished = false;
+                this.gameSuccess = false;
+                this.prizeDrawn = false;
+                this.drawMessage = '';
+            }
+        }
+    });
+})();
+</script>
+<!-- 说明：奖项文字通过 prize1~prize5 参数传入，例如 ?prize1=超级免单&prize2=满60-20 等，高德地图需要替换KEY -->
+</body>
+</html>
