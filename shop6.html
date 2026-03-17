@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>10主题·10活动·10券包·营销页</title>
+    <!-- Nunito 现代字体 & Font Awesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-page, #f0f4fa);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 16px 12px 40px;
+            transition: background 0.2s;
+        }
+        .page {
+            max-width: 420px;
+            width: 100%;
+            background: var(--card-bg, #ffffff);
+            border-radius: var(--card-radius, 36px) var(--card-radius, 36px) 30px 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06), 0 8px 20px rgba(0,20,50,0.08);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .brand-bar {
+            height: 8px;
+            background: var(--bar-gradient, linear-gradient(90deg, #8B5CF6, #EC4899, #F59E0B));
+            background-size: 200% 200%;
+            animation: gradientShift 6s ease infinite;
+        }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        .shop-header { padding: 24px 22px 18px; background: var(--header-bg, white); border-bottom: 1px solid rgba(0,0,0,0.02); }
+        .shop-name { font-size: 28px; font-weight: 800; letter-spacing: -0.3px; background: var(--name-gradient, linear-gradient(135deg, #1E293B, #2D3C54)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        .shop-name i { background: var(--name-icon-gradient, linear-gradient(145deg, #8B5CF6, #C084FC)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: 30px; }
+        .shop-desc { font-size: 16px; font-weight: 500; color: var(--desc-color, #5B6C82); margin-bottom: 18px; padding-left: 4px; border-left: 4px solid var(--desc-border, #EC4899); padding-left: 14px; background: var(--desc-bg, #F8FAFE); border-radius: 0 20px 20px 0; line-height: 1.4; width: fit-content; padding: 6px 18px 6px 14px; }
+        
+        .info-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; }
+        .info-item { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--info-text, #334155); background: var(--info-bg, #F1F5F9); padding: 8px 16px 8px 12px; border-radius: 40px; font-weight: 600; border: 1px solid transparent; cursor: pointer; transition: background 0.15s; }
+        .info-item i { color: var(--info-icon, #8B5CF6); font-size: 16px; width: 20px; }
+        .coordinate-badge { background: var(--coord-bg, #EFF6FF); border: 1px solid var(--coord-border, #CBD5E1); }
+        .coordinate-badge i { color: var(--coord-icon, #2563EB); }
+
+        .map-link-popup { display: none; position: absolute; background: white; border-radius: 30px; box-shadow: 0 12px 28px rgba(0,0,0,0.2); padding: 12px 20px; z-index: 200; gap: 20px; border: 1px solid #e2e8f0; }
+        .map-link-popup.show { display: flex; }
+        .map-link-popup a { text-decoration: none; font-weight: 700; padding: 8px 16px; border-radius: 40px; background: #f1f5f9; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+
+        .section-card { margin: 20px 18px 24px; background: var(--section-bg, #FFFFFF); border-radius: 28px; box-shadow: 0 12px 30px -8px rgba(0,0,0,0.05); padding: 22px 18px; border: 1px solid var(--section-border, rgba(230,240,255,0.6)); }
+        .section-title { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 700; color: var(--title-color, #0B1E38); margin-bottom: 18px; }
+        .section-title i { font-size: 24px; background: var(--title-icon-gradient, linear-gradient(145deg, #8B5CF6, #D946EF)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .coupon-row { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; }
+        .coupon-item { background: var(--coupon-bg, linear-gradient(115deg, #F9FAFF, #F0F4FF)); border-radius: 24px; padding: 14px 12px; flex: 1 1 130px; border: 1px dashed var(--coupon-border, #A78BFA); box-shadow: 0 2px 6px var(--coupon-shadow, rgba(139,92,246,0.1)); }
+        .coupon-amount { font-size: 26px; font-weight: 800; color: var(--coupon-amount, #8B5CF6); } .coupon-amount small { color: var(--coupon-small, #6D28D9); }
+        .coupon-condition { font-size: 14px; font-weight: 500; color: #334155; margin-top: 4px; }
+        .claim-btn { background: var(--btn-bg, white); border: 1px solid var(--btn-border, #8B5CF6); border-radius: 40px; padding: 4px 12px; font-size: 12px; font-weight: 700; color: var(--btn-text, #8B5CF6); margin-top: 10px; display: inline-block; cursor: pointer; transition: 0.15s; }
+        .claim-btn.received { background: var(--btn-received-bg, #8B5CF6); color: white; border-color: var(--btn-received-border, #8B5CF6); }
+
+        /* 转盘 */
+        .wheel-wrapper { display: flex; flex-direction: column; align-items: center; position: relative; }
+        .canvas-container { position: relative; width: 280px; height: 280px; margin: 10px auto; }
+        canvas#wheelCanvas { width: 100%; height: 100%; display: block; border-radius: 50%; box-shadow: 0 14px 28px rgba(0,0,0,0.15), 0 0 0 6px var(--wheel-outer, white), 0 0 0 8px var(--wheel-outer2, #f0f0f0); }
+        .wheel-pointer-fixed {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid var(--pointer, #EC4899);
+            filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+            z-index: 15;
+            pointer-events: none;
+        }
+        .pointer-dot {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px; height: 16px;
+            background: var(--pointer, #EC4899);
+            border-radius: 50%;
+            border: 2px solid white;
+            z-index: 15;
+            pointer-events: none;
+        }
+        .wheel-button { background: var(--spin-btn-bg, linear-gradient(145deg, #1E293B, #0F172A)); border: none; color: var(--spin-btn-text, white); font-weight: 800; padding: 14px 44px; border-radius: 50px; font-size: 20px; box-shadow: 0 12px 16px -8px var(--spin-shadow, rgba(0,0,0,0.2)); margin: 20px 0 10px; cursor: pointer; }
+        .prize-indicator { font-size: 16px; font-weight: 700; background: var(--prize-bg, #f1f5f9); padding: 8px 22px; border-radius: 40px; color: var(--prize-text, #0f172a); margin: 10px 0 5px; }
+
+        .activity-item { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--activity-border, #EDF2F7); }
+        .activity-date { background: var(--activity-date-bg, #EFF6FF); border-radius: 20px; padding: 8px 16px; font-weight: 800; color: var(--activity-date-text, #2563EB); min-width: 80px; text-align: center; }
+
+        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(3px); align-items: center; justify-content: center; z-index: 300; }
+        .modal-content { background: white; max-width: 340px; width: 90%; border-radius: 48px; padding: 32px 24px; text-align: center; box-shadow: 0 30px 50px rgba(0,0,0,0.3); }
+        .close-modal { background: #1E293B; color: white; border: none; padding: 14px 28px; border-radius: 60px; font-weight: 700; width: 100%; margin-top: 18px; cursor: pointer; }
+
+        .sound-toggle { position: absolute; top: 10px; right: 10px; background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; z-index: 50; }
+
+        .optimize-tip { background: var(--tip-bg, #E8F0FE); margin: 24px 18px 26px; border-radius: 40px; padding: 16px 24px; text-align: center; font-size: 14px; font-weight: 600; color: var(--tip-text, #1e3a5f); border: 2px dotted var(--tip-border, #3B82F6); }
+    </style>
+</head>
+<body>
+<div class="page" id="app">
+    <div class="brand-bar" id="dynamicBrandBar"></div>
+
+    <!-- 店铺头部 -->
+    <div class="shop-header">
+        <div class="shop-name"><i class="fas fa-store-alt" id="shopLogo"></i><span id="shopName">潮集社 · 现代生活馆</span></div>
+        <div class="shop-desc" id="shopDesc">潮流集合店 | 咖啡·文创·轻食 一站式体验</div>
+        <div class="info-grid" id="infoGrid">
+            <div class="info-item" id="addrItem"><i class="fas fa-map-pin"></i><span class="label">地址:</span><span class="value" id="shopAddress">上海市静安区南京西路789号</span></div>
+            <div class="info-item" id="phoneItem"><i class="fas fa-phone-alt"></i><span class="label">电话:</span><span class="value" id="shopPhone">400-8820-123</span></div>
+            <div class="info-item coordinate-badge" id="coordItem"><i class="fas fa-location-dot"></i><span class="label">导航到本店坐标:</span><span class="value" id="shopCoord">欢迎光临</span></div>
+        </div>
+        <div id="mapPopup" class="map-link-popup">
+            <a href="#" id="gaodeLink" target="_blank"><i class="fas fa-map"></i> 高德地图</a>
+            <a href="#" id="baiduLink" target="_blank"><i class="fas fa-location-dot"></i> 百度地图</a>
+        </div>
+    </div>
+
+    <!-- 满额领券 - 动态生成 (10套) -->
+    <div class="section-card">
+        <div class="section-title"><i class="fas fa-ticket-alt"></i><span>满额领券 · 今日特惠</span></div>
+        <div class="coupon-row" id="couponContainer"></div>
+    </div>
+
+    <!-- 转盘 -->
+    <div class="section-card">
+        <div class="section-title"><i class="fas fa-circle-notch"></i><span>幸运大转盘 · 箭头所指即中奖</span></div>
+        <div class="wheel-wrapper">
+            <div class="canvas-container">
+                <canvas id="wheelCanvas" width="300" height="300"></canvas>
+                <div class="wheel-pointer-fixed"></div>
+                <div class="pointer-dot"></div>
+                <div class="sound-toggle" id="soundToggle"><i class="fas fa-volume-up" style="color:#8B5CF6; font-size: 20px;"></i></div>
+            </div>
+            <button class="wheel-button" id="spinButton">🎁 免费抽奖</button>
+            <div class="prize-indicator" id="prizeHint">点击抽奖，箭头指向即奖品</div>
+        </div>
+    </div>
+
+    <!-- 活动信息 - 动态生成 (10套) -->
+    <div class="section-card" id="activitySection">
+        <div class="section-title"><i class="fas fa-calendar-check"></i><span>近期活动 · 到店参与</span></div>
+        <div id="activityContainer"></div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div id="resultModal" class="modal-overlay">
+        <div class="modal-content">
+            <i class="fas fa-gift" style="font-size: 48px; color: #EC4899;"></i>
+            <h3 id="modalPrizeNum">8</h3>
+            <p>恭喜获得数字 <span id="modalPrizeSpan">8</span> 号奖品</p>
+            <div class="modal-date" id="modalDate">2026-03-17</div>
+            <p style="font-size:14px; color:#334155;">📸 截图本画面到店兑奖</p>
+            <button class="close-modal" id="closeModal">确认</button>
+        </div>
+    </div>
+
+    <!-- 参数提示区 -->
+    <div class="optimize-tip">
+        <i class="fas fa-qrcode"></i> 参数: style(1-10主题), act(1-10活动), coupon(1-10券包), name,addr,phone,coord,color,logo<br>
+        <span style="font-size:12px;">点击地址/坐标可唤起高德/百度导航 (百度使用addr参数)</span>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- 默认数据 ----------
+        const DEFAULT = {
+            shopName: '潮集社 · 现代生活馆',
+            shopDesc: '潮流集合店 | 咖啡·文创·轻食 一站式体验',
+            shopAddress: '上海市静安区南京西路789号',
+            shopPhone: '400-8820-123',
+            shopCoord: '31.229,121.468',
+            themeColor: '#8B5CF6'
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const getParam = (key, def) => params.get(key) || params.get(key.toLowerCase()) || def;
+
+        // 基础店铺参数
+        const shopName = getParam('name', DEFAULT.shopName);
+        const shopDesc = getParam('desc', DEFAULT.shopDesc);
+        const shopAddress = getParam('addr', getParam('address', DEFAULT.shopAddress));
+        const shopPhone = getParam('phone', DEFAULT.shopPhone);
+        const shopCoord = getParam('coord', getParam('coordinate', DEFAULT.shopCoord));
+        let themeColor = getParam('color', DEFAULT.themeColor);
+        if (!themeColor.startsWith('#')) themeColor = '#' + themeColor;
+
+        // 风格参数 (1-10)
+        let style = parseInt(getParam('style', '1'));
+        if (isNaN(style) || style < 1 || style > 10) style = 1;
+
+        // 活动参数 act 1-10, 默认1
+        let act = parseInt(getParam('act', '1'));
+        if (isNaN(act) || act < 1 || act > 10) act = 1;
+
+        // 券包参数 coupon 1-10, 默认1
+        let coupon = parseInt(getParam('coupon', '1'));
+        if (isNaN(coupon) || coupon < 1 || coupon > 10) coupon = 1;
+
+        // ---------- 10套主题定义 (使用之前完整定义) ----------
+        const themes = {
+            1: { '--bg-page': '#f0f4fa', '--card-bg': '#ffffff', '--bar-gradient': 'linear-gradient(90deg, #8B5CF6, #EC4899, #F59E0B)', '--name-gradient': 'linear-gradient(135deg, #1E293B, #2D3C54)', '--name-icon-gradient': 'linear-gradient(145deg, #8B5CF6, #C084FC)', '--desc-color': '#5B6C82', '--desc-border': '#EC4899', '--desc-bg': '#F8FAFE', '--info-text': '#334155', '--info-bg': '#F1F5F9', '--info-icon': '#8B5CF6', '--coord-bg': '#EFF6FF', '--coord-border': '#CBD5E1', '--coord-icon': '#2563EB', '--section-bg': '#FFFFFF', '--section-border': 'rgba(230,240,255,0.6)', '--title-color': '#0B1E38', '--title-icon-gradient': 'linear-gradient(145deg, #8B5CF6, #D946EF)', '--coupon-bg': 'linear-gradient(115deg, #F9FAFF, #F0F4FF)', '--coupon-border': '#A78BFA', '--coupon-shadow': 'rgba(139,92,246,0.1)', '--coupon-amount': '#8B5CF6', '--coupon-small': '#6D28D9', '--btn-bg': 'white', '--btn-border': '#8B5CF6', '--btn-text': '#8B5CF6', '--btn-received-bg': '#8B5CF6', '--btn-received-border': '#8B5CF6', '--wheel-outer': 'white', '--wheel-outer2': '#f0f0f0', '--pointer': '#EC4899', '--spin-btn-bg': 'linear-gradient(145deg, #1E293B, #0F172A)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(0,0,0,0.2)', '--prize-bg': '#f1f5f9', '--prize-text': '#0f172a', '--activity-border': '#EDF2F7', '--activity-date-bg': '#EFF6FF', '--activity-date-text': '#2563EB', '--tip-bg': '#E8F0FE', '--tip-text': '#1e3a5f', '--tip-border': '#3B82F6' },
+            2: { '--bg-page': '#e6f3e6', '--card-bg': '#f9fff9', '--bar-gradient': 'linear-gradient(90deg, #2ecc71, #27ae60, #f1c40f)', '--name-gradient': 'linear-gradient(135deg, #1d4e2b, #2c6e3b)', '--name-icon-gradient': 'linear-gradient(145deg, #2ecc71, #27ae60)', '--desc-color': '#2c5f2d', '--desc-border': '#2ecc71', '--desc-bg': '#e8f8e8', '--info-text': '#1d4e2b', '--info-bg': '#d5f0d5', '--info-icon': '#2ecc71', '--coord-bg': '#d0ecd0', '--coord-border': '#a0d6a0', '--coord-icon': '#1e7e34', '--section-bg': '#ffffff', '--section-border': '#b8e0b8', '--title-color': '#1d4e2b', '--title-icon-gradient': 'linear-gradient(145deg, #2ecc71, #27ae60)', '--coupon-bg': 'linear-gradient(115deg, #e5f7e5, #ccf0cc)', '--coupon-border': '#2ecc71', '--coupon-shadow': 'rgba(46,204,113,0.2)', '--coupon-amount': '#27ae60', '--coupon-small': '#1e7e34', '--btn-bg': 'white', '--btn-border': '#2ecc71', '--btn-text': '#2ecc71', '--btn-received-bg': '#27ae60', '--btn-received-border': '#1e7e34', '--wheel-outer': 'white', '--wheel-outer2': '#d0f0d0', '--pointer': '#27ae60', '--spin-btn-bg': 'linear-gradient(145deg, #1d4e2b, #2c6e3b)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(0,80,0,0.2)', '--prize-bg': '#d5f0d5', '--prize-text': '#1d4e2b', '--activity-border': '#c0e0c0', '--activity-date-bg': '#d0ecd0', '--activity-date-text': '#1e7e34', '--tip-bg': '#d5f0d5', '--tip-text': '#1d4e2b', '--tip-border': '#2ecc71' },
+            3: { '--bg-page': '#feefe2', '--card-bg': '#fff7f0', '--bar-gradient': 'linear-gradient(90deg, #f39c12, #e67e22, #d35400)', '--name-gradient': 'linear-gradient(135deg, #a04000, #b45f06)', '--name-icon-gradient': 'linear-gradient(145deg, #f39c12, #e67e22)', '--desc-color': '#a04000', '--desc-border': '#f39c12', '--desc-bg': '#ffe5cc', '--info-text': '#8e4400', '--info-bg': '#fed7b0', '--info-icon': '#f39c12', '--coord-bg': '#ffd8b8', '--coord-border': '#f0b080', '--coord-icon': '#b45f06', '--section-bg': '#ffffff', '--section-border': '#fad6b3', '--title-color': '#a04000', '--title-icon-gradient': 'linear-gradient(145deg, #f39c12, #e67e22)', '--coupon-bg': 'linear-gradient(115deg, #ffebd2, #fed7b0)', '--coupon-border': '#f39c12', '--coupon-shadow': 'rgba(243,156,18,0.2)', '--coupon-amount': '#e67e22', '--coupon-small': '#b45f06', '--btn-bg': 'white', '--btn-border': '#f39c12', '--btn-text': '#e67e22', '--btn-received-bg': '#e67e22', '--btn-received-border': '#a04000', '--wheel-outer': 'white', '--wheel-outer2': '#fed7b0', '--pointer': '#e67e22', '--spin-btn-bg': 'linear-gradient(145deg, #a04000, #b45f06)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(160,64,0,0.2)', '--prize-bg': '#fed7b0', '--prize-text': '#8e4400', '--activity-border': '#f5c6a5', '--activity-date-bg': '#ffd8b8', '--activity-date-text': '#b45f06', '--tip-bg': '#ffd8b8', '--tip-text': '#a04000', '--tip-border': '#f39c12' },
+            4: { '--bg-page': '#d4e6f1', '--card-bg': '#f0f8ff', '--bar-gradient': 'linear-gradient(90deg, #3498db, #2980b9, #1f618d)', '--name-gradient': 'linear-gradient(135deg, #1b4f72, #154360)', '--name-icon-gradient': 'linear-gradient(145deg, #3498db, #2980b9)', '--desc-color': '#1b4f72', '--desc-border': '#3498db', '--desc-bg': '#d4e6f1', '--info-text': '#154360', '--info-bg': '#c9e0f0', '--info-icon': '#3498db', '--coord-bg': '#c0d9e8', '--coord-border': '#9bb9d0', '--coord-icon': '#1f618d', '--section-bg': '#ffffff', '--section-border': '#bcd3e6', '--title-color': '#1b4f72', '--title-icon-gradient': 'linear-gradient(145deg, #3498db, #2980b9)', '--coupon-bg': 'linear-gradient(115deg, #d4e6f1, #c0d9e8)', '--coupon-border': '#3498db', '--coupon-shadow': 'rgba(52,152,219,0.2)', '--coupon-amount': '#2980b9', '--coupon-small': '#1f618d', '--btn-bg': 'white', '--btn-border': '#3498db', '--btn-text': '#2980b9', '--btn-received-bg': '#2980b9', '--btn-received-border': '#1b4f72', '--wheel-outer': 'white', '--wheel-outer2': '#c0d9e8', '--pointer': '#2980b9', '--spin-btn-bg': 'linear-gradient(145deg, #1b4f72, #154360)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(27,79,114,0.2)', '--prize-bg': '#c9e0f0', '--prize-text': '#154360', '--activity-border': '#b0cbe0', '--activity-date-bg': '#c0d9e8', '--activity-date-text': '#1f618d', '--tip-bg': '#c0d9e8', '--tip-text': '#1b4f72', '--tip-border': '#3498db' },
+            5: { '--bg-page': '#fbe9f0', '--card-bg': '#fff9fb', '--bar-gradient': 'linear-gradient(90deg, #f06292, #ec407a, #d81b60)', '--name-gradient': 'linear-gradient(135deg, #880e4f, #ad1457)', '--name-icon-gradient': 'linear-gradient(145deg, #f06292, #ec407a)', '--desc-color': '#880e4f', '--desc-border': '#f06292', '--desc-bg': '#fce4ec', '--info-text': '#880e4f', '--info-bg': '#f8d7e8', '--info-icon': '#f06292', '--coord-bg': '#f5c6d6', '--coord-border': '#e6a6c0', '--coord-icon': '#c2185b', '--section-bg': '#ffffff', '--section-border': '#f7c2d6', '--title-color': '#880e4f', '--title-icon-gradient': 'linear-gradient(145deg, #f06292, #ec407a)', '--coupon-bg': 'linear-gradient(115deg, #fce4ec, #f8d7e8)', '--coupon-border': '#f06292', '--coupon-shadow': 'rgba(240,98,146,0.2)', '--coupon-amount': '#ec407a', '--coupon-small': '#c2185b', '--btn-bg': 'white', '--btn-border': '#f06292', '--btn-text': '#ec407a', '--btn-received-bg': '#ec407a', '--btn-received-border': '#880e4f', '--wheel-outer': 'white', '--wheel-outer2': '#f8d7e8', '--pointer': '#ec407a', '--spin-btn-bg': 'linear-gradient(145deg, #880e4f, #ad1457)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(136,14,79,0.2)', '--prize-bg': '#f8d7e8', '--prize-text': '#880e4f', '--activity-border': '#efc0d4', '--activity-date-bg': '#f5c6d6', '--activity-date-text': '#c2185b', '--tip-bg': '#f5c6d6', '--tip-text': '#880e4f', '--tip-border': '#f06292' },
+            6: { '--bg-page': '#121212', '--card-bg': '#1e1e1e', '--bar-gradient': 'linear-gradient(90deg, #bb86fc, #03dac6, #cf6679)', '--name-gradient': 'linear-gradient(135deg, #ffffff, #bb86fc)', '--name-icon-gradient': 'linear-gradient(145deg, #bb86fc, #03dac6)', '--desc-color': '#e0e0e0', '--desc-border': '#bb86fc', '--desc-bg': '#2d2d2d', '--info-text': '#ffffff', '--info-bg': '#333333', '--info-icon': '#bb86fc', '--coord-bg': '#2a2a2a', '--coord-border': '#444444', '--coord-icon': '#03dac6', '--section-bg': '#2a2a2a', '--section-border': '#404040', '--title-color': '#ffffff', '--title-icon-gradient': 'linear-gradient(145deg, #bb86fc, #03dac6)', '--coupon-bg': 'linear-gradient(115deg, #2d2d2d, #383838)', '--coupon-border': '#bb86fc', '--coupon-shadow': 'rgba(187,134,252,0.2)', '--coupon-amount': '#bb86fc', '--coupon-small': '#03dac6', '--btn-bg': '#2d2d2d', '--btn-border': '#bb86fc', '--btn-text': '#bb86fc', '--btn-received-bg': '#bb86fc', '--btn-received-border': '#03dac6', '--wheel-outer': '#2a2a2a', '--wheel-outer2': '#404040', '--pointer': '#cf6679', '--spin-btn-bg': 'linear-gradient(145deg, #1e1e1e, #2d2d2d)', '--spin-btn-text': '#bb86fc', '--spin-shadow': 'rgba(0,0,0,0.5)', '--prize-bg': '#333333', '--prize-text': '#ffffff', '--activity-border': '#404040', '--activity-date-bg': '#2a2a2a', '--activity-date-text': '#03dac6', '--tip-bg': '#2a2a2a', '--tip-text': '#bb86fc', '--tip-border': '#03dac6' },
+            7: { '--bg-page': '#e2dcd0', '--card-bg': '#f5efe6', '--bar-gradient': 'linear-gradient(90deg, #8B6B4D, #A87B5A, #C49A6C)', '--name-gradient': 'linear-gradient(135deg, #5D3A1A, #7B5A3C)', '--name-icon-gradient': 'linear-gradient(145deg, #8B6B4D, #A87B5A)', '--desc-color': '#5D3A1A', '--desc-border': '#A87B5A', '--desc-bg': '#e6d7c2', '--info-text': '#4a3729', '--info-bg': '#dac9b5', '--info-icon': '#8B6B4D', '--coord-bg': '#cfbb9f', '--coord-border': '#b2967a', '--coord-icon': '#7B5A3C', '--section-bg': '#fff8f0', '--section-border': '#d8c6b0', '--title-color': '#5D3A1A', '--title-icon-gradient': 'linear-gradient(145deg, #8B6B4D, #A87B5A)', '--coupon-bg': 'linear-gradient(115deg, #e6d7c2, #dac9b5)', '--coupon-border': '#8B6B4D', '--coupon-shadow': 'rgba(139,107,77,0.2)', '--coupon-amount': '#A87B5A', '--coupon-small': '#7B5A3C', '--btn-bg': 'white', '--btn-border': '#8B6B4D', '--btn-text': '#8B6B4D', '--btn-received-bg': '#8B6B4D', '--btn-received-border': '#5D3A1A', '--wheel-outer': 'white', '--wheel-outer2': '#dac9b5', '--pointer': '#A87B5A', '--spin-btn-bg': 'linear-gradient(145deg, #5D3A1A, #7B5A3C)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(93,58,26,0.2)', '--prize-bg': '#dac9b5', '--prize-text': '#4a3729', '--activity-border': '#cbb59b', '--activity-date-bg': '#cfbb9f', '--activity-date-text': '#7B5A3C', '--tip-bg': '#cfbb9f', '--tip-text': '#5D3A1A', '--tip-border': '#8B6B4D' },
+            8: { '--bg-page': '#fce8e0', '--card-bg': '#fff9f5', '--bar-gradient': 'linear-gradient(90deg, #f9acb5, #a8e6cf, #ffd3b6)', '--name-gradient': 'linear-gradient(135deg, #b37090, #d68ba5)', '--name-icon-gradient': 'linear-gradient(145deg, #f9acb5, #a8e6cf)', '--desc-color': '#b37090', '--desc-border': '#f9acb5', '--desc-bg': '#ffe4e1', '--info-text': '#a55c7e', '--info-bg': '#ffd9df', '--info-icon': '#f9acb5', '--coord-bg': '#fecfd6', '--coord-border': '#e6b8c2', '--coord-icon': '#d68ba5', '--section-bg': '#ffffff', '--section-border': '#ffd3b6', '--title-color': '#b37090', '--title-icon-gradient': 'linear-gradient(145deg, #f9acb5, #a8e6cf)', '--coupon-bg': 'linear-gradient(115deg, #ffe4e1, #ffd9df)', '--coupon-border': '#f9acb5', '--coupon-shadow': 'rgba(249,172,181,0.2)', '--coupon-amount': '#d68ba5', '--coupon-small': '#a55c7e', '--btn-bg': 'white', '--btn-border': '#f9acb5', '--btn-text': '#d68ba5', '--btn-received-bg': '#d68ba5', '--btn-received-border': '#b37090', '--wheel-outer': 'white', '--wheel-outer2': '#ffd9df', '--pointer': '#a8e6cf', '--spin-btn-bg': 'linear-gradient(145deg, #b37090, #d68ba5)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(179,112,144,0.2)', '--prize-bg': '#ffd9df', '--prize-text': '#a55c7e', '--activity-border': '#f5c6bc', '--activity-date-bg': '#fecfd6', '--activity-date-text': '#d68ba5', '--tip-bg': '#fecfd6', '--tip-text': '#b37090', '--tip-border': '#a8e6cf' },
+            9: { '--bg-page': '#f5f5f5', '--card-bg': '#ffffff', '--bar-gradient': 'linear-gradient(90deg, #2c3e50, #34495e, #7f8c8d)', '--name-gradient': 'linear-gradient(135deg, #2c3e50, #34495e)', '--name-icon-gradient': 'linear-gradient(145deg, #2c3e50, #7f8c8d)', '--desc-color': '#2c3e50', '--desc-border': '#7f8c8d', '--desc-bg': '#ecf0f1', '--info-text': '#2c3e50', '--info-bg': '#ecf0f1', '--info-icon': '#34495e', '--coord-bg': '#bdc3c7', '--coord-border': '#95a5a6', '--coord-icon': '#2c3e50', '--section-bg': '#ffffff', '--section-border': '#ecf0f1', '--title-color': '#2c3e50', '--title-icon-gradient': 'linear-gradient(145deg, #34495e, #7f8c8d)', '--coupon-bg': 'linear-gradient(115deg, #ecf0f1, #bdc3c7)', '--coupon-border': '#2c3e50', '--coupon-shadow': 'rgba(44,62,80,0.1)', '--coupon-amount': '#34495e', '--coupon-small': '#2c3e50', '--btn-bg': 'white', '--btn-border': '#34495e', '--btn-text': '#34495e', '--btn-received-bg': '#34495e', '--btn-received-border': '#2c3e50', '--wheel-outer': 'white', '--wheel-outer2': '#ecf0f1', '--pointer': '#7f8c8d', '--spin-btn-bg': 'linear-gradient(145deg, #2c3e50, #34495e)', '--spin-btn-text': 'white', '--spin-shadow': 'rgba(44,62,80,0.2)', '--prize-bg': '#ecf0f1', '--prize-text': '#2c3e50', '--activity-border': '#bdc3c7', '--activity-date-bg': '#bdc3c7', '--activity-date-text': '#2c3e50', '--tip-bg': '#ecf0f1', '--tip-text': '#2c3e50', '--tip-border': '#34495e' },
+            10: { '--bg-page': '#0d0f1c', '--card-bg': '#1a1c2c', '--bar-gradient': 'linear-gradient(90deg, #ff00c1, #00ffff, #ffff00)', '--name-gradient': 'linear-gradient(135deg, #fe00fe, #00ffff)', '--name-icon-gradient': 'linear-gradient(145deg, #ff00c1, #00ffff)', '--desc-color': '#c0c0ff', '--desc-border': '#ff00c1', '--desc-bg': '#22243a', '--info-text': '#e0e0ff', '--info-bg': '#2b2e47', '--info-icon': '#00ffff', '--coord-bg': '#353a5c', '--coord-border': '#565b82', '--coord-icon': '#ffff00', '--section-bg': '#22243a', '--section-border': '#ff00c1', '--title-color': '#ffffff', '--title-icon-gradient': 'linear-gradient(145deg, #ff00c1, #00ffff)', '--coupon-bg': 'linear-gradient(115deg, #2b2e47, #1f2137)', '--coupon-border': '#00ffff', '--coupon-shadow': 'rgba(0,255,255,0.3)', '--coupon-amount': '#ffff00', '--coupon-small': '#ff00c1', '--btn-bg': '#2b2e47', '--btn-border': '#00ffff', '--btn-text': '#00ffff', '--btn-received-bg': '#ff00c1', '--btn-received-border': '#ffff00', '--wheel-outer': '#2b2e47', '--wheel-outer2': '#565b82', '--pointer': '#ffff00', '--spin-btn-bg': 'linear-gradient(145deg, #0d0f1c, #2b2e47)', '--spin-btn-text': '#00ffff', '--spin-shadow': 'rgba(0,255,255,0.3)', '--prize-bg': '#2b2e47', '--prize-text': '#00ffff', '--activity-border': '#ff00c1', '--activity-date-bg': '#353a5c', '--activity-date-text': '#ffff00', '--tip-bg': '#2b2e47', '--tip-text': '#00ffff', '--tip-border': '#ff00c1' }
+        };
+
+        // 应用主题
+        const theme = themes[style] || themes[1];
+        for (let [key, value] of Object.entries(theme)) {
+            document.documentElement.style.setProperty(key, value);
+        }
+
+        // 更新店铺信息
+        document.getElementById('shopName').innerText = shopName;
+        document.getElementById('shopDesc').innerText = shopDesc;
+        document.getElementById('shopAddress').innerText = shopAddress;
+        document.getElementById('shopPhone').innerText = shopPhone;
+        document.getElementById('shopCoord').innerText = shopCoord;
+        document.title = shopName + ' - 主题' + style;
+
+        if (themeColor) {
+            document.querySelector('.brand-bar').style.background = `linear-gradient(90deg, ${themeColor}, #EC4899, #F59E0B)`;
+        }
+        if (params.get('logo') === 'crown') {
+            document.getElementById('shopLogo').className = 'fas fa-crown';
+        }
+
+        // ---------- 地图联动 (百度使用addr参数) ----------
+        const addrItem = document.getElementById('addrItem');
+        const coordItem = document.getElementById('coordItem');
+        const mapPopup = document.getElementById('mapPopup');
+        const gaodeLink = document.getElementById('gaodeLink');
+        const baiduLink = document.getElementById('baiduLink');
+        function buildMapLinks(addr, coord) {
+            let coordArr = coord.split(',').map(s => s.trim());
+            let lng = coordArr[1] || '121.468', lat = coordArr[0] || '31.229';
+            if (parseFloat(lat) > parseFloat(lng) && parseFloat(lat) > 90) { [lat, lng] = [lng, lat]; }
+            // 高德
+            gaodeLink.href = `https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeURIComponent(addr)}&src=mypage`;
+            // 百度 - 使用addr参数传入地址
+            baiduLink.href = `https://api.map.baidu.com/marker?location=${lat},${lng}&title=${encodeURIComponent(addr)}&output=html&src=mypage`;
+        }
+        buildMapLinks(shopAddress, shopCoord);
+        addrItem.addEventListener('click', (e) => { e.stopPropagation(); mapPopup.classList.add('show'); });
+        coordItem.addEventListener('click', (e) => { e.stopPropagation(); mapPopup.classList.add('show'); });
+        document.addEventListener('click', (e) => { if (!mapPopup.contains(e.target) && !addrItem.contains(e.target) && !coordItem.contains(e.target)) mapPopup.classList.remove('show'); });
+
+        // ---------- 动态生成券包 (10套) ----------
+        const couponSets = {
+            1: [ { amount: 8, condition: '满48元' }, { amount: 18, condition: '满88元' }, { amount: 38, condition: '满188元' } ],
+            2: [ { amount: 5, condition: '无门槛' }, { amount: 15, condition: '满60元' }, { amount: 30, condition: '满150元' } ],
+            3: [ { amount: 10, condition: '满50元' }, { amount: 25, condition: '满120元' }, { amount: 50, condition: '满200元' } ],
+            4: [ { amount: 3, condition: '满20元' }, { amount: 8, condition: '满40元' }, { amount: 20, condition: '满100元' } ],
+            5: [ { amount: 12, condition: '满80元' }, { amount: 28, condition: '满160元' }, { amount: 60, condition: '满300元' } ],
+            6: [ { amount: 6, condition: '满30元' }, { amount: 16, condition: '满70元' }, { amount: 36, condition: '满180元' } ],
+            7: [ { amount: 9, condition: '满45元' }, { amount: 19, condition: '满95元' }, { amount: 49, condition: '满199元' } ],
+            8: [ { amount: 7, condition: '满35元' }, { amount: 17, condition: '满85元' }, { amount: 37, condition: '满185元' } ],
+            9: [ { amount: 11, condition: '满55元' }, { amount: 22, condition: '满110元' }, { amount: 44, condition: '满220元' } ],
+            10: [ { amount: 13, condition: '满65元' }, { amount: 27, condition: '满135元' }, { amount: 55, condition: '满275元' } ]
+        };
+        const selectedCoupons = couponSets[coupon] || couponSets[1];
+        const couponContainer = document.getElementById('couponContainer');
+        couponContainer.innerHTML = '';
+        selectedCoupons.forEach((c, index) => {
+            const cid = `c${coupon}_${index}`;
+            const div = document.createElement('div');
+            div.className = 'coupon-item';
+            div.dataset.cid = cid;
+            div.innerHTML = `
+                <div class="coupon-amount">¥${c.amount} <small>元</small></div>
+                <div class="coupon-condition">${c.condition}可用</div>
+                <span class="claim-btn">立即领取</span>
+            `;
+            couponContainer.appendChild(div);
+        });
+
+        // 领券按钮事件
+        const claimBtns = document.querySelectorAll('.claim-btn');
+        claimBtns.forEach(btn => {
+            let cid = btn.closest('.coupon-item')?.dataset.cid;
+            if (cid && localStorage.getItem('coupon_' + cid)) {
+                btn.classList.add('received'); btn.innerText = '已领取';
+            }
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                let cid = this.closest('.coupon-item').dataset.cid;
+                if (!localStorage.getItem('coupon_' + cid)) {
+                    localStorage.setItem('coupon_' + cid, 'true');
+                    this.classList.add('received'); this.innerText = '已领取';
+                    alert('🎉 优惠券已存入卡包');
+                } else alert('您已经领过啦');
+            });
+        });
+
+        // ---------- 动态生成活动信息 (10套) ----------
+        const activitySets = {
+            1: [ { date: '05.01-05.07', desc: '五一狂欢 · 消费双倍积分', sub: '满100元赠饮品券' }, { date: '05.10', desc: '会员日 · 全场88折', sub: '叠加优惠券' }, { date: '05.15', desc: '新品品鉴会', sub: '限量邀请' } ],
+            2: [ { date: '06.01-06.07', desc: '儿童节亲子活动', sub: '消费抽盲盒' }, { date: '06.10', desc: '年中狂欢', sub: '满200减30' }, { date: '06.18', desc: '618大促', sub: '折上折' } ],
+            3: [ { date: '07.01-07.07', desc: '暑期嘉年华', sub: '学生证88折' }, { date: '07.15', desc: '会员双倍积分', sub: '兑换好礼' }, { date: '07.22', desc: '夏日冰爽节', sub: '第二杯半价' } ],
+            4: [ { date: '08.01-08.07', desc: '七夕浪漫约', sub: '情侣套餐特惠' }, { date: '08.12', desc: '囤货日', sub: '满赠周边' }, { date: '08.20', desc: '换季新品', sub: '抢先体验' } ],
+            5: [ { date: '09.01-09.07', desc: '开学季', sub: '满减+赠品' }, { date: '09.10', desc: '教师节感恩', sub: '凭教师证立减' }, { date: '09.20', desc: '秋日限定', sub: '新品上市' } ],
+            6: [ { date: '10.01-10.07', desc: '国庆黄金周', sub: '全场8折起' }, { date: '10.14', desc: '重阳敬老', sub: '满额赠礼' }, { date: '10.21', desc: '秋季养生', sub: '指定商品特惠' } ],
+            7: [ { date: '11.01-11.07', desc: '双11预热', sub: '定金翻倍' }, { date: '11.11', desc: '狂欢双11', sub: '5折秒杀' }, { date: '11.18', desc: '感恩回馈', sub: '积分兑换' } ],
+            8: [ { date: '12.01-12.07', desc: '圣诞集市', sub: '满赠姜饼人' }, { date: '12.12', desc: '双12大促', sub: '折上折' }, { date: '12.24', desc: '平安夜派对', sub: '抽奖活动' } ],
+            9: [ { date: '01.01-01.03', desc: '元旦开门红', sub: '新年福袋' }, { date: '01.15', desc: '腊八节', sub: '暖冬特饮' }, { date: '01.20', desc: '年货节', sub: '满减+赠品' } ],
+            10: [ { date: '02.01-02.07', desc: '春节不打烊', sub: '红包雨' }, { date: '02.14', desc: '情人节', sub: '双人套餐' }, { date: '02.22', desc: '元宵喜乐', sub: '猜灯谜' } ]
+        };
+        const selectedActs = activitySets[act] || activitySets[1];
+        const activityContainer = document.getElementById('activityContainer');
+        activityContainer.innerHTML = '';
+        selectedActs.forEach(item => {
+            const div = document.createElement('div'); div.className = 'activity-item';
+            div.innerHTML = `<div class="activity-date">${item.date.replace('-','<br>')}</div><div class="activity-desc">${item.desc} <small>${item.sub}</small></div>`;
+            activityContainer.appendChild(div);
+        });
+
+        // ---------- 转盘绘制 ----------
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const sectors = 8;
+        const colors = ['#FDE68A','#FCA5A5','#C4B5FD','#6EE7B7','#FBCFE8','#BFDBFE','#FED7AA','#B0D9F1'];
+        const numbers = [8, 1, 5, 3, 9, 2, 7, 6];
+        function drawWheel(rotateRad = 0) {
+            ctx.clearRect(0,0,300,300);
+            const angleStep = (Math.PI*2) / sectors;
+            for (let i = 0; i < sectors; i++) {
+                const start = i * angleStep + rotateRad;
+                const end = start + angleStep;
+                ctx.beginPath(); ctx.moveTo(150,150); ctx.arc(150,150,140, start, end); ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length]; ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(150,150); ctx.arc(150,150,140, start, end); ctx.lineTo(150,150); ctx.stroke();
+                ctx.save(); ctx.translate(150,150); ctx.rotate(start + angleStep/2); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = 'bold 28px "Nunito", sans-serif'; ctx.fillStyle = '#1E293B'; ctx.fillText(numbers[i], 90, 10); ctx.restore();
+            }
+            ctx.beginPath(); ctx.arc(150,150,30,0,2*Math.PI); ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.strokeStyle = '#ddd'; ctx.lineWidth = 3; ctx.stroke();
+        }
+        drawWheel();
+
+        // 声音
+        let audioCtx = null; let soundEnabled = true;
+        const soundToggle = document.getElementById('soundToggle');
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundToggle.innerHTML = soundEnabled ? '<i class="fas fa-volume-up" style="color:#8B5CF6;"></i>' : '<i class="fas fa-volume-mute" style="color:#888;"></i>';
+        });
+        function playSpinSound() {
+            if (!soundEnabled) return;
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.value = 880; gain.gain.value = 0.1;
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // 抽奖
+        let isSpinning = false; let currentRotate = 0;
+        const spinBtn = document.getElementById('spinButton');
+        const prizeHint = document.getElementById('prizeHint');
+        const modal = document.getElementById('resultModal');
+        const modalPrizeNum = document.getElementById('modalPrizeNum');
+        const modalPrizeSpan = document.getElementById('modalPrizeSpan');
+        const modalDateSpan = document.getElementById('modalDate');
+        const closeModal = document.getElementById('closeModal');
+        const today = new Date(); const dateStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+        modalDateSpan.innerText = dateStr;
+
+        spinBtn.addEventListener('click', function() {
+            if (isSpinning) return;
+            isSpinning = true;
+            playSpinSound();
+            const spins = 8 + Math.floor(Math.random() * 13);
+            const targetAngle = (Math.random() * Math.PI*2) + spins * Math.PI*2;
+            const startRot = currentRotate % (Math.PI*2);
+            let animStart = null; const duration = 3000;
+            function animateSpin(ts) {
+                if (!animStart) animStart = ts;
+                const progress = Math.min((ts - animStart) / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentRotate = startRot + (targetAngle - startRot) * easeOut;
+                drawWheel(currentRotate);
+                if (progress < 1) requestAnimationFrame(animateSpin);
+                else {
+                    let rawAngle = (currentRotate % (2*Math.PI) + 2*Math.PI) % (2*Math.PI);
+                    const pointerAngle = 3 * Math.PI / 2;
+                    const angleStep = 2 * Math.PI / sectors;
+                    let prizeIndex = -1;
+                    for (let i = 0; i < sectors; i++) {
+                        let start = i * angleStep + rawAngle;
+                        let end = start + angleStep;
+                        start = (start + 2*Math.PI) % (2*Math.PI);
+                        end = (end + 2*Math.PI) % (2*Math.PI);
+                        if (start < end) { if (pointerAngle >= start && pointerAngle < end) prizeIndex = i; }
+                        else { if (pointerAngle >= start || pointerAngle < end) prizeIndex = i; }
+                    }
+                    if (prizeIndex === -1) prizeIndex = 0;
+                    const prizeNum = numbers[prizeIndex];
+                    prizeHint.innerText = `🎉 箭头指向数字 ${prizeNum} 恭喜！`;
+                    modalPrizeNum.innerText = prizeNum; modalPrizeSpan.innerText = prizeNum;
+                    modal.style.display = 'flex';
+                    if (soundEnabled) {
+                        if (!audioCtx) audioCtx = new AudioContext();
+                        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+                        osc.type = 'sine'; osc.frequency.value = 660; gain.gain.value = 0.15;
+                        osc.connect(gain).connect(audioCtx.destination);
+                        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+                    }
+                    isSpinning = false;
+                }
+            }
+            requestAnimationFrame(animateSpin);
+        });
+        closeModal.addEventListener('click', () => modal.style.display = 'none');
+        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+        console.log(`参数: style=${style}, act=${act}, coupon=${coupon}`);
+    })();
+</script>
+
+<!-- 
+优化建议：
+1. 数据源：目前act和coupon为模拟数据，实际使用时可改为AJAX请求从后端获取JSON，实现动态配置。
+2. 券包存储：已使用localStorage记录领取状态，可增加后端记录用户ID防止重复。
+3. 转盘奖品：可从后端获取奖品列表，与数字对应，并支持概率控制。
+4. 地图联动：百度地图已使用addr参数传入地址，可增加步行/公交规划链接。
+5. 性能优化：图片懒加载、按需加载主题CSS。
+6. 小程序适配：可转为wxml + wxss，音频需使用wx.createInnerAudioContext。
+7. 增加分享功能：可生成带有当前参数的分享卡片。
+-->
+</body>
+</html>
