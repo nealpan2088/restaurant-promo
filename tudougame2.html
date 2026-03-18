@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <!-- 关键：跨平台meta配置 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
+    <title>🥔 土豆人 - 跨平台版</title>
+    <style>
+        /* ===== 全局重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        
+        /* ===== 基础布局 ===== */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            background: #1a3f5a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* 游戏主容器 - 使用flex布局自适应 */
+        .game-wrapper {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #2d5a2d;
+            position: relative;
+        }
+        
+        /* ===== 顶部状态栏 ===== */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: clamp(8px, 2vh, 15px) clamp(10px, 3vw, 25px);
+            background: #3a281c;
+            color: white;
+            border-bottom: 3px solid #b88a5b;
+            font-size: clamp(1rem, 4vw, 1.3rem);
+            z-index: 10;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 1vw, 8px);
+            background: rgba(0,0,0,0.3);
+            padding: clamp(4px, 1.5vh, 8px) clamp(8px, 2vw, 20px);
+            border-radius: 30px;
+            border: 1px solid #f0b400;
+        }
+        
+        /* ===== 画布容器 - 关键自适应区域 ===== */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: #87CEEB;
+            min-height: 0; /* flexbox关键 */
+            touch-action: none;
+        }
+        
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            touch-action: none;
+            pointer-events: auto;
+            /* 硬件加速 */
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            perspective: 1000;
+        }
+        
+        /* ===== 控制区域 - 响应式设计 ===== */
+        .control-panel {
+            display: flex;
+            justify-content: space-between;
+            padding: clamp(10px, 2vh, 20px) clamp(10px, 3vw, 30px);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            border-top: 3px solid #f0b400;
+            z-index: 20;
+            gap: clamp(10px, 2vw, 30px);
+            /* 安全区域适配 */
+            padding-bottom: max(10px, env(safe-area-inset-bottom));
+        }
+        
+        /* D-Pad方向键 */
+        .dpad {
+            display: flex;
+            gap: clamp(10px, 3vw, 25px);
+        }
+        
+        /* 按钮通用样式 - 同时适配手指和鼠标 */
+        .game-btn {
+            width: clamp(50px, 12vw, 80px);
+            height: clamp(50px, 12vw, 80px);
+            border-radius: 50%;
+            background: #4a4a4a;
+            border: 4px solid #f0b400;
+            color: white;
+            font-size: clamp(1.5rem, 6vw, 2.5rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 0 #7a4d1a, 0 5px 15px rgba(0,0,0,0.5);
+            cursor: pointer;
+            transition: all 0.03s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            /* 移动端最小点击区域 */
+            min-width: 44px;
+            min-height: 44px;
+        }
+        
+        .game-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #7a4d1a;
+        }
+        
+        /* 桌面端hover效果（不影响移动端） */
+        @media (hover: hover) and (pointer: fine) {
+            .game-btn:hover {
+                background: #5a5a5a;
+                border-color: #ffd966;
+                transform: scale(1.05);
+            }
+        }
+        
+        .jump-btn {
+            background: #dc7828;
+            border-color: #ffe66d;
+        }
+        
+        /* ===== 键盘提示 - 仅在桌面端显示 ===== */
+        .keyboard-hint {
+            display: none;
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(5px);
+            border: 1px solid #f0b400;
+            z-index: 15;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        
+        /* 桌面端显示键盘提示 */
+        @media (min-width: 768px) and (hover: hover) {
+            .keyboard-hint {
+                display: block;
+            }
+        }
+        
+        /* ===== 移动端横屏适配 ===== */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .status-bar {
+                padding: 4px 10px;
+                font-size: 0.9rem;
+            }
+            
+            .game-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.5rem;
+                border-width: 3px;
+            }
+            
+            .control-panel {
+                padding: 5px 15px;
+            }
+        }
+        
+        /* ===== 模态框 ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: #fdebb3;
+            padding: clamp(20px, 5vh, 40px) clamp(20px, 5vw, 40px);
+            border-radius: 50px;
+            text-align: center;
+            border: 6px solid #c09b5e;
+            width: min(90%, 400px);
+            max-width: 400px;
+        }
+        
+        .modal-btn {
+            background: #f9b83c;
+            border: none;
+            padding: clamp(12px, 3vh, 20px) clamp(20px, 5vw, 40px);
+            border-radius: 40px;
+            font-size: clamp(1.2rem, 5vw, 1.8rem);
+            font-weight: bold;
+            margin-top: 20px;
+            width: 100%;
+            box-shadow: 0 5px 0 #9f5e20;
+            cursor: pointer;
+            touch-action: manipulation;
+            min-height: 44px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-wrapper">
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="status-item">
+                <span>🥔</span>
+                <span id="livesValue">3</span>
+            </div>
+            <div class="status-item">
+                <span>🪙</span>
+                <span id="scoreValue">0</span>
+            </div>
+            <div class="status-item">
+                <span>📊</span>
+                <span id="levelValue">1-1</span>
+            </div>
+        </div>
+        
+        <!-- 画布区域 -->
+        <div class="canvas-container" id="canvasContainer">
+            <canvas id="gameCanvas" width="1024" height="576"></canvas>
+        </div>
+        
+        <!-- 键盘提示（仅桌面显示） -->
+        <div class="keyboard-hint">
+            ←→ / AD 移动 | W / 空格 跳跃 | R 重试
+        </div>
+        
+        <!-- 控制区域 - 同时服务触摸和鼠标 -->
+        <div class="control-panel">
+            <div class="dpad">
+                <button class="game-btn" id="btnLeft">←</button>
+                <button class="game-btn" id="btnRight">→</button>
+            </div>
+            <div>
+                <button class="game-btn jump-btn" id="btnJump">🦘</button>
+            </div>
+            <div>
+                <button class="game-btn" id="btnRestart">↻</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modalTitle">🥔</h2>
+            <p id="modalMsg"></p>
+            <button class="modal-btn" id="modalBtn">继续</button>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ==================== 1. 平台检测 ====================
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            console.log('平台信息:', { 
+                isMobile, 
+                isTouchDevice,
+                userAgent: navigator.userAgent,
+                screenWidth: window.innerWidth,
+                screenHeight: window.innerHeight
+            });
+            
+            // ==================== 2. 画布适配 ====================
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('canvasContainer');
+            
+            // 游戏世界尺寸固定，通过缩放适配不同屏幕
+            const WORLD_WIDTH = 1024;
+            const WORLD_HEIGHT = 576;
+            
+            let scale = 1;
+            let offsetX = 0;
+            let offsetY = 0;
+            
+            function resizeCanvas() {
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+                
+                // 计算最佳缩放比例（保持16:9）
+                const scaleX = containerWidth / WORLD_WIDTH;
+                const scaleY = containerHeight / WORLD_HEIGHT;
+                scale = Math.min(scaleX, scaleY);
+                
+                // 计算居中偏移
+                offsetX = (containerWidth - WORLD_WIDTH * scale) / 2;
+                offsetY = (containerHeight - WORLD_HEIGHT * scale) / 2;
+                
+                // 设置画布CSS
+                canvas.style.width = `${WORLD_WIDTH * scale}px`;
+                canvas.style.height = `${WORLD_HEIGHT * scale}px`;
+                canvas.style.marginLeft = `${offsetX}px`;
+                canvas.style.marginTop = `${offsetY}px`;
+                
+                // 实际分辨率不变
+                canvas.width = WORLD_WIDTH;
+                canvas.height = WORLD_HEIGHT;
+            }
+            
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                // 移动端旋转屏幕时特别处理
+                if (isMobile) {
+                    setTimeout(resizeCanvas, 100);
+                }
+            });
+            
+            resizeCanvas();
+            
+            // ==================== 3. 输入系统（统一处理键盘+触摸）====================
+            const input = {
+                left: false,
+                right: false,
+                jump: false,
+                jumpPressed: false,
+                
+                // 键盘映射
+                keyMap: {
+                    'ArrowLeft': 'left',
+                    'ArrowRight': 'right',
+                    'a': 'left',
+                    'A': 'left',
+                    'd': 'right',
+                    'D': 'right',
+                    ' ': 'jump',
+                    'w': 'jump',
+                    'W': 'jump',
+                    'ArrowUp': 'jump'
+                }
+            };
+            
+            // 键盘事件
+            window.addEventListener('keydown', (e) => {
+                const key = e.key;
+                if (key in input.keyMap) {
+                    e.preventDefault();
+                    const action = input.keyMap[key];
+                    input[action] = true;
+                }
+                
+                // 重试快捷键
+                if (key === 'r' || key === 'R') {
+                    e.preventDefault();
+                    resetGame();
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                const key = e.key;
+                if (key in input.keyMap) {
+                    e.preventDefault();
+                    const action = input.keyMap[key];
+                    input[action] = false;
+                    if (action === 'jump') {
+                        input.jumpPressed = false;
+                    }
+                }
+            });
+            
+            // 触摸按钮事件（统一处理）
+            const btnLeft = document.getElementById('btnLeft');
+            const btnRight = document.getElementById('btnRight');
+            const btnJump = document.getElementById('btnJump');
+            const btnRestart = document.getElementById('btnRestart');
+            
+            function handleTouchStart(action, e) {
+                e.preventDefault();
+                e.stopPropagation();
+                input[action] = true;
+            }
+            
+            function handleTouchEnd(action, e) {
+                e.preventDefault();
+                e.stopPropagation();
+                input[action] = false;
+                if (action === 'jump') {
+                    input.jumpPressed = false;
+                }
+            }
+            
+            // 同时绑定触摸和鼠标事件
+            [btnLeft, btnRight, btnJump, btnRestart].forEach(btn => {
+                btn.addEventListener('touchstart', (e) => handleTouchStart(
+                    btn.id === 'btnLeft' ? 'left' : 
+                    btn.id === 'btnRight' ? 'right' : 
+                    btn.id === 'btnJump' ? 'jump' : null, e
+                ), { passive: false, capture: true });
+                
+                btn.addEventListener('touchend', (e) => handleTouchEnd(
+                    btn.id === 'btnLeft' ? 'left' : 
+                    btn.id === 'btnRight' ? 'right' : 
+                    btn.id === 'btnJump' ? 'jump' : null, e
+                ), { passive: false, capture: true });
+                
+                btn.addEventListener('touchcancel', (e) => handleTouchEnd(
+                    btn.id === 'btnLeft' ? 'left' : 
+                    btn.id === 'btnRight' ? 'right' : 
+                    btn.id === 'btnJump' ? 'jump' : null, e
+                ), { passive: false, capture: true });
+                
+                // 鼠标事件（桌面端）
+                btn.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    if (btn.id === 'btnLeft') input.left = true;
+                    if (btn.id === 'btnRight') input.right = true;
+                    if (btn.id === 'btnJump') input.jump = true;
+                });
+                
+                btn.addEventListener('mouseup', (e) => {
+                    e.preventDefault();
+                    if (btn.id === 'btnLeft') input.left = false;
+                    if (btn.id === 'btnRight') input.right = false;
+                    if (btn.id === 'btnJump') {
+                        input.jump = false;
+                        input.jumpPressed = false;
+                    }
+                });
+                
+                btn.addEventListener('mouseleave', (e) => {
+                    if (btn.id === 'btnLeft') input.left = false;
+                    if (btn.id === 'btnRight') input.right = false;
+                    if (btn.id === 'btnJump') {
+                        input.jump = false;
+                        input.jumpPressed = false;
+                    }
+                });
+            });
+            
+            // 重置按钮特殊处理
+            btnRestart.addEventListener('click', resetGame);
+            btnRestart.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                resetGame();
+            });
+            
+            // ==================== 4. 游戏状态 ====================
+            let gameState = {
+                lives: 3,
+                score: 0,
+                level: 1,
+                gameActive: true,
+                frameCount: 0
+            };
+            
+            // 玩家
+            let player = {
+                x: 200,
+                y: 400,
+                width: 32,
+                height: 40,
+                vx: 0,
+                vy: 0,
+                grounded: true,
+                facing: 1
+            };
+            
+            // 物理常量
+            const GRAVITY = 0.5;
+            const JUMP_FORCE = -12;
+            const MOVE_SPEED = 3.8;
+            const MAX_SPEED = 5;
+            const FRICTION = 0.7;
+            
+            // 关卡数据
+            let platforms = [
+                { x: 0, y: 520, w: 1400, h: 30 },
+                { x: 300, y: 440, w: 100, h: 20 },
+                { x: 500, y: 380, w: 100, h: 20 },
+                { x: 700, y: 320, w: 100, h: 20 }
+            ];
+            
+            let enemies = [
+                { x: 350, y: 490, w: 28, h: 28, vx: 1, range: 80, startX: 350, dir: 1, dead: false },
+                { x: 550, y: 430, w: 28, h: 30, vx: 1.2, range: 100, startX: 550, dir: 1, dead: false }
+            ];
+            
+            let coins = [
+                { x: 350, y: 390, collected: false, value: 10 },
+                { x: 550, y: 330, collected: false, value: 10 },
+                { x: 750, y: 270, collected: false, value: 20 }
+            ];
+            
+            let exit = { x: 1000, y: 460, w: 40, h: 60 };
+            
+            // 摄像机
+            let cameraX = 0;
+            
+            // ==================== 5. 物理更新 ====================
+            function update() {
+                if (!gameState.gameActive) return;
+                
+                gameState.frameCount++;
+                
+                // 移动输入
+                let moveDir = 0;
+                if (input.left) moveDir -= 1;
+                if (input.right) moveDir += 1;
+                
+                // 应用加速度
+                if (moveDir !== 0) {
+                    player.vx += moveDir * MOVE_SPEED * 0.3;
+                    player.facing = moveDir;
+                } else {
+                    player.vx *= FRICTION;
+                }
+                
+                // 限速
+                if (player.vx > MAX_SPEED) player.vx = MAX_SPEED;
+                if (player.vx < -MAX_SPEED) player.vx = -MAX_SPEED;
+                
+                // 重力
+                player.vy += GRAVITY;
+                if (player.vy > 12) player.vy = 12;
+                
+                // 跳跃
+                if (input.jump && !input.jumpPressed && player.grounded) {
+                    player.vy = JUMP_FORCE;
+                    player.grounded = false;
+                    input.jumpPressed = true;
+                }
+                if (!input.jump) {
+                    input.jumpPressed = false;
+                }
+                
+                // 水平移动
+                player.x += player.vx;
+                checkCollisions('horizontal');
+                
+                // 垂直移动
+                player.y += player.vy;
+                player.grounded = false;
+                checkCollisions('vertical');
+                
+                // 敌人移动
+                for (let e of enemies) {
+                    if (e.dead) continue;
+                    e.x += e.vx * e.dir;
+                    if (e.x > e.startX + e.range || e.x < e.startX - e.range) {
+                        e.dir *= -1;
+                    }
+                }
+                
+                // 金币碰撞
+                for (let coin of coins) {
+                    if (!coin.collected && 
+                        player.x < coin.x + 20 &&
+                        player.x + player.width > coin.x - 10 &&
+                        player.y < coin.y + 20 &&
+                        player.y + player.height > coin.y - 10) {
+                        coin.collected = true;
+                        gameState.score += coin.value;
+                        updateUI();
+                    }
+                }
+                
+                // 敌人碰撞
+                for (let e of enemies) {
+                    if (e.dead) continue;
+                    
+                    if (player.x < e.x + e.w &&
+                        player.x + player.width > e.x &&
+                        player.y < e.y + e.h &&
+                        player.y + player.height > e.y) {
+                        
+                        // 踩敌人
+                        if (player.vy > 0 && player.y + player.height - player.vy <= e.y + 10) {
+                            e.dead = true;
+                            player.vy = JUMP_FORCE * 0.6;
+                            gameState.score += 50;
+                        } else {
+                            // 受伤
+                            gameState.lives--;
+                            if (gameState.lives <= 0) {
+                                gameOver();
+                                return;
+                            }
+                            // 重生
+                            player.x = 200;
+                            player.y = 400;
+                            player.vx = 0;
+                            player.vy = 0;
+                        }
+                        updateUI();
+                    }
+                }
+                
+                // 出口
+                if (exit && 
+                    player.x < exit.x + exit.w &&
+                    player.x + player.width > exit.x &&
+                    player.y < exit.y + exit.h &&
+                    player.y + player.height > exit.y) {
+                    levelComplete();
+                }
+                
+                // 摄像机跟随（平滑处理）
+                const targetCam = player.x - canvas.width / 3;
+                cameraX += (targetCam - cameraX) * 0.1;
+                if (cameraX < 0) cameraX = 0;
+                if (cameraX > 1000) cameraX = 1000;
+            }
+            
+            function checkCollisions(axis) {
+                for (let p of platforms) {
+                    if (axis === 'horizontal') {
+                        if (player.y + player.height > p.y &&
+                            player.y < p.y + p.h &&
+                            player.x + player.width > p.x &&
+                            player.x < p.x + p.w) {
+                            
+                            if (player.vx > 0) {
+                                player.x = p.x - player.width;
+                            } else if (player.vx < 0) {
+                                player.x = p.x + p.w;
+                            }
+                            player.vx = 0;
+                        }
+                    } else {
+                        if (player.x + player.width > p.x &&
+                            player.x < p.x + p.w &&
+                            player.y + player.height > p.y &&
+                            player.y < p.y + p.h) {
+                            
+                            if (player.vy > 0) {
+                                player.y = p.y - player.height;
+                                player.grounded = true;
+                                player.vy = 0;
+                            } else if (player.vy < 0) {
+                                player.y = p.y + p.h;
+                                player.vy = 0;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // ==================== 6. 绘制系统 ====================
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 天空渐变
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(0.7, '#87CEEB');
+                gradient.addColorStop(0.7, '#7ec850');
+                gradient.addColorStop(1, '#6b8e4b');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // 云朵动画（仅PC端可以多画一些）
+                const cloudCount = isMobile ? 2 : 4;
+                ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                for (let i = 0; i < cloudCount; i++) {
+                    let x = (i * 300 + gameState.frameCount * 0.2) % 1200 - 200;
+                    ctx.beginPath();
+                    ctx.arc(x - cameraX * 0.3, 100 + i * 50, 40, 0, Math.PI*2);
+                    ctx.arc(x + 50 - cameraX * 0.3, 80 + i * 50, 35, 0, Math.PI*2);
+                    ctx.fill();
+                }
+                
+                ctx.save();
+                ctx.translate(-cameraX, 0);
+                
+                // 平台
+                ctx.fillStyle = '#8b6e4b';
+                for (let p of platforms) {
+                    ctx.fillRect(p.x, p.y, p.w, p.h);
+                    // 草
+                    ctx.fillStyle = '#6b8e4b';
+                    ctx.fillRect(p.x, p.y - 5, p.w, 8);
+                    ctx.fillStyle = '#8b6e4b';
+                }
+                
+                // 金币
+                for (let coin of coins) {
+                    if (!coin.collected) {
+                        const sparkle = Math.sin(gameState.frameCount * 0.1) * 0.2 + 0.8;
+                        ctx.fillStyle = `rgba(255, 215, 0, ${sparkle})`;
+                        ctx.beginPath();
+                        ctx.arc(coin.x, coin.y, 12, 0, Math.PI*2);
+                        ctx.fill();
+                        ctx.fillStyle = '#b8860b';
+                        ctx.font = 'bold 16px Arial';
+                        ctx.fillText('🪙', coin.x - 8, coin.y + 6);
+                    }
+                }
+                
+                // 敌人
+                for (let e of enemies) {
+                    if (e.dead) continue;
+                    
+                    // 不同敌人不同颜色
+                    ctx.fillStyle = '#a55d5d';
+                    ctx.fillRect(e.x, e.y, e.w, e.h);
+                    
+                    // 眼睛
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(e.x + 5, e.y + 5, 6, 6);
+                    ctx.fillRect(e.x + 17, e.y + 5, 6, 6);
+                    ctx.fillStyle = 'black';
+                    ctx.fillRect(e.x + 7, e.y + 7, 3, 3);
+                    ctx.fillRect(e.x + 19, e.y + 7, 3, 3);
+                }
+                
+                // 出口
+                if (exit) {
+                    ctx.fillStyle = 'gold';
+                    ctx.fillRect(exit.x, exit.y, exit.w, exit.h);
+                    // 旗子
+                    ctx.fillStyle = 'red';
+                    ctx.fillRect(exit.x + 5, exit.y - 20, 20, 15);
+                }
+                
+                // 土豆人
+                ctx.fillStyle = '#b07d44';
+                ctx.beginPath();
+                ctx.ellipse(player.x + 16, player.y + 20, 16, 18, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                // 眼睛
+                ctx.fillStyle = 'white';
+                ctx.beginPath();
+                ctx.arc(player.x + 10, player.y + 15, 4, 0, Math.PI*2);
+                ctx.arc(player.x + 22, player.y + 15, 4, 0, Math.PI*2);
+                ctx.fill();
+                
+                // 瞳孔（跟随面向方向）
+                ctx.fillStyle = '#2d1a0a';
+                ctx.beginPath();
+                ctx.arc(player.x + (player.facing > 0 ? 13 : 9), player.y + 15, 2, 0, Math.PI*2);
+                ctx.arc(player.x + (player.facing > 0 ? 25 : 21), player.y + 15, 2, 0, Math.PI*2);
+                ctx.fill();
+                
+                // 嘴巴
+                ctx.beginPath();
+                ctx.strokeStyle = '#5d3a1a';
+                ctx.lineWidth = 2;
+                ctx.arc(player.x + 16, player.y + 22, 5, 0.1, Math.PI - 0.1);
+                ctx.stroke();
+                
+                // 土豆芽
+                ctx.fillStyle = '#6b8e4b';
+                ctx.beginPath();
+                ctx.ellipse(player.x + 16, player.y - 5, 5, 8, 0, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.restore();
+                
+                // FPS显示（调试用，正式可注释）
+                if (!isMobile) {
+                    ctx.fillStyle = 'white';
+                    ctx.font = '12px monospace';
+                    ctx.fillText(`FPS: ${Math.round(calculateFPS())}`, 10, 20);
+                }
+            }
+            
+            // FPS计算
+            let fps = 60;
+            let lastTime = performance.now();
+            let frames = 0;
+            
+            function calculateFPS() {
+                frames++;
+                const now = performance.now();
+                const delta = now - lastTime;
+                if (delta >= 1000) {
+                    fps = frames;
+                    frames = 0;
+                    lastTime = now;
+                }
+                return fps;
+            }
+            
+            // ==================== 7. UI更新 ====================
+            function updateUI() {
+                document.getElementById('livesValue').innerText = gameState.lives;
+                document.getElementById('scoreValue').innerText = gameState.score;
+                document.getElementById('levelValue').innerText = `${gameState.level}-1`;
+            }
+            
+            function gameOver() {
+                gameState.gameActive = false;
+                document.getElementById('modalTitle').innerText = '💔 游戏结束';
+                document.getElementById('modalMsg').innerText = `得分: ${gameState.score}`;
+                document.getElementById('modal').classList.remove('hidden');
+            }
+            
+            function levelComplete() {
+                gameState.gameActive = false;
+                document.getElementById('modalTitle').innerText = '🎉 通关';
+                document.getElementById('modalMsg').innerText = `得分: ${gameState.score}\n进入下一关`;
+                document.getElementById('modal').classList.remove('hidden');
+            }
+            
+            function resetGame() {
+                gameState = {
+                    lives: 3,
+                    score: 0,
+                    level: 1,
+                    gameActive: true,
+                    frameCount: 0
+                };
+                
+                player = {
+                    x: 200,
+                    y: 400,
+                    width: 32,
+                    height: 40,
+                    vx: 0,
+                    vy: 0,
+                    grounded: true,
+                    facing: 1
+                };
+                
+                // 重置金币
+                for (let coin of coins) {
+                    coin.collected = false;
+                }
+                
+                // 重置敌人
+                for (let e of enemies) {
+                    e.dead = false;
+                }
+                
+                updateUI();
+                document.getElementById('modal').classList.add('hidden');
+            }
+            
+            document.getElementById('modalBtn').addEventListener('click', resetGame);
+            document.getElementById('modalBtn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                resetGame();
+            });
+            
+            // ==================== 8. 游戏循环 ====================
+            function gameLoop() {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+            
+            // 启动游戏
+            updateUI();
+            gameLoop();
+            
+            // ==================== 9. 性能优化 ====================
+            // 移动端降低画质选项
+            if (isMobile) {
+                // 可以在这里关闭某些特效
+                console.log('移动端模式已启用');
+            }
+            
+            // 防抖处理（避免快速点击）
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+            
+            // 横屏检测
+            window.addEventListener('orientationchange', () => {
+                setTimeout(resizeCanvas, 100);
+            });
+        })();
+    </script>
+</body>
+</html>
