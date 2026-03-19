@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>多店铺 · 通用宣传页</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Helvetica Neue', 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0b0f1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            will-change: transform;
+        }
+
+        .card {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 40px 40px 32px 32px;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+            overflow: hidden;
+            transition: background 0.3s ease;
+            contain: content;
+        }
+
+        /* 主题类基类 */
+        .card.theme-modern { background: rgba(220, 240, 255, 0.7); }
+        .card.theme-industrial { background: rgba(210, 200, 190, 0.7); }
+        .card.theme-minimal { background: rgba(250, 250, 250, 0.65); }
+        .card.theme-bohemian { background: rgba(255, 235, 215, 0.7); }
+
+        .theme-tag {
+            height: 8px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+
+        .content {
+            padding: 22px 20px 28px;
+            padding-left: max(20px, env(safe-area-inset-left));
+            padding-right: max(20px, env(safe-area-inset-right));
+        }
+
+        .shop-name {
+            font-size: 30px;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 4px;
+            color: #1e1e2a;
+            text-shadow: 0 2px 4px rgba(255,255,255,0.3);
+        }
+
+        .shop-status-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .status-badge {
+            background: rgba(70, 130, 100, 0.2);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-weight: 500;
+            backdrop-filter: blur(2px);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .distance {
+            color: #2e4a3a;
+            font-weight: 500;
+            background: rgba(255,255,240,0.3);
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        .shop-meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: #2e3a47;
+        }
+        .shop-desc, .shop-tel {
+            background: rgba(0,0,0,0.03);
+            padding: 4px 12px;
+            border-radius: 30px;
+            backdrop-filter: blur(2px);
+        }
+
+        .action-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 24px 0 16px;
+        }
+        .btn {
+            flex: 1 1 calc(50% - 6px);
+            min-width: 140px;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255,255,255,0.8);
+            border-radius: 60px;
+            padding: 14px 6px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #1f2a3f;
+            box-shadow: 0 6px 14px rgba(0, 10, 20, 0.1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: 0.2s;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn:active { transform: scale(0.97); background: rgba(255, 255, 255, 0.9); }
+
+        .wechat-row {
+            background: rgba(0,0,0,0.03);
+            border-radius: 40px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0 16px;
+            border: 1px dashed rgba(255,255,255,0.7);
+        }
+        .wechat-number {
+            font-family: monospace;
+            font-size: 16px;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+        .copy-btn {
+            background: #2b3b4c;
+            color: white;
+            border-radius: 40px;
+            padding: 8px 22px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0,40,80,0.3);
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .copy-btn:active { background: #1e2b38; transform: scale(0.95); }
+
+        /* 签到打卡 + 积分系统样式 */
+        .checkin-section {
+            background: linear-gradient(135deg, rgba(255,215,150,0.2), rgba(255,200,180,0.2));
+            border-radius: 28px;
+            padding: 18px 16px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,180,120,0.4);
+        }
+        .member-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .level-badge {
+            background: #b8864b;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .points-display {
+            font-size: 22px;
+            font-weight: 700;
+            color: #c45d2c;
+            background: rgba(255,255,240,0.6);
+            padding: 6px 16px;
+            border-radius: 40px;
+        }
+        .streak-fire {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 10px 0 15px;
+            font-size: 16px;
+            background: rgba(255,140,0,0.1);
+            padding: 8px 14px;
+            border-radius: 40px;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .cal-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.5);
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .cal-day.checked {
+            background: #4caf50;
+            color: white;
+            position: relative;
+        }
+        .cal-day.checked::after {
+            content: "✓";
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            font-size: 10px;
+        }
+        .cal-day.today {
+            border: 2px solid #ff9800;
+        }
+        .checkin-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 60px;
+            padding: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            width: 100%;
+            margin: 8px 0;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(255,150,0,0.3);
+            transition: 0.1s;
+        }
+        .checkin-btn:active { transform: scale(0.97); background: #e68900; }
+        .checkin-btn:disabled {
+            background: #ccc;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .points-shop {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        .redeem-btn {
+            flex: 1 1 calc(50% - 4px);
+            background: rgba(70,130,180,0.7);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 40px;
+            padding: 12px;
+            font-weight: 600;
+            color: white;
+            backdrop-filter: blur(5px);
+            cursor: pointer;
+        }
+        .redeem-btn:active { background: rgba(50,100,140,0.9); }
+
+        /* 评价墙/留言板样式 */
+        .review-section {
+            background: rgba(240,248,255,0.3);
+            border-radius: 28px;
+            padding: 18px 16px;
+            margin: 20px 0 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(150,200,255,0.4);
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .review-slider {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-bottom: 15px;
+            scrollbar-width: thin;
+        }
+        .review-item {
+            background: rgba(255,255,255,0.7);
+            border-radius: 20px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffb347;
+        }
+        .review-stars {
+            color: #ffb800;
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-bottom: 4px;
+        }
+        .review-text {
+            font-size: 14px;
+            margin: 5px 0;
+            word-break: break-word;
+        }
+        .reviewer-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+        }
+        .write-review-btn {
+            background: #5c6bc0;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        /* 弹窗 */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+        }
+        .modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            background: rgba(255,255,255,0.95);
+            border-radius: 32px;
+            width: 85%;
+            max-width: 340px;
+            padding: 24px;
+        }
+        .star-rating {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+            font-size: 30px;
+            color: #ffb800;
+        }
+        .star-rating span {
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .review-input {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 16px;
+            margin: 15px 0;
+            resize: none;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .modal-actions button {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .submit-btn { background: #4caf50; color: white; }
+        .cancel-btn { background: #ddd; }
+
+        .footer-note {
+            font-size: 11px;
+            color: #5b6b7a;
+            text-align: center;
+            margin-top: 20px;
+            opacity: 0.6;
+        }
+        .coord-hidden { display: none; }
+
+        /* 功能模块开关（默认隐藏，JS根据配置显示） */
+        [data-feature] {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+
+    <div class="card" id="mainCard">
+        <div class="theme-tag" id="themeTag"></div>
+        <div class="content">
+            <h1 class="shop-name" id="shopName">加载中...</h1>
+            
+            <div class="shop-status-row">
+                <span class="status-badge" id="statusBadge">🟢 营业中</span>
+                <span class="distance" id="distance">定位计算中...</span>
+            </div>
+
+            <div class="shop-meta">
+                <span class="shop-desc" id="shopDesc"></span>
+                <span class="shop-tel" id="shopTel"></span>
+            </div>
+
+            <div class="action-row">
+                <div class="btn" id="navBtn"><i>🗺️</i> 一键导航</div>
+                <div class="btn" id="copyWechatBtn"><i>💬</i> 加老板微信</div>
+            </div>
+
+            <div class="wechat-row">
+                <span class="wechat-label">🔹 老板微信</span>
+                <span class="wechat-number" id="wechatNumber"></span>
+                <button class="copy-btn" id="copyBtn">复制</button>
+            </div>
+
+            <!-- 隐藏坐标数据 -->
+            <div id="coordLat" class="coord-hidden"></div>
+            <div id="coordLng" class="coord-hidden"></div>
+            <div id="addressStr" class="coord-hidden"></div>
+
+            <!-- 功能模块：签到打卡 + 积分系统 (由data-feature控制) -->
+            <div class="checkin-section" data-feature="checkin">
+                <div class="member-header">
+                    <span class="level-badge" id="levelBadge">青铜会员</span>
+                    <span class="points-display" id="pointsDisplay">0 积分</span>
+                </div>
+                
+                <div class="streak-fire" id="streakDisplay">
+                    <span>🔥 连续签到 <span id="streakCount">0</span> 天</span>
+                    <span>📅 累计 <span id="totalDays">0</span> 天</span>
+                </div>
+
+                <div class="calendar-grid" id="calendarGrid"></div>
+
+                <button class="checkin-btn" id="checkinBtn">📆 今日签到</button>
+
+                <!-- 积分兑换区，动态生成 -->
+                <div class="points-shop" id="pointsShop"></div>
+            </div>
+
+            <!-- 功能模块：评价墙 -->
+            <div class="review-section" data-feature="reviews">
+                <div class="review-header">
+                    <span style="font-weight: 700; font-size: 18px;">📝 顾客评价墙</span>
+                    <span style="color: #ffb800;" id="reviewCount">0条评价</span>
+                </div>
+
+                <div class="review-slider" id="reviewList"></div>
+                <button class="write-review-btn" id="writeReviewBtn">✍️ 写评价 (得积分)</button>
+            </div>
+
+            <!-- 评价输入弹窗 -->
+            <div class="modal" id="reviewModal">
+                <div class="modal-content">
+                    <h3>写评价得积分</h3>
+                    <div class="star-rating" id="starRating">
+                        <span data-star="1">★</span>
+                        <span data-star="2">★</span>
+                        <span data-star="3">★</span>
+                        <span data-star="4">★</span>
+                        <span data-star="5">★</span>
+                    </div>
+                    <textarea class="review-input" id="reviewInput" placeholder="分享你的体验... (5字以上)"></textarea>
+                    <div class="modal-actions">
+                        <button class="submit-btn" id="submitReview">提交 +积分</button>
+                        <button class="cancel-btn" id="cancelReview">取消</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-note">✨ 多店铺 · 数据隔离 ✨</div>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ==================== 多租户核心类 ====================
+            class MultiTenantManager {
+                constructor() {
+                    this.shopId = this.getShopId();
+                    this.storagePrefix = `shop_${this.shopId}_`;
+                    this.shopConfig = null;
+                }
+
+                getShopId() {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    // 优先从URL参数获取
+                    let id = urlParams.get('shop_id');
+                    if (id) return id;
+
+                    // 其次从子域名获取
+                    const hostname = window.location.hostname;
+                    const parts = hostname.split('.');
+                    if (parts.length >= 3 && parts[0] !== 'www') {
+                        return parts[0];
+                    }
+
+                    // 默认店铺
+                    return 'default_shop';
+                }
+
+                // 加载店铺配置（内置几个示例配置，实际可改为fetch）
+                async loadShopConfig() {
+                    // 尝试从localStorage读取缓存
+                    const cached = this.getItem('config');
+                    if (cached) {
+                        this.shopConfig = cached;
+                        return cached;
+                    }
+
+                    // 内置店铺配置（模拟不同业态）
+                    const configs = {
+                        'coffee_001': {
+                            shopId: 'coffee_001',
+                            name: '巷隅咖啡',
+                            desc: '精品咖啡/手冲/甜点',
+                            tel: '138-8888-1234',
+                            wechat: 'coffee_001',
+                            theme: 'modern',
+                            primaryColor: '#8B4513',
+                            location: { lat: 39.908823, lng: 116.397470, address: '北京市朝阳区咖啡街12号' },
+                            businessHours: '08:00-22:00',
+                            features: { checkin: true, reviews: true, lottery: false },
+                            points: {
+                                checkinReward: 10,
+                                reviewReward: 5,
+                                exchangeItems: [
+                                    { name: '美式咖啡', cost: 50, icon: '☕' },
+                                    { name: '手工曲奇', cost: 30, icon: '🍪' },
+                                    { name: '8折券', cost: 100, icon: '🎫' }
+                                ]
+                            }
+                        },
+                        'bakery_001': {
+                            shopId: 'bakery_001',
+                            name: '麦香园面包',
+                            desc: '手工面包/蛋糕/下午茶',
+                            tel: '139-8888-5678',
+                            wechat: 'bakery_001',
+                            theme: 'minimal',
+                            primaryColor: '#FFA07A',
+                            location: { lat: 39.909876, lng: 116.398765, address: '北京市朝阳区面包路8号' },
+                            businessHours: '07:00-21:00',
+                            features: { checkin: true, reviews: true, lottery: false },
+                            points: {
+                                checkinReward: 15,
+                                reviewReward: 8,
+                                exchangeItems: [
+                                    { name: '牛角包', cost: 40, icon: '🥐' },
+                                    { name: '提拉米苏', cost: 80, icon: '🍰' },
+                                    { name: '会员日蛋糕', cost: 150, icon: '🎂' }
+                                ]
+                            }
+                        },
+                        'restaurant_001': {
+                            shopId: 'restaurant_001',
+                            name: '老味道中餐馆',
+                            desc: '川菜/粤菜/家常菜',
+                            tel: '137-7777-9012',
+                            wechat: 'restaurant_001',
+                            theme: 'industrial',
+                            primaryColor: '#C0392B',
+                            location: { lat: 39.907123, lng: 116.395678, address: '北京市朝阳区美食街88号' },
+                            businessHours: '10:00-23:00',
+                            features: { checkin: false, reviews: true, lottery: false },
+                            points: {
+                                checkinReward: 0,
+                                reviewReward: 10,
+                                exchangeItems: [
+                                    { name: '凉菜一份', cost: 60, icon: '🥗' },
+                                    { name: '8折券', cost: 120, icon: '🎫' }
+                                ]
+                            }
+                        }
+                    };
+
+                    // 默认配置
+                    const defaultConfig = {
+                        shopId: 'default_shop',
+                        name: '默认店铺',
+                        desc: '欢迎光临',
+                        tel: '000-0000-0000',
+                        wechat: 'default_shop',
+                        theme: 'modern',
+                        primaryColor: '#3498db',
+                        location: { lat: 39.908823, lng: 116.397470, address: '默认地址' },
+                        businessHours: '09:00-21:00',
+                        features: { checkin: true, reviews: true, lottery: false },
+                        points: {
+                            checkinReward: 10,
+                            reviewReward: 5,
+                            exchangeItems: [
+                                { name: '小礼品', cost: 50, icon: '🎁' }
+                            ]
+                        }
+                    };
+
+                    const config = configs[this.shopId] || defaultConfig;
+                    
+                    // 缓存配置
+                    this.setItem('config', config);
+                    this.shopConfig = config;
+                    return config;
+                }
+
+                getStorageKey(key) {
+                    return `${this.storagePrefix}${key}`;
+                }
+
+                setItem(key, value) {
+                    localStorage.setItem(this.getStorageKey(key), JSON.stringify(value));
+                }
+
+                getItem(key) {
+                    const item = localStorage.getItem(this.getStorageKey(key));
+                    return item ? JSON.parse(item) : null;
+                }
+            }
+
+            // ==================== 店铺用户数据管理器 ====================
+            class ShopUserData {
+                constructor(tenant) {
+                    this.tenant = tenant;
+                    this.config = tenant.shopConfig;
+                }
+
+                getCheckinData() {
+                    return this.tenant.getItem('checkin') || {
+                        streak: 0,
+                        lastCheckin: null,
+                        totalDays: 0
+                    };
+                }
+
+                setCheckinData(data) {
+                    this.tenant.setItem('checkin', data);
+                }
+
+                getPoints() {
+                    return this.tenant.getItem('points') || 0;
+                }
+
+                addPoints(amount, reason) {
+                    const current = this.getPoints();
+                    this.tenant.setItem('points', current + amount);
+                    this.addPointsLog(amount, reason);
+                    return current + amount;
+                }
+
+                deductPoints(amount, reason) {
+                    const current = this.getPoints();
+                    if (current < amount) return false;
+                    this.tenant.setItem('points', current - amount);
+                    this.addPointsLog(-amount, reason);
+                    return true;
+                }
+
+                addPointsLog(amount, reason) {
+                    const logs = this.tenant.getItem('points_logs') || [];
+                    logs.unshift({
+                        amount,
+                        reason,
+                        balance: this.getPoints(),
+                        time: new Date().toISOString()
+                    });
+                    if (logs.length > 50) logs.pop();
+                    this.tenant.setItem('points_logs', logs);
+                }
+
+                getReviews() {
+                    return this.tenant.getItem('reviews') || [];
+                }
+
+                addReview(review) {
+                    const reviews = this.getReviews();
+                    reviews.unshift({
+                        ...review,
+                        id: Date.now(),
+                        shopId: this.config.shopId,
+                        time: new Date().toLocaleString('zh-CN', { hour12: false })
+                    });
+                    this.tenant.setItem('reviews', reviews);
+                    return reviews;
+                }
+            }
+
+            // ==================== 主程序 ====================
+            (async function() {
+                // 1. 初始化多租户
+                const tenant = new MultiTenantManager();
+                
+                // 2. 加载店铺配置
+                const config = await tenant.loadShopConfig();
+                
+                // 3. 初始化用户数据
+                const userData = new ShopUserData(tenant);
+
+                // 4. 应用店铺配置到UI
+                applyShopConfig(config);
+                
+                // 5. 根据功能开关显示模块
+                initFeatures(config, userData);
+                
+                // 6. 初始化通用功能
+                initCommonFeatures(config, userData);
+
+                // 应用店铺配置
+                function applyShopConfig(cfg) {
+                    document.getElementById('shopName').innerText = cfg.name;
+                    document.getElementById('shopDesc').innerText = cfg.desc;
+                    document.getElementById('shopTel').innerHTML = '<i>📞</i> ' + cfg.tel;
+                    document.getElementById('wechatNumber').innerText = cfg.wechat;
+                    document.getElementById('coordLat').innerText = cfg.location.lat;
+                    document.getElementById('coordLng').innerText = cfg.location.lng;
+                    document.getElementById('addressStr').innerText = cfg.location.address;
+                    document.getElementById('statusBadge').innerHTML = `🟢 营业中 ${cfg.businessHours || ''}`;
+
+                    // 应用主题
+                    const card = document.getElementById('mainCard');
+                    ['modern','industrial','minimal','bohemian'].forEach(t => card.classList.remove(`theme-${t}`));
+                    card.classList.add(`theme-${cfg.theme}`);
+
+                    // 设置主题色带
+                    const tag = document.getElementById('themeTag');
+                    tag.style.background = `linear-gradient(90deg, ${cfg.primaryColor}, ${adjustColor(cfg.primaryColor, 20)})`;
+                }
+
+                // 辅助函数：调整颜色亮度
+                function adjustColor(hex, percent) {
+                    // 简单实现，实际可用库
+                    return hex;
+                }
+
+                // 初始化功能模块（根据配置显示/隐藏）
+                function initFeatures(cfg, userData) {
+                    // 根据features配置显示对应模块
+                    document.querySelectorAll('[data-feature]').forEach(el => {
+                        const feature = el.dataset.feature;
+                        if (cfg.features && cfg.features[feature]) {
+                            el.style.display = 'block';
+                        } else {
+                            el.style.display = 'none';
+                        }
+                    });
+
+                    // 初始化签到模块
+                    if (cfg.features?.checkin) {
+                        initCheckin(cfg, userData);
+                    }
+
+                    // 初始化评价模块
+                    if (cfg.features?.reviews) {
+                        initReviews(cfg, userData);
+                    }
+
+                    // 初始化积分兑换商品
+                    initPointsShop(cfg, userData);
+                }
+
+                // 初始化签到系统
+                function initCheckin(cfg, userData) {
+                    const checkinBtn = document.getElementById('checkinBtn');
+                    const checkinData = userData.getCheckinData();
+                    const points = userData.getPoints();
+                    
+                    // 更新积分显示
+                    updatePointsUI(points, cfg);
+
+                    // 设置签到按钮文本
+                    const canCheckin = canCheckinToday(checkinData.lastCheckin);
+                    checkinBtn.disabled = !canCheckin;
+                    checkinBtn.innerText = canCheckin ? `📆 今日签到 +${cfg.points.checkinReward}积分` : '✅ 今日已签到';
+
+                    // 更新连续签到显示
+                    document.getElementById('streakCount').innerText = checkinData.streak || 0;
+                    document.getElementById('totalDays').innerText = checkinData.totalDays || 0;
+
+                    // 渲染日历
+                    renderCalendar(checkinData.lastCheckin);
+
+                    // 签到点击事件
+                    checkinBtn.addEventListener('click', function() {
+                        if (!canCheckinToday(checkinData.lastCheckin)) {
+                            userData.tenant.showMessage('今天已经签过到啦');
+                            return;
+                        }
+
+                        // 更新签到数据
+                        const today = new Date().toDateString();
+                        const newStreak = (checkinData.lastCheckin && isYesterday(checkinData.lastCheckin)) 
+                            ? (checkinData.streak || 0) + 1 
+                            : 1;
+                        
+                        const newData = {
+                            streak: newStreak,
+                            lastCheckin: today,
+                            totalDays: (checkinData.totalDays || 0) + 1
+                        };
+                        userData.setCheckinData(newData);
+
+                        // 增加积分
+                        const newPoints = userData.addPoints(cfg.points.checkinReward, '每日签到');
+                        
+                        // 连续7天额外奖励
+                        if (newStreak === 7) {
+                            userData.addPoints(30, '连续7天奖励');
+                            userData.tenant.showMessage('🎉 连续7天！额外奖励30积分');
+                        }
+
+                        // 更新UI
+                        updatePointsUI(newPoints, cfg);
+                        document.getElementById('streakCount').innerText = newStreak;
+                        document.getElementById('totalDays').innerText = newData.totalDays;
+                        checkinBtn.disabled = true;
+                        checkinBtn.innerText = '✅ 今日已签到';
+                        renderCalendar(today);
+                    });
+
+                    function canCheckinToday(lastCheckin) {
+                        if (!lastCheckin) return true;
+                        const today = new Date().toDateString();
+                        return lastCheckin !== today;
+                    }
+
+                    function isYesterday(lastCheckin) {
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        return lastCheckin === yesterday.toDateString();
+                    }
+
+                    function renderCalendar(lastCheckin) {
+                        const grid = document.getElementById('calendarGrid');
+                        const today = new Date();
+                        let html = '';
+                        
+                        for (let i = 6; i >= 0; i--) {
+                            const d = new Date(today);
+                            d.setDate(today.getDate() - i);
+                            const dateStr = d.toDateString();
+                            const isChecked = (lastCheckin === dateStr);
+                            const isToday = (i === 0);
+                            html += `<div class="cal-day ${isChecked ? 'checked' : ''} ${isToday ? 'today' : ''}">${d.getDate()}</div>`;
+                        }
+                        grid.innerHTML = html;
+                    }
+                }
+
+                // 初始化积分兑换商店
+                function initPointsShop(cfg, userData) {
+                    const container = document.getElementById('pointsShop');
+                    if (!container) return;
+
+                    const items = cfg.points.exchangeItems || [];
+                    container.innerHTML = items.map(item => `
+                        <button class="redeem-btn" data-cost="${item.cost}" data-item="${item.name}">
+                            ${item.icon || '🎁'} ${item.name} (${item.cost}分)
+                        </button>
+                    `).join('');
+
+                    // 兑换事件
+                    container.querySelectorAll('.redeem-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const cost = parseInt(this.dataset.cost);
+                            const item = this.dataset.item;
+                            const currentPoints = userData.getPoints();
+                            
+                            if (currentPoints >= cost) {
+                                if (userData.deductPoints(cost, `兑换:${item}`)) {
+                                    userData.tenant.showMessage(`✅ 兑换成功：${item}`);
+                                    updatePointsUI(userData.getPoints(), cfg);
+                                }
+                            } else {
+                                userData.tenant.showMessage('❌ 积分不足');
+                            }
+                        });
+                    });
+                }
+
+                // 初始化评价系统
+                function initReviews(cfg, userData) {
+                    const reviews = userData.getReviews();
+                    renderReviews(reviews);
+
+                    // 弹窗逻辑
+                    const modal = document.getElementById('reviewModal');
+                    const writeBtn = document.getElementById('writeReviewBtn');
+                    const submitBtn = document.getElementById('submitReview');
+                    const cancelBtn = document.getElementById('cancelReview');
+                    const reviewInput = document.getElementById('reviewInput');
+                    let selectedStars = 5;
+
+                    // 星级选择
+                    document.querySelectorAll('#starRating span').forEach(star => {
+                        star.addEventListener('click', function() {
+                            selectedStars = parseInt(this.dataset.star);
+                            document.querySelectorAll('#starRating span').forEach((s, idx) => {
+                                s.style.color = idx < selectedStars ? '#ffb800' : '#ccc';
+                            });
+                        });
+                        star.style.color = '#ffb800'; // 默认全亮
+                    });
+
+                    writeBtn.addEventListener('click', () => {
+                        modal.classList.add('show');
+                        reviewInput.value = '';
+                        selectedStars = 5;
+                        document.querySelectorAll('#starRating span').forEach(s => s.style.color = '#ffb800');
+                        document.getElementById('submitReview').innerText = `提交 +${cfg.points.reviewReward}积分`;
+                    });
+
+                    submitBtn.addEventListener('click', () => {
+                        const text = reviewInput.value.trim();
+                        if (text.length < 5) {
+                            alert('评价至少5个字哦');
+                            return;
+                        }
+
+                        // 生成匿名昵称
+                        const name = '顾客' + Math.floor(Math.random() * 1000);
+                        const newReview = { name, stars: selectedStars, text };
+                        userData.addReview(newReview);
+                        
+                        // 奖励积分
+                        userData.addPoints(cfg.points.reviewReward, '发布评价');
+                        
+                        // 刷新评价列表
+                        renderReviews(userData.getReviews());
+                        updatePointsUI(userData.getPoints(), cfg);
+                        
+                        modal.classList.remove('show');
+                        userData.tenant.showMessage(`+${cfg.points.reviewReward}积分`);
+                    });
+
+                    cancelBtn.addEventListener('click', () => {
+                        modal.classList.remove('show');
+                    });
+                }
+
+                function renderReviews(reviews) {
+                    const list = document.getElementById('reviewList');
+                    const countSpan = document.getElementById('reviewCount');
+                    
+                    if (!list) return;
+
+                    if (reviews.length === 0) {
+                        list.innerHTML = '<div class="review-item">暂无评价，快来第一条吧~</div>';
+                        countSpan.innerText = '0条评价';
+                        return;
+                    }
+
+                    let html = '';
+                    reviews.slice(0, 10).forEach(r => {
+                        const stars = '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars);
+                        html += `
+                            <div class="review-item">
+                                <div class="review-stars">${stars}</div>
+                                <div class="review-text">${r.text}</div>
+                                <div class="reviewer-info">
+                                    <span class="reviewer-name">${r.name || '匿名'}</span>
+                                    <span class="review-time">${r.time || '刚刚'}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    list.innerHTML = html;
+                    countSpan.innerText = reviews.length + '条评价';
+                }
+
+                function updatePointsUI(points, cfg) {
+                    const pointsDisplay = document.getElementById('pointsDisplay');
+                    if (pointsDisplay) {
+                        pointsDisplay.innerText = points + ' 积分';
+                    }
+
+                    // 更新会员等级
+                    const levelBadge = document.getElementById('levelBadge');
+                    if (levelBadge) {
+                        let level = '青铜';
+                        if (points >= 600) level = '钻石';
+                        else if (points >= 300) level = '黄金';
+                        else if (points >= 100) level = '白银';
+                        levelBadge.innerText = level + '会员';
+                    }
+                }
+
+                // 通用功能：导航、复制等
+                function initCommonFeatures(cfg, userData) {
+                    // 导航
+                    document.getElementById('navBtn').addEventListener('click', function() {
+                        const lat = cfg.location.lat;
+                        const lng = cfg.location.lng;
+                        const addr = encodeURIComponent(cfg.location.address);
+                        
+                        if (/android/i.test(navigator.userAgent)) {
+                            window.location.href = `geo:0,0?q=${lat},${lng}(${addr})`;
+                        } else if (/iphone|ipad/i.test(navigator.userAgent)) {
+                            window.location.href = `https://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`;
+                        } else {
+                            window.location.href = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+                        }
+                    });
+
+                    // 复制微信号
+                    function copyWechat() {
+                        const text = cfg.wechat;
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(text).then(() => {
+                                userData.tenant.showMessage('微信号已复制');
+                            });
+                        } else {
+                            const ta = document.createElement('textarea');
+                            ta.value = text;
+                            document.body.appendChild(ta);
+                            ta.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(ta);
+                            userData.tenant.showMessage('微信号已复制');
+                        }
+                    }
+                    document.getElementById('copyBtn').addEventListener('click', copyWechat);
+                    document.getElementById('copyWechatBtn').addEventListener('click', copyWechat);
+
+                    // 计算距离
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(pos => {
+                            const R = 6371;
+                            const dLat = (cfg.location.lat - pos.coords.latitude) * Math.PI/180;
+                            const dLon = (cfg.location.lng - pos.coords.longitude) * Math.PI/180;
+                            const a = Math.sin(dLat/2) * Math.sin(dLat/2) + 
+                                    Math.cos(pos.coords.latitude * Math.PI/180) * 
+                                    Math.cos(cfg.location.lat * Math.PI/180) * 
+                                    Math.sin(dLon/2) * Math.sin(dLon/2);
+                            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                            const dist = (R * c).toFixed(1);
+                            document.getElementById('distance').innerText = `距您约${dist}km`;
+                        }, () => {
+                            document.getElementById('distance').innerText = '距离未知';
+                        });
+                    }
+
+                    // 粒子系统（简化版）
+                    const canvas = document.getElementById('particle-canvas');
+                    const ctx = canvas.getContext('2d');
+                    let width, height;
+                    let particles = [];
+
+                    function resizeCanvas() { 
+                        width = window.innerWidth; 
+                        height = window.innerHeight; 
+                        canvas.width = width; 
+                        canvas.height = height; 
+                    }
+                    resizeCanvas(); 
+                    window.addEventListener('resize', resizeCanvas);
+
+                    for (let i = 0; i < 50; i++) {
+                        particles.push({ 
+                            x: Math.random(), 
+                            y: Math.random(), 
+                            r: 2 + Math.random() * 5, 
+                            sx: (Math.random() - 0.5) * 0.001, 
+                            sy: (Math.random() - 0.5) * 0.001, 
+                            hue: Math.random() * 360 
+                        });
+                    }
+
+                    function animate() { 
+                        ctx.clearRect(0, 0, width, height); 
+                        particles.forEach(p => { 
+                            p.x += p.sx; 
+                            p.y += p.sy; 
+                            if (p.x < 0) p.x = 1; 
+                            if (p.x > 1) p.x = 0; 
+                            if (p.y < 0) p.y = 1; 
+                            if (p.y > 1) p.y = 0; 
+                            const x = p.x * width, y = p.y * height; 
+                            const grad = ctx.createRadialGradient(x, y, 0, x, y, p.r * 4); 
+                            grad.addColorStop(0, `hsla(${p.hue},80%,70%,0.6)`); 
+                            grad.addColorStop(1, `hsla(${p.hue},80%,60%,0)`); 
+                            ctx.fillStyle = grad; 
+                            ctx.beginPath(); 
+                            ctx.arc(x, y, p.r * 2, 0, 2 * Math.PI); 
+                            ctx.fill(); 
+                        }); 
+                        requestAnimationFrame(animate); 
+                    }
+                    animate();
+
+                    // 添加toast方法
+                    userData.tenant.showMessage = function(msg) {
+                        const toast = document.createElement('div');
+                        toast.style.cssText = 'position:fixed; top:30%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:40px; z-index:2000; transition:opacity 0.3s;';
+                        toast.innerText = msg;
+                        document.body.appendChild(toast);
+                        setTimeout(() => { 
+                            toast.style.opacity = '0'; 
+                            setTimeout(() => document.body.removeChild(toast), 300); 
+                        }, 1500);
+                    };
+                }
+            })();
+        })();
+    </script>
+</body>
+</html>
