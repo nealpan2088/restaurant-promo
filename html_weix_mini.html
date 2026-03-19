@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="format-detection" content="telephone=no, email=no, address=no">
+    <title>微信店铺 · 宣传页</title>
+    <style>
+        /* ========== 全局样式 ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            position: relative;
+        }
+
+        /* 主卡片 */
+        .card {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 10;
+            animation: cardFadeIn 0.5s ease;
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 店铺头部 */
+        .shop-header {
+            position: relative;
+            height: 180px;
+            background: linear-gradient(135deg, #07C160 0%, #0284c7 100%);
+            display: flex;
+            align-items: flex-end;
+            padding: 20px;
+            color: white;
+        }
+
+        .shop-avatar {
+            width: 70px;
+            height: 70px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin-right: 15px;
+        }
+
+        .shop-info {
+            flex: 1;
+        }
+
+        .shop-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .shop-desc {
+            font-size: 14px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .shop-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* 内容区域 */
+        .content {
+            padding: 20px;
+        }
+
+        /* 状态栏 */
+        .status-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .status-item {
+            background: #f8f9fa;
+            padding: 8px 16px;
+            border-radius: 30px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-item.online {
+            background: #e8f7ed;
+            color: #07C160;
+        }
+
+        /* 联系方式卡片 */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .contact-card {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s;
+        }
+
+        .contact-card:active {
+            transform: scale(0.98);
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: #07C160;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .contact-icon.tel { background: #0284c7; }
+        .contact-icon.wechat { background: #07C160; }
+        .contact-icon.location { background: #f97316; }
+        .contact-icon.share { background: #8b5cf6; }
+
+        .contact-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .contact-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            word-break: break-word;
+        }
+
+        /* 导航模块 */
+        .nav-section {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .nav-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .nav-title h3 {
+            font-size: 16px;
+            color: #333;
+        }
+
+        .nav-distance {
+            font-size: 14px;
+            color: #07C160;
+            font-weight: 500;
+        }
+
+        .address-box {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .nav-mini-btn {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 10px 0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-mini-btn:active {
+            background: #07C160;
+            color: white;
+            border-color: #07C160;
+        }
+
+        .nav-mini-btn .icon {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* 行动按钮 */
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn.primary {
+            background: #07C160;
+            color: white;
+            box-shadow: 0 8px 20px rgba(7, 193, 96, 0.3);
+        }
+
+        .action-btn.secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* 隐藏数据存储 */
+        .hidden-data {
+            display: none;
+        }
+
+        /* 微信导航面板 */
+        .wechat-nav-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .wechat-nav-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: flex-end;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .wechat-nav-overlay.show {
+            opacity: 1;
+        }
+
+        .wechat-nav-content {
+            background: white;
+            width: 100%;
+            border-radius: 24px 24px 0 0;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .show .wechat-nav-content {
+            transform: translateY(0);
+        }
+
+        .wechat-nav-header {
+            padding: 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+        }
+
+        .wechat-nav-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .wechat-nav-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .wechat-nav-body {
+            padding: 15px;
+        }
+
+        .wechat-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 1px solid #eee;
+        }
+
+        .wechat-nav-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #07C160;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .wechat-nav-icon.amap { background: #1e6df2; }
+        .wechat-nav-icon.baidu { background: #2932e1; }
+        .wechat-nav-icon.tencent { background: #00b6f0; }
+        .wechat-nav-icon.apple { background: #000; }
+
+        .wechat-nav-info {
+            flex: 1;
+        }
+
+        .wechat-nav-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .wechat-nav-desc {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .wechat-nav-btn {
+            padding: 8px 16px;
+            background: #07C160;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .wechat-nav-footer {
+            padding: 15px 20px 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .wechat-nav-tip {
+            color: #f57c00;
+            font-size: 12px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        /* 微信Toast */
+        .wechat-toast {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -30%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-size: 14px;
+            z-index: 11000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(5px);
+            pointer-events: none;
+        }
+
+        .wechat-toast.show {
+            opacity: 1;
+        }
+
+        /* 微信内下拉刷新 */
+        .wechat-pull-tip {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: #07C160;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translateY(-100%);
+            transition: transform 0.3s;
+            z-index: 9999;
+            font-size: 14px;
+        }
+
+        /* 返回顶部 */
+        .back-to-top {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: #07C160;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(7, 193, 96, 0.3);
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+        }
+
+        /* 响应式 */
+        @media (max-width: 380px) {
+            .shop-name { font-size: 20px; }
+            .contact-value { font-size: 14px; }
+            .nav-buttons { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- 主卡片 -->
+    <div class="card">
+        <!-- 店铺头部 -->
+        <div class="shop-header">
+            <div class="shop-avatar" id="shopAvatar">🏪</div>
+            <div class="shop-info">
+                <h1 class="shop-name" id="shopName">巷隅咖啡</h1>
+                <div class="shop-desc">
+                    <span id="shopDesc">精品手冲咖啡 · 日式甜点</span>
+                    <span class="shop-badge" id="shopBadge">营业中 09:00-22:00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 内容区域 -->
+        <div class="content">
+            <!-- 状态栏 -->
+            <div class="status-bar">
+                <div class="status-item online">
+                    <span>🟢</span> 营业中
+                </div>
+                <div class="status-item" id="distanceDisplay">
+                    <span>📍</span> 计算距离...
+                </div>
+            </div>
+
+            <!-- 联系方式网格 -->
+            <div class="contact-grid">
+                <a href="tel:13888881234" class="contact-card" id="telCard">
+                    <div class="contact-icon tel">📞</div>
+                    <div class="contact-label">电话咨询</div>
+                    <div class="contact-value" id="shopTel">138-8888-1234</div>
+                </a>
+                <div class="contact-card" id="wechatCard">
+                    <div class="contact-icon wechat">💬</div>
+                    <div class="contact-label">复制微信</div>
+                    <div class="contact-value" id="shopWechat">coffee_001</div>
+                </div>
+                <div class="contact-card" id="locationCard">
+                    <div class="contact-icon location">📍</div>
+                    <div class="contact-label">店铺地址</div>
+                    <div class="contact-value" id="shopAddress">北京市朝阳区咖啡街12号</div>
+                </div>
+                <div class="contact-card" id="shareCard">
+                    <div class="contact-icon share">🔗</div>
+                    <div class="contact-label">分享店铺</div>
+                    <div class="contact-value">点击分享</div>
+                </div>
+            </div>
+
+            <!-- 导航模块 -->
+            <div class="nav-section">
+                <div class="nav-title">
+                    <h3>📍 一键导航</h3>
+                    <span class="nav-distance" id="navDistance"></span>
+                </div>
+                <div class="address-box" id="fullAddress">
+                    北京市朝阳区咖啡街12号 · 近地铁站
+                </div>
+                <div class="nav-buttons">
+                    <div class="nav-mini-btn" data-map="wechat">
+                        <span class="icon">📱</span>
+                        <span>微信</span>
+                    </div>
+                    <div class="nav-mini-btn" data-map="amap">
+                        <span class="icon">🗺️</span>
+                        <span>高德</span>
+                    </div>
+                    <div class="nav-mini-btn" data-map="baidu">
+                        <span class="icon">🗺️</span>
+                        <span>百度</span>
+                    </div>
+                    <div class="nav-mini-btn" data-map="copy">
+                        <span class="icon">📋</span>
+                        <span>复制</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 行动按钮 -->
+            <div class="action-row">
+                <button class="action-btn secondary" id="shareBtn">
+                    🔗 分享给朋友
+                </button>
+                <button class="action-btn primary" id="consultBtn">
+                    💬 立即咨询
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏数据 (用于存储坐标等) -->
+    <div class="hidden-data">
+        <span id="coordLat">39.908823</span>
+        <span id="coordLng">116.397470</span>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <!-- 微信JS-SDK (需在微信内使用) -->
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+
+    <script>
+        // ==================== 微信环境检测 ====================
+        const isWechat = (function() {
+            const ua = navigator.userAgent.toLowerCase();
+            return ua.indexOf('micromessenger') !== -1;
+        })();
+
+        // ==================== 微信SDK管理 ====================
+        class WechatSDKManager {
+            constructor() {
+                this.ready = false;
+                this.appId = 'your_app_id'; // 需要从后端获取
+            }
+
+            async init() {
+                if (!isWechat) return;
+
+                try {
+                    // 实际项目中需要从后端获取签名
+                    // const response = await fetch('/api/wechat/jssdk?url=' + encodeURIComponent(location.href));
+                    // const config = await response.json();
+                    
+                    // 模拟配置（实际使用时替换为后端数据）
+                    const mockConfig = {
+                        appId: 'wx123456789',
+                        timestamp: Date.now(),
+                        nonceStr: 'mock_nonce',
+                        signature: 'mock_signature'
+                    };
+
+                    wx.config({
+                        debug: false,
+                        appId: mockConfig.appId,
+                        timestamp: mockConfig.timestamp,
+                        nonceStr: mockConfig.nonceStr,
+                        signature: mockConfig.signature,
+                        jsApiList: [
+                            'updateAppMessageShareData',
+                            'updateTimelineShareData',
+                            'onMenuShareTimeline',
+                            'onMenuShareAppMessage',
+                            'openLocation',
+                            'getLocation',
+                            'hideMenuItems',
+                            'showMenuItems'
+                        ]
+                    });
+
+                    wx.ready(() => {
+                        this.ready = true;
+                        console.log('微信SDK就绪');
+                        this.setupShareMenu();
+                        this.hideUnusedMenu();
+                    });
+
+                    wx.error((err) => {
+                        console.error('微信SDK错误', err);
+                    });
+                } catch (e) {
+                    console.error('微信SDK初始化失败', e);
+                }
+            }
+
+            setupShareMenu() {
+                if (!this.ready) return;
+
+                const shareData = {
+                    title: document.getElementById('shopName').innerText,
+                    desc: document.getElementById('shopDesc').innerText,
+                    link: window.location.href,
+                    imgUrl: 'https://via.placeholder.com/300',
+                    success: () => {
+                        this.showToast('分享成功');
+                    }
+                };
+
+                wx.updateAppMessageShareData(shareData);
+                wx.updateTimelineShareData(shareData);
+                
+                // 兼容旧版
+                wx.onMenuShareAppMessage(shareData);
+                wx.onMenuShareTimeline(shareData);
+            }
+
+            hideUnusedMenu() {
+                if (!this.ready) return;
+                
+                wx.hideMenuItems({
+                    menuList: [
+                        'menuItem:copyUrl',
+                        'menuItem:openWithQQBrowser',
+                        'menuItem:openWithSafari'
+                    ]
+                });
+            }
+
+            openLocation(lat, lng, name, address) {
+                if (!this.ready) {
+                    this.showToast('微信功能暂不可用');
+                    return false;
+                }
+
+                wx.openLocation({
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lng),
+                    name: name,
+                    address: address,
+                    scale: 18
+                });
+                return true;
+            }
+
+            showToast(msg) {
+                const toast = document.createElement('div');
+                toast.className = 'wechat-toast';
+                toast.textContent = msg;
+                document.body.appendChild(toast);
+                
+                setTimeout(() => toast.classList.add('show'), 10);
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            }
+        }
+
+        // ==================== 导航管理器 ====================
+        class NavigationManager {
+            constructor(sdk) {
+                this.sdk = sdk;
+                this.lat = document.getElementById('coordLat').innerText;
+                this.lng = document.getElementById('coordLng').innerText;
+                this.name = document.getElementById('shopName').innerText;
+                this.address = document.getElementById('shopAddress').innerText;
+            }
+
+            // 显示导航面板
+            showNavPanel() {
+                const panel = document.createElement('div');
+                panel.className = 'wechat-nav-panel';
+                panel.innerHTML = `
+                    <div class="wechat-nav-overlay">
+                        <div class="wechat-nav-content">
+                            <div class="wechat-nav-header">
+                                <h3>📍 选择导航方式</h3>
+                                <button class="wechat-nav-close">&times;</button>
+                            </div>
+                            <div class="wechat-nav-body">
+                                <div class="wechat-nav-item" data-type="wechat">
+                                    <div class="wechat-nav-icon">📱</div>
+                                    <div class="wechat-nav-info">
+                                        <div class="wechat-nav-title">微信内置地图</div>
+                                        <div class="wechat-nav-desc">无需下载，直接查看</div>
+                                    </div>
+                                    <button class="wechat-nav-btn" data-action="wechat">选择</button>
+                                </div>
+                                <div class="wechat-nav-item" data-type="amap">
+                                    <div class="wechat-nav-icon amap">🗺️</div>
+                                    <div class="wechat-nav-info">
+                                        <div class="wechat-nav-title">高德地图</div>
+                                        <div class="wechat-nav-desc">已安装用户直接打开</div>
+                                    </div>
+                                    <button class="wechat-nav-btn" data-action="amap">打开</button>
+                                </div>
+                                <div class="wechat-nav-item" data-type="baidu">
+                                    <div class="wechat-nav-icon baidu">🗺️</div>
+                                    <div class="wechat-nav-info">
+                                        <div class="wechat-nav-title">百度地图</div>
+                                        <div class="wechat-nav-desc">已安装用户直接打开</div>
+                                    </div>
+                                    <button class="wechat-nav-btn" data-action="baidu">打开</button>
+                                </div>
+                                <div class="wechat-nav-item" data-type="web">
+                                    <div class="wechat-nav-icon">🌐</div>
+                                    <div class="wechat-nav-info">
+                                        <div class="wechat-nav-title">网页版地图</div>
+                                        <div class="wechat-nav-desc">无需安装，直接浏览</div>
+                                    </div>
+                                    <button class="wechat-nav-btn" data-action="web">打开</button>
+                                </div>
+                            </div>
+                            <div class="wechat-nav-footer">
+                                <p class="wechat-nav-tip">⚠️ 微信内无法检测APP，请根据实际情况选择</p>
+                                <button class="wechat-nav-btn" style="width:100%;" data-action="copy">📋 复制地址</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(panel);
+                
+                setTimeout(() => panel.querySelector('.wechat-nav-overlay').classList.add('show'), 10);
+
+                // 关闭
+                panel.querySelector('.wechat-nav-close').addEventListener('click', () => {
+                    panel.querySelector('.wechat-nav-overlay').classList.remove('show');
+                    setTimeout(() => panel.remove(), 300);
+                });
+
+                // 点击背景关闭
+                panel.querySelector('.wechat-nav-overlay').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('wechat-nav-overlay')) {
+                        panel.querySelector('.wechat-nav-overlay').classList.remove('show');
+                        setTimeout(() => panel.remove(), 300);
+                    }
+                });
+
+                // 按钮事件
+                panel.querySelectorAll('[data-action]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const action = btn.dataset.action;
+                        this.handleNavAction(action);
+                        panel.querySelector('.wechat-nav-overlay').classList.remove('show');
+                        setTimeout(() => panel.remove(), 300);
+                    });
+                });
+            }
+
+            handleNavAction(action) {
+                switch(action) {
+                    case 'wechat':
+                        if (!this.sdk.openLocation(this.lat, this.lng, this.name, this.address)) {
+                            this.fallbackToWeb();
+                        }
+                        break;
+                    case 'amap':
+                        this.openAMap();
+                        break;
+                    case 'baidu':
+                        this.openBaiduMap();
+                        break;
+                    case 'web':
+                        this.fallbackToWeb();
+                        break;
+                    case 'copy':
+                        this.copyAddress();
+                        break;
+                }
+            }
+
+            openAMap() {
+                const url = `amap://navi?sourceApplication=wechat&lat=${this.lat}&lon=${this.lng}&dev=0&style=2`;
+                this.tryOpenApp(url, `https://uri.amap.com/navigation?to=${this.lng},${this.lat},${encodeURIComponent(this.name)}&mode=car`);
+            }
+
+            openBaiduMap() {
+                const url = `baidumap://map/navi?location=${this.lat},${this.lng}&type=BLK&src=wechat`;
+                this.tryOpenApp(url, `https://api.map.baidu.com/direction?destination=${this.lat},${this.lng}&output=html`);
+            }
+
+            tryOpenApp(scheme, webUrl) {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = scheme;
+                document.body.appendChild(iframe);
+
+                setTimeout(() => {
+                    document.body.removeChild(iframe);
+                    if (confirm('未打开地图APP，是否使用网页版？')) {
+                        window.location.href = webUrl;
+                    }
+                }, 1000);
+            }
+
+            fallbackToWeb() {
+                window.location.href = `https://www.google.com/maps/search/?api=1&query=${this.lat},${this.lng}`;
+            }
+
+            copyAddress() {
+                const text = `${this.name}\n地址：${this.address}\n坐标：${this.lat},${this.lng}`;
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(text).then(() => {
+                        this.sdk.showToast('地址已复制');
+                    });
+                } else {
+                    const textarea = document.createElement('textarea');
+                    textarea.value = text;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    this.sdk.showToast('地址已复制');
+                }
+            }
+        }
+
+        // ==================== 交互优化 ====================
+        class InteractionOptimizer {
+            constructor() {
+                this.initPullToRefresh();
+                this.initBackToTop();
+                this.fixInputBug();
+            }
+
+            initPullToRefresh() {
+                let startY = 0;
+                let pulling = false;
+                
+                const pullTip = document.createElement('div');
+                pullTip.className = 'wechat-pull-tip';
+                pullTip.innerHTML = '↓ 下拉刷新';
+                document.body.appendChild(pullTip);
+
+                document.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                }, { passive: true });
+
+                document.addEventListener('touchmove', (e) => {
+                    if (window.scrollY > 0) return;
+                    
+                    const diff = e.touches[0].clientY - startY;
+                    
+                    if (diff > 50 && !pulling) {
+                        pulling = true;
+                        pullTip.style.transform = 'translateY(0)';
+                        pullTip.innerHTML = '释放刷新';
+                    } else if (diff < 30 && pulling) {
+                        pulling = false;
+                        pullTip.style.transform = 'translateY(-100%)';
+                        pullTip.innerHTML = '↓ 下拉刷新';
+                    }
+                }, { passive: true });
+
+                document.addEventListener('touchend', () => {
+                    if (pulling) {
+                        pullTip.innerHTML = '刷新中...';
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
+                    }
+                });
+            }
+
+            initBackToTop() {
+                const btn = document.getElementById('backToTop');
+                
+                window.addEventListener('scroll', () => {
+                    btn.classList.toggle('show', window.scrollY > 300);
+                });
+
+                btn.addEventListener('click', () => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+
+            fixInputBug() {
+                document.querySelectorAll('input, textarea, [contenteditable]').forEach(el => {
+                    el.addEventListener('focus', () => {
+                        setTimeout(() => {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }, 300);
+                    });
+                });
+            }
+        }
+
+        // ==================== 主程序 ====================
+        (async function() {
+            // 1. 解析URL参数
+            const params = new URLSearchParams(window.location.search);
+            
+            const shopData = {
+                name: params.get('name') || '巷隅咖啡',
+                desc: params.get('desc') || '精品手冲咖啡 · 日式甜点',
+                tel: params.get('tel') || '138-8888-1234',
+                wechat: params.get('wechat') || 'coffee_001',
+                address: params.get('address') || '北京市朝阳区咖啡街12号',
+                lat: params.get('lat') || '39.908823',
+                lng: params.get('lng') || '116.397470',
+                hours: params.get('hours') || '09:00-22:00'
+            };
+
+            // 2. 更新UI
+            document.getElementById('shopName').innerText = shopData.name;
+            document.getElementById('shopDesc').innerText = shopData.desc;
+            document.getElementById('shopTel').innerText = shopData.tel;
+            document.getElementById('shopWechat').innerText = shopData.wechat;
+            document.getElementById('shopAddress').innerText = shopData.address;
+            document.getElementById('fullAddress').innerText = shopData.address;
+            document.getElementById('shopBadge').innerText = `营业中 ${shopData.hours}`;
+            document.getElementById('coordLat').innerText = shopData.lat;
+            document.getElementById('coordLng').innerText = shopData.lng;
+
+            // 3. 更新电话链接
+            document.getElementById('telCard').href = `tel:${shopData.tel.replace(/-/g, '')}`;
+
+            // 4. 初始化微信SDK
+            const sdk = new WechatSDKManager();
+            await sdk.init();
+
+            // 5. 初始化导航管理器
+            const navManager = new NavigationManager(sdk);
+
+            // 6. 初始化交互优化
+            const optimizer = new InteractionOptimizer();
+
+            // 7. 绑定事件
+            document.getElementById('wechatCard').addEventListener('click', () => {
+                navigator.clipboard?.writeText(shopData.wechat).then(() => {
+                    sdk.showToast('微信号已复制');
+                });
+            });
+
+            document.getElementById('locationCard').addEventListener('click', () => {
+                navManager.showNavPanel();
+            });
+
+            document.getElementById('shareCard').addEventListener('click', () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: shopData.name,
+                        text: shopData.desc,
+                        url: window.location.href
+                    });
+                } else {
+                    sdk.showToast('点击右上角分享菜单');
+                }
+            });
+
+            document.getElementById('shareBtn').addEventListener('click', () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: shopData.name,
+                        text: shopData.desc,
+                        url: window.location.href
+                    });
+                } else {
+                    sdk.showToast('点击右上角分享菜单');
+                }
+            });
+
+            document.getElementById('consultBtn').addEventListener('click', () => {
+                if (confirm(`复制微信号 ${shopData.wechat} 去添加好友？`)) {
+                    navigator.clipboard?.writeText(shopData.wechat).then(() => {
+                        sdk.showToast('微信号已复制');
+                    });
+                }
+            });
+
+            // 导航小按钮
+            document.querySelectorAll('.nav-mini-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const map = btn.dataset.map;
+                    if (map === 'wechat') {
+                        sdk.openLocation(shopData.lat, shopData.lng, shopData.name, shopData.address);
+                    } else if (map === 'copy') {
+                        navManager.copyAddress();
+                    } else {
+                        navManager.showNavPanel();
+                    }
+                });
+            });
+
+            // 8. 计算距离
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const R = 6371;
+                    const dLat = (shopData.lat - pos.coords.latitude) * Math.PI / 180;
+                    const dLon = (shopData.lng - pos.coords.longitude) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.cos(pos.coords.latitude * Math.PI/180) * 
+                            Math.cos(shopData.lat * Math.PI/180) * 
+                            Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const dist = (R * c).toFixed(1);
+                    
+                    document.getElementById('distanceDisplay').innerHTML = `<span>📍</span> 距您 ${dist}km`;
+                    document.getElementById('navDistance').innerText = `距您 ${dist}km`;
+                }, () => {
+                    document.getElementById('distanceDisplay').innerHTML = `<span>📍</span> 距离未知`;
+                });
+            }
+
+            // 9. 微信内特殊处理
+            if (isWechat) {
+                document.body.style.background = '#f5f5f5';
+            }
+        })();
+    </script>
+</body>
+</html>
