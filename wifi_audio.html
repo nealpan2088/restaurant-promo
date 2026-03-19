@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>店铺宣传 · 带反馈音效</title>
+    <style>
+        /* ===== 原有样式保持不变 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        :root {
+            --primary-color: #07C160;
+            --primary-light: #e8f7ed;
+            --secondary-color: #0284c7;
+            --secondary-light: #e0f2fe;
+            --accent-color: #f97316;
+            --accent-light: #fff3e0;
+            --purple-color: #8b5cf6;
+            --purple-light: #ede9fe;
+            --blue-color: #3b82f6;
+            --blue-light: #dbeafe;
+            
+            --bg-white: #ffffff;
+            --bg-light: #f8fafc;
+            --bg-gray: #f1f5f9;
+            --border-light: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.05);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --radius-full: 9999px;
+        }
+
+        body {
+            background: var(--bg-light);
+            padding: 16px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .card {
+            background: var(--bg-white);
+            border-radius: var(--radius-xl);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 16px;
+            animation: cardFadeIn 0.5s ease;
+            border: 1px solid var(--border-light);
+        }
+
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shop-header {
+            padding: 28px 24px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            position: relative;
+        }
+
+        .shop-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .shop-name {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .shop-desc {
+            font-size: 15px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .shop-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 4px 12px;
+            border-radius: var(--radius-full);
+            font-size: 12px;
+            font-weight: 500;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .status-item {
+            background: var(--bg-gray);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            justify-content: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .status-item.online {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border-color: rgba(7, 193, 96, 0.2);
+        }
+
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .contact-card {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .contact-card:active {
+            transform: scale(0.98);
+            background: var(--bg-light);
+            border-color: var(--primary-color);
+        }
+
+        .contact-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .contact-icon.tel { 
+            background: var(--secondary-light);
+            color: var(--secondary-color);
+        }
+        .contact-icon.wechat { 
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+        .contact-icon.location { 
+            background: var(--accent-light);
+            color: var(--accent-color);
+        }
+        .contact-icon.hours { 
+            background: var(--purple-light);
+            color: var(--purple-color);
+        }
+
+        .contact-label {
+            font-size: 13px;
+            color: var(--text-tertiary);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .contact-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            word-break: break-word;
+        }
+
+        .wifi-section {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .wifi-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .wifi-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--blue-light);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--blue-color);
+        }
+
+        .wifi-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .wifi-subtitle {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .wifi-info-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-light);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin: 12px 0;
+            border: 1px solid var(--border-light);
+        }
+
+        .wifi-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .wifi-name {
+            font-family: monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: 0.3px;
+        }
+
+        .wifi-password-btn {
+            width: 100%;
+            background: var(--blue-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-top: 12px;
+            border: none;
+        }
+
+        .wifi-password-btn:active {
+            background: #2563eb;
+            transform: scale(0.98);
+        }
+
+        .wifi-password-btn.copied {
+            background: #10b981;
+        }
+
+        .wifi-tip {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .nav-section {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-light);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .nav-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--accent-light);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            color: var(--accent-color);
+        }
+
+        .nav-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .nav-subtitle {
+            font-size: 13px;
+            color: var(--text-tertiary);
+        }
+
+        .address-box {
+            background: var(--bg-light);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin: 12px 0;
+            border: 1px solid var(--border-light);
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .nav-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .nav-mini-btn {
+            background: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            padding: 12px 0;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-mini-btn:active {
+            background: var(--bg-white);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: scale(0.96);
+        }
+
+        .nav-mini-btn .icon {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(7, 193, 96, 0.2);
+        }
+
+        .action-btn.primary:active {
+            background: #05a555;
+            transform: scale(0.98);
+        }
+
+        .action-btn.secondary {
+            background: var(--bg-white);
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+
+        .action-btn.secondary:active {
+            background: var(--bg-light);
+            transform: scale(0.98);
+        }
+
+        /* ===== 新增：按钮点击反馈动画 ===== */
+        .btn-click-effect {
+            animation: buttonPop 0.2s ease;
+        }
+
+        @keyframes buttonPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: translate(-50%, -50%) scale(1);
+            animation: ripple 0.6s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(30);
+                opacity: 0;
+            }
+        }
+
+        /* 复制成功动画 */
+        .copy-success {
+            animation: copyFlash 0.3s ease;
+        }
+
+        @keyframes copyFlash {
+            0% { background-color: var(--blue-color); }
+            50% { background-color: #10b981; }
+            100% { background-color: var(--blue-color); }
+        }
+
+        /* 按钮震动效果 */
+        .btn-shake {
+            animation: shake 0.3s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        .wechat-tip {
+            background: #fef3c7;
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            color: #92400e;
+            font-size: 13px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            display: none;
+            border: 1px solid #fde68a;
+        }
+
+        .hidden-data {
+            display: none;
+        }
+
+        .copy-toast {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -30%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-white);
+            color: var(--text-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-light);
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+        }
+
+        .back-to-top:active {
+            transform: scale(0.95);
+        }
+
+        @media (max-width: 380px) {
+            .shop-name { font-size: 24px; }
+            .contact-value { font-size: 14px; }
+            .nav-buttons { gap: 6px; }
+            .nav-mini-btn { padding: 10px 0; font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="shop-header">
+                <h1 class="shop-name" id="shopName">巷隅咖啡</h1>
+                <div class="shop-desc">
+                    <span id="shopDesc">精品手冲咖啡 · 日式甜点</span>
+                    <span class="shop-badge" id="shopBadge">营业中 09:00-22:00</span>
+                </div>
+            </div>
+
+            <div class="content">
+                <div class="status-bar">
+                    <div class="status-item online">
+                        <span>●</span> 营业中
+                    </div>
+                    <div class="status-item" id="distanceDisplay">
+                        <span>📍</span> 计算距离...
+                    </div>
+                </div>
+
+                <div class="contact-grid">
+                    <div class="contact-card" id="telBlock">
+                        <div class="contact-icon tel">📞</div>
+                        <div class="contact-label">电话咨询</div>
+                        <div class="contact-value" id="shopTel">138-8888-1234</div>
+                    </div>
+                    <div class="contact-card" id="wechatBlock">
+                        <div class="contact-icon wechat">💬</div>
+                        <div class="contact-label">复制微信</div>
+                        <div class="contact-value" id="shopWechat">coffee_001</div>
+                    </div>
+                    <div class="contact-card" id="addressBlock">
+                        <div class="contact-icon location">📍</div>
+                        <div class="contact-label">店铺地址</div>
+                        <div class="contact-value" id="shopAddress">咖啡街12号</div>
+                    </div>
+                    <div class="contact-card" id="hoursBlock">
+                        <div class="contact-icon hours">⏰</div>
+                        <div class="contact-label">营业时间</div>
+                        <div class="contact-value" id="shopHours">09:00-22:00</div>
+                    </div>
+                </div>
+
+                <div class="wifi-section" id="wifiModule">
+                    <div class="wifi-header">
+                        <div class="wifi-icon">📶</div>
+                        <div>
+                            <div class="wifi-title">免费WiFi</div>
+                            <div class="wifi-subtitle">扫码一键复制，粘贴WIFI密码</div>
+                        </div>
+                    </div>
+                    
+                    <div class="wifi-info-row">
+                        <span class="wifi-label">
+                            <span>📡</span>
+                            <span>WiFi账号</span>
+                        </span>
+                        <span class="wifi-name" id="wifiName">Shop-Guest</span>
+                    </div>
+
+                    <button class="wifi-password-btn" id="copyWifiBtn">
+                        <span>🔑</span>
+                        <span>复制WiFi密码</span>
+                    </button>
+                    
+                    <div class="wifi-tip">
+                        每日自动刷新 · 连接后享高速网络
+                    </div>
+                </div>
+
+                <div class="nav-section" id="navModule">
+                    <div class="nav-header">
+                        <div class="nav-icon">🗺️</div>
+                        <div>
+                            <div class="nav-title">一键导航</div>
+                            <div class="nav-subtitle">选择你常用的地图APP</div>
+                        </div>
+                    </div>
+                    
+                    <div class="address-box" id="fullAddress">
+                        北京市朝阳区咖啡街12号 · 近地铁站
+                    </div>
+
+                    <div class="nav-buttons">
+                        <div class="nav-mini-btn" data-map="wechat">
+                            <span class="icon">📱</span>
+                            <span>微信</span>
+                        </div>
+                        <div class="nav-mini-btn" data-map="amap">
+                            <span class="icon">🗺️</span>
+                            <span>高德</span>
+                        </div>
+                        <div class="nav-mini-btn" data-map="baidu">
+                            <span class="icon">🗺️</span>
+                            <span>百度</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button class="action-btn secondary" id="shareBtn">
+                        🔗 分享
+                    </button>
+                    <button class="action-btn primary" id="consultBtn">
+                        💬 立即咨询
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="wechat-tip" id="wechatTip">
+            <span>📱</span>
+            <span>点击右上角选择"在浏览器打开"获得更好体验</span>
+        </div>
+    </div>
+
+    <!-- 隐藏数据 -->
+    <div class="hidden-data">
+        <span id="coordLat">39.908823</span>
+        <span id="coordLng">116.397470</span>
+        <span id="wifiPassword">88888888</span>
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <!-- 复制提示 -->
+    <div class="copy-toast" id="copyToast">已复制到剪贴板</div>
+
+    <script>
+        (function() {
+            // ==================== 音频上下文（用于生成音效） ====================
+            class SoundEffects {
+                constructor() {
+                    this.audioContext = null;
+                    this.soundsEnabled = true;
+                    this.initAudio();
+                }
+
+                initAudio() {
+                    try {
+                        // 需要在用户手势后初始化
+                        window.addEventListener('touchstart', () => {
+                            if (!this.audioContext) {
+                                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            }
+                        }, { once: true });
+                    } catch (e) {
+                        console.log('音频初始化失败', e);
+                        this.soundsEnabled = false;
+                    }
+                }
+
+                // 点击音效
+                playClick() {
+                    if (!this.soundsEnabled || !this.audioContext) return;
+                    
+                    try {
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.type = 'sine';
+                        oscillator.frequency.value = 600;
+                        gainNode.gain.value = 0.1;
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.1);
+                        
+                        // 快速衰减
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
+                    } catch (e) {
+                        console.log('播放音效失败', e);
+                    }
+                }
+
+                // 成功音效
+                playSuccess() {
+                    if (!this.soundsEnabled || !this.audioContext) return;
+                    
+                    try {
+                        const now = this.audioContext.currentTime;
+                        
+                        // 第一个音
+                        const osc1 = this.audioContext.createOscillator();
+                        const gain1 = this.audioContext.createGain();
+                        osc1.type = 'sine';
+                        osc1.frequency.value = 800;
+                        gain1.gain.value = 0.1;
+                        osc1.connect(gain1);
+                        gain1.connect(this.audioContext.destination);
+                        osc1.start(now);
+                        osc1.stop(now + 0.15);
+                        
+                        // 第二个音（稍高）
+                        const osc2 = this.audioContext.createOscillator();
+                        const gain2 = this.audioContext.createGain();
+                        osc2.type = 'sine';
+                        osc2.frequency.value = 1200;
+                        gain2.gain.value = 0.1;
+                        osc2.connect(gain2);
+                        gain2.connect(this.audioContext.destination);
+                        osc2.start(now + 0.1);
+                        osc2.stop(now + 0.25);
+                        
+                        gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                        gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    } catch (e) {
+                        console.log('播放音效失败', e);
+                    }
+                }
+
+                // 错误音效
+                playError() {
+                    if (!this.soundsEnabled || !this.audioContext) return;
+                    
+                    try {
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.type = 'sawtooth';
+                        oscillator.frequency.value = 300;
+                        gainNode.gain.value = 0.1;
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.2);
+                        
+                        // 快速下降音调
+                        oscillator.frequency.exponentialRampToValueAtTime(150, this.audioContext.currentTime + 0.2);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+                    } catch (e) {
+                        console.log('播放音效失败', e);
+                    }
+                }
+
+                // 复制成功音效
+                playCopy() {
+                    if (!this.soundsEnabled || !this.audioContext) return;
+                    
+                    try {
+                        const now = this.audioContext.currentTime;
+                        
+                        // 轻微的"滴"声
+                        const oscillator = this.audioContext.createOscillator();
+                        const gainNode = this.audioContext.createGain();
+                        
+                        oscillator.type = 'sine';
+                        oscillator.frequency.value = 1000;
+                        gainNode.gain.value = 0.05;
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(this.audioContext.destination);
+                        
+                        oscillator.start(now);
+                        oscillator.stop(now + 0.05);
+                        
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    } catch (e) {
+                        console.log('播放音效失败', e);
+                    }
+                }
+            }
+
+            // ==================== 触感反馈 ====================
+            class HapticFeedback {
+                constructor() {
+                    this.vibrateSupported = 'vibrate' in navigator;
+                }
+
+                // 轻触反馈
+                lightTap() {
+                    if (this.vibrateSupported) {
+                        navigator.vibrate(10); // 震动10ms
+                    }
+                }
+
+                // 成功反馈
+                success() {
+                    if (this.vibrateSupported) {
+                        navigator.vibrate([20, 30, 20]); // 两段式震动
+                    }
+                }
+
+                // 错误反馈
+                error() {
+                    if (this.vibrateSupported) {
+                        navigator.vibrate([50, 30, 50]); // 三段式震动
+                    }
+                }
+            }
+
+            // ==================== 按钮反馈管理器 ====================
+            class ButtonFeedback {
+                constructor(sound, haptic) {
+                    this.sound = sound;
+                    this.haptic = haptic;
+                }
+
+                // 为按钮添加反馈效果
+                addFeedback(button, options = {}) {
+                    if (!button) return;
+
+                    button.addEventListener('click', (e) => {
+                        // 1. 视觉反馈 - 缩放动画
+                        button.classList.add('btn-click-effect');
+                        setTimeout(() => {
+                            button.classList.remove('btn-click-effect');
+                        }, 200);
+
+                        // 2. 触感反馈
+                        if (options.haptic !== false) {
+                            if (options.hapticType === 'success') {
+                                this.haptic.success();
+                            } else if (options.hapticType === 'error') {
+                                this.haptic.error();
+                            } else {
+                                this.haptic.lightTap();
+                            }
+                        }
+
+                        // 3. 音效反馈
+                        if (options.sound !== false) {
+                            if (options.soundType === 'success') {
+                                this.sound.playSuccess();
+                            } else if (options.soundType === 'error') {
+                                this.sound.playError();
+                            } else if (options.soundType === 'copy') {
+                                this.sound.playCopy();
+                            } else {
+                                this.sound.playClick();
+                            }
+                        }
+
+                        // 4. 涟漪效果
+                        if (options.ripple !== false) {
+                            button.classList.add('btn-ripple');
+                            setTimeout(() => {
+                                button.classList.remove('btn-ripple');
+                            }, 600);
+                        }
+                    });
+                }
+
+                // 复制成功特殊反馈
+                addCopyFeedback(button) {
+                    button.addEventListener('click', (e) => {
+                        // 视觉反馈
+                        button.classList.add('copy-success');
+                        setTimeout(() => {
+                            button.classList.remove('copy-success');
+                        }, 300);
+
+                        // 触感反馈
+                        this.haptic.success();
+
+                        // 音效反馈
+                        this.sound.playCopy();
+                    });
+                }
+            }
+
+            // ==================== 工具函数 ====================
+            function showToast(message) {
+                const toast = document.getElementById('copyToast');
+                toast.textContent = message;
+                toast.classList.add('show');
+                
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+
+            function isWechat() {
+                const ua = navigator.userAgent.toLowerCase();
+                return ua.indexOf('micromessenger') !== -1;
+            }
+
+            function getUrlParams() {
+                const params = new URLSearchParams(window.location.search);
+                return {
+                    name: params.get('name'),
+                    desc: params.get('desc'),
+                    tel: params.get('tel'),
+                    wechat: params.get('wechat'),
+                    address: params.get('address'),
+                    hours: params.get('hours'),
+                    lat: params.get('lat'),
+                    lng: params.get('lng'),
+                    wifiName: params.get('wifi_name'),
+                    wifiPwd: params.get('wifi_pwd')
+                };
+            }
+
+            function updateUI() {
+                const params = getUrlParams();
+                
+                if (params.name) {
+                    document.getElementById('shopName').innerText = params.name;
+                }
+                if (params.desc) {
+                    document.getElementById('shopDesc').innerText = params.desc;
+                }
+                if (params.tel) {
+                    document.getElementById('shopTel').innerText = params.tel;
+                }
+                if (params.wechat) {
+                    document.getElementById('shopWechat').innerText = params.wechat;
+                }
+                if (params.address) {
+                    document.getElementById('shopAddress').innerText = params.address.split(' ')[0];
+                    document.getElementById('fullAddress').innerText = params.address + ' · 近地铁站';
+                }
+                if (params.hours) {
+                    document.getElementById('shopHours').innerText = params.hours;
+                    document.getElementById('shopBadge').innerText = `营业中 ${params.hours}`;
+                }
+                if (params.lat) {
+                    document.getElementById('coordLat').innerText = params.lat;
+                }
+                if (params.lng) {
+                    document.getElementById('coordLng').innerText = params.lng;
+                }
+
+                const wifiModule = document.getElementById('wifiModule');
+                const wifiNameSpan = document.getElementById('wifiName');
+                const wifiPwdHidden = document.getElementById('wifiPassword');
+                
+                if (params.wifiName && params.wifiPwd) {
+                    wifiNameSpan.innerText = params.wifiName;
+                    wifiPwdHidden.innerText = params.wifiPwd;
+                    wifiModule.style.display = 'block';
+                } else {
+                    wifiModule.style.display = 'none';
+                }
+
+                if (isWechat()) {
+                    document.getElementById('wechatTip').style.display = 'flex';
+                }
+            }
+
+            function calculateDistance() {
+                if (!navigator.geolocation) return;
+                
+                const lat = parseFloat(document.getElementById('coordLat').innerText);
+                const lng = parseFloat(document.getElementById('coordLng').innerText);
+                
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    const R = 6371;
+                    const dLat = (lat - pos.coords.latitude) * Math.PI / 180;
+                    const dLon = (lng - pos.coords.longitude) * Math.PI / 180;
+                    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                            Math.cos(pos.coords.latitude * Math.PI/180) * 
+                            Math.cos(lat * Math.PI/180) * 
+                            Math.sin(dLon/2) * Math.sin(dLon/2);
+                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                    const dist = (R * c).toFixed(1);
+                    
+                    document.getElementById('distanceDisplay').innerHTML = `<span>📍</span> 距您 ${dist}km`;
+                }, () => {
+                    document.getElementById('distanceDisplay').innerHTML = `<span>📍</span> 距离未知`;
+                });
+            }
+
+            function bindEvents(feedback) {
+                // 复制WiFi密码 - 特殊复制反馈
+                const copyBtn = document.getElementById('copyWifiBtn');
+                const wifiPwd = document.getElementById('wifiPassword');
+                
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', function() {
+                        const password = wifiPwd.innerText;
+                        
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(password).then(() => {
+                                // 视觉反馈
+                                copyBtn.classList.add('copied');
+                                copyBtn.innerHTML = '<span>✅</span><span>密码已复制</span>';
+                                
+                                // 触感+音效反馈
+                                feedback.haptic.success();
+                                feedback.sound.playCopy();
+                                
+                                showToast('WiFi密码已复制');
+                                
+                                setTimeout(() => {
+                                    copyBtn.classList.remove('copied');
+                                    copyBtn.innerHTML = '<span>🔑</span><span>复制WiFi密码</span>';
+                                }, 2000);
+                            });
+                        } else {
+                            // 降级复制
+                            const textarea = document.createElement('textarea');
+                            textarea.value = password;
+                            document.body.appendChild(textarea);
+                            textarea.select();
+                            document.execCommand('copy');
+                            document.body.removeChild(textarea);
+                            
+                            copyBtn.classList.add('copied');
+                            copyBtn.innerHTML = '<span>✅</span><span>密码已复制</span>';
+                            
+                            feedback.haptic.success();
+                            feedback.sound.playCopy();
+                            
+                            showToast('WiFi密码已复制');
+                            
+                            setTimeout(() => {
+                                copyBtn.classList.remove('copied');
+                                copyBtn.innerHTML = '<span>🔑</span><span>复制WiFi密码</span>';
+                            }, 2000);
+                        }
+                    });
+                }
+
+                // 电话点击
+                document.getElementById('telBlock').addEventListener('click', function() {
+                    const tel = document.getElementById('shopTel').innerText.replace(/-/g, '');
+                    feedback.haptic.lightTap();
+                    feedback.sound.playClick();
+                    window.location.href = `tel:${tel}`;
+                });
+
+                // 微信复制
+                document.getElementById('wechatBlock').addEventListener('click', function() {
+                    const wechat = document.getElementById('shopWechat').innerText;
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(wechat).then(() => {
+                            feedback.haptic.success();
+                            feedback.sound.playCopy();
+                            showToast('微信号已复制');
+                        });
+                    } else {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = wechat;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        feedback.haptic.success();
+                        feedback.sound.playCopy();
+                        showToast('微信号已复制');
+                    }
+                });
+
+                // 地址点击
+                document.getElementById('addressBlock').addEventListener('click', function() {
+                    feedback.haptic.lightTap();
+                    feedback.sound.playClick();
+                    showToast(document.getElementById('fullAddress').innerText);
+                });
+
+                // 营业时间点击
+                document.getElementById('hoursBlock').addEventListener('click', function() {
+                    feedback.haptic.lightTap();
+                    feedback.sound.playClick();
+                    showToast('营业时间: ' + document.getElementById('shopHours').innerText);
+                });
+
+                // 导航按钮
+                document.querySelectorAll('.nav-mini-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        feedback.haptic.lightTap();
+                        feedback.sound.playClick();
+                        
+                        const type = this.dataset.map;
+                        const lat = document.getElementById('coordLat').innerText;
+                        const lng = document.getElementById('coordLng').innerText;
+                        const address = document.getElementById('fullAddress').innerText.split(' · ')[0];
+                        const name = document.getElementById('shopName').innerText;
+
+                        if (type === 'wechat') {
+                            window.location.href = `https://apis.map.qq.com/uri/v1/routeplan?type=drive&to=${encodeURIComponent(address)}&tocoord=${lat},${lng}`;
+                        } else if (type === 'amap') {
+                            window.location.href = `amap://navi?sourceApplication=wechat&lat=${lat}&lon=${lng}&dev=0&style=2`;
+                            setTimeout(() => {
+                                window.location.href = `https://uri.amap.com/navigation?to=${lng},${lat},${encodeURIComponent(name)}&mode=car`;
+                            }, 500);
+                        } else if (type === 'baidu') {
+                            window.location.href = `baidumap://map/navi?location=${lat},${lng}&type=BLK&src=wechat`;
+                            setTimeout(() => {
+                                window.location.href = `https://api.map.baidu.com/direction?destination=${lat},${lng}&output=html`;
+                            }, 500);
+                        }
+                    });
+                });
+
+                // 分享按钮
+                feedback.addFeedback(document.getElementById('shareBtn'), {
+                    hapticType: 'light',
+                    soundType: 'click'
+                });
+
+                document.getElementById('shareBtn').addEventListener('click', function() {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: document.getElementById('shopName').innerText,
+                            text: document.getElementById('shopDesc').innerText,
+                            url: window.location.href
+                        }).catch(() => {
+                            showToast('分享取消');
+                        });
+                    } else {
+                        showToast('点击右上角分享菜单');
+                    }
+                });
+
+                // 咨询按钮
+                feedback.addFeedback(document.getElementById('consultBtn'), {
+                    hapticType: 'light',
+                    soundType: 'click'
+                });
+
+                document.getElementById('consultBtn').addEventListener('click', function() {
+                    const wechat = document.getElementById('shopWechat').innerText;
+                    if (confirm(`复制微信号 ${wechat} 去添加好友？`)) {
+                        if (navigator.clipboard) {
+                            navigator.clipboard.writeText(wechat).then(() => {
+                                feedback.haptic.success();
+                                feedback.sound.playCopy();
+                                showToast('微信号已复制');
+                            });
+                        }
+                    }
+                });
+
+                // 返回顶部
+                const backTop = document.getElementById('backToTop');
+                window.addEventListener('scroll', () => {
+                    backTop.classList.toggle('show', window.scrollY > 300);
+                });
+
+                backTop.addEventListener('click', () => {
+                    feedback.haptic.lightTap();
+                    feedback.sound.playClick();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+
+            // ==================== 初始化 ====================
+            updateUI();
+            calculateDistance();
+            
+            // 初始化反馈系统
+            const sound = new SoundEffects();
+            const haptic = new HapticFeedback();
+            const feedback = new ButtonFeedback(sound, haptic);
+            
+            // 绑定事件（传入反馈管理器）
+            bindEvents(feedback);
+        })();
+    </script>
+</body>
+</html>
