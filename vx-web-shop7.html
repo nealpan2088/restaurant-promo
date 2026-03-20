@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>智能店铺宣传 · 完整功能旗舰版</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- 高德地图 API (可手动添加密钥) -->
+    <script src="https://webapi.amap.com/maps?v=2.0&key=“63430514133026562d07bd151860e3e2”&plugin=AMap.Scale,AMap.Geolocation"></script>
+    
+    <!-- 百度统计 -->
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?您的百度统计ID";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+    
+    <!-- 友盟统计 (作为备用) -->
+    <script>
+        (function() {
+            window._czc = window._czc || [];
+            if (!window._hmt) {
+                var cz = document.createElement("script");
+                cz.src = "https://s4.cnzz.com/z.js?id=您的友盟ID";
+                var s = document.getElementsByTagName("script")[0];
+                s.parentNode.insertBefore(cz, s);
+            }
+        })();
+    </script>
+
+    <!-- PWA 离线缓存 -->
+    <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E5%BA%97%E9%93%BA%E5%AE%A3%E4%BC%A0%22%2C%22short_name%22%3A%22Shop%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f5f7fb%22%2C%22theme_color%22%3A%22%233b5c7a%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data:image/svg+xml%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22%233b5c7a%22%2F%3E%3Ctext%20x%3D%2250%22%20y%3D%2270%22%20font-size%3D%2260%22%20text-anchor%3D%22middle%22%20fill%3D%22%23fff%22%3E%3C%2Ftext%3E%3C%2Fsvg%3E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+
+    <style>
+        /* ===== CSS 变量 ===== */
+        :root {
+            --bg-color: #f5f7fb;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-bg-solid: #ffffffd6;
+            --text-primary: #1e2b3a;
+            --text-secondary: #4b5f73;
+            --icon-color: #54708f;
+            --accent-color: #3b5c7a;
+            --border-color: rgba(0,0,0,0.03);
+            --avatar-bg: linear-gradient(145deg, #e0e5ec, #ffffff);
+            --badge-bg: #e9ecf2;
+            --shadow-color: rgba(0,0,0,0.1);
+            --map-bg: #eef2f6;
+            --wifi-bg: #f2f5f9;
+            --review-bg: #f0f4fa;
+            --btn-bg: #4a637b;
+            --btn-text: white;
+            --footer-text: #9aaebf;
+            --error-bg: #ffeeee;
+            --error-text: #cc3333;
+            --success-bg: #e8f5e9;
+            --success-text: #2e7d32;
+        }
+
+        /* 主题2: 暖阳拿铁 */
+        body.theme2 {
+            --bg-color: #fae9dd;
+            --card-bg: rgba(255, 245, 235, 0.9);
+            --card-bg-solid: #fff5ebd6;
+            --text-primary: #4a3729;
+            --text-secondary: #7b5f4b;
+            --icon-color: #b46f40;
+            --accent-color: #b46f40;
+            --border-color: rgba(180, 111, 64, 0.1);
+            --avatar-bg: #f3d5b5;
+            --badge-bg: #f3d5b5;
+            --shadow-color: rgba(180, 111, 64, 0.15);
+            --map-bg: #f3e1d2;
+            --wifi-bg: #f3e1d2;
+            --review-bg: #f3e1d2;
+            --btn-bg: #b46f40;
+        }
+
+        /* 主题3: 深夜食堂 (深色) */
+        body.theme3 {
+            --bg-color: #2b3a4a;
+            --card-bg: rgba(35, 45, 55, 0.9);
+            --card-bg-solid: #2a3a48d6;
+            --text-primary: #e2eaf1;
+            --text-secondary: #b0c4d9;
+            --icon-color: #8bb3d1;
+            --accent-color: #8bb3d1;
+            --border-color: rgba(255,255,255,0.05);
+            --avatar-bg: #405b6e;
+            --badge-bg: #405b6e;
+            --shadow-color: rgba(0,0,0,0.3);
+            --map-bg: #2f4050;
+            --wifi-bg: #2f4050;
+            --review-bg: #2f4050;
+            --btn-bg: #5f7a94;
+            --error-bg: #442222;
+            --error-text: #ff8888;
+        }
+
+        /* 主题4: 莫兰迪绿 */
+        body.theme4 {
+            --bg-color: #d4dbd0;
+            --card-bg: #edf3ead9;
+            --card-bg-solid: #e5efe0d9;
+            --text-primary: #2c4238;
+            --text-secondary: #4d6659;
+            --icon-color: #5f8b74;
+            --accent-color: #5f8b74;
+            --border-color: rgba(95, 139, 116, 0.1);
+            --avatar-bg: #b7cdac;
+            --badge-bg: #b7cdac;
+            --shadow-color: rgba(95, 139, 116, 0.15);
+            --map-bg: #cbd9c4;
+            --wifi-bg: #cbd9c4;
+            --review-bg: #cbd9c4;
+            --btn-bg: #5f8b74;
+        }
+
+        /* 主题5: 浪漫粉彩 */
+        body.theme5 {
+            --bg-color: #ffe7f0;
+            --card-bg: #fff3f8f0;
+            --card-bg-solid: #ffeef5f0;
+            --text-primary: #6b3e4f;
+            --text-secondary: #8f6173;
+            --icon-color: #d45f8c;
+            --accent-color: #d45f8c;
+            --border-color: rgba(212, 95, 140, 0.1);
+            --avatar-bg: #ffd9e8;
+            --badge-bg: #ffd9e8;
+            --shadow-color: rgba(212, 95, 140, 0.15);
+            --map-bg: #ffe2ef;
+            --wifi-bg: #ffe2ef;
+            --review-bg: #ffe2ef;
+            --btn-bg: #d45f8c;
+        }
+
+        /* 暗黑模式 */
+        @media (prefers-color-scheme: dark) {
+            body:not(.theme3) {
+                --bg-color: #1a1e24;
+                --card-bg: rgba(30, 35, 42, 0.95);
+                --card-bg-solid: #262d36e6;
+                --text-primary: #e8edf2;
+                --text-secondary: #b8c5d4;
+                --icon-color: #7f9fbb;
+                --accent-color: #7f9fbb;
+                --border-color: rgba(255,255,255,0.05);
+                --avatar-bg: #36424f;
+                --badge-bg: #36424f;
+                --shadow-color: rgba(0,0,0,0.5);
+                --map-bg: #2d3843;
+                --wifi-bg: #2d3843;
+                --review-bg: #2d3843;
+                --btn-bg: #5d748b;
+                --footer-text: #8f9fb0;
+                --error-bg: #442222;
+                --error-text: #ff8888;
+            }
+        }
+
+        /* 应用变量 */
+        body {
+            background: var(--bg-color);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 16px 12px 60px;
+        }
+
+        .page-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 25px 50px -12px var(--shadow-color);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 420px;
+            width: 100%;
+            margin: 0 auto;
+            border-radius: 36px;
+            overflow: hidden;
+            padding: 24px 20px 32px;
+        }
+
+        .shop-avatar {
+            background: var(--avatar-bg);
+            color: var(--text-primary);
+            width: 70px;
+            height: 70px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 20px -8px var(--shadow-color);
+            font-size: 32px;
+        }
+
+        .shop-name {
+            background: linear-gradient(135deg, var(--text-primary), var(--icon-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.7rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+
+        .shop-badge {
+            background: var(--badge-bg);
+            color: var(--text-secondary);
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            display: inline-block;
+            font-weight: 500;
+        }
+
+        .info-grid, .feature-card, .review-wall {
+            background: var(--card-bg-solid);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 18px 16px;
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .info-row:last-child { border-bottom: none; }
+
+        .info-icon { width: 24px; color: var(--icon-color); }
+        .info-content { flex: 1; color: var(--text-primary); font-size: 0.95rem; word-break: break-word; }
+        .info-label { color: var(--text-secondary); font-weight: 500; margin-right: 6px; }
+
+        .feature-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 14px;
+            color: var(--text-primary);
+        }
+        .feature-header i { color: var(--icon-color); }
+
+        /* 地图容器 */
+        .map-container {
+            border-radius: 20px;
+            overflow: hidden;
+            height: 220px;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            position: relative;
+            background: var(--map-bg);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .map-container:active {
+            transform: scale(0.99);
+        }
+        
+        #amapContainer {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .static-map {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .map-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.7));
+            color: white;
+            padding: 30px 12px 12px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            pointer-events: none;
+        }
+        .map-overlay i { color: #ff6b6b; }
+
+        .map-error {
+            width: 100%;
+            height: 100%;
+            background: var(--error-bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--error-text);
+            gap: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .map-error i { font-size: 2rem; }
+        .map-error button {
+            background: var(--btn-bg);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .map-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* 地图选项按钮组 */
+        .map-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .map-option-btn {
+            background: var(--card-bg-solid);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .map-option-btn.active {
+            background: var(--btn-bg);
+            color: white;
+        }
+
+        /* WiFi模块 */
+        .wifi-item {
+            background: var(--wifi-bg);
+            border-radius: 18px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .wifi-value {
+            background: var(--card-bg-solid);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-family: monospace;
+        }
+        .wifi-pwd-hidden {
+            filter: blur(4px);
+            user-select: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            background: var(--wifi-bg);
+        }
+
+        /* 按钮样式 */
+        .btn-small, .wechat-btn, .nav-btn, .retry-btn {
+            background: var(--btn-bg);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.1s;
+        }
+        .btn-small:active, .wechat-btn:active, .nav-btn:active, .retry-btn:active {
+            opacity: 0.7;
+            transform: scale(0.97);
+        }
+        .wechat-btn { width: 100%; padding: 12px; justify-content: center; margin: 12px 0; }
+        .nav-btn { width: 100%; margin-top: 10px; justify-content: center; }
+
+        /* 评论墙 */
+        .review-wall { max-height: 260px; overflow: hidden; }
+        .review-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+        .review-marquee {
+            height: 180px;
+            overflow: hidden;
+            mask-image: linear-gradient(to bottom, transparent, black 8%, black 92%, transparent);
+        }
+        .review-track {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            animation: scrollReviews 25s linear infinite;
+            padding: 4px 6px;
+        }
+        .review-item {
+            background: var(--review-bg);
+            border-radius: 24px;
+            padding: 12px 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+        .review-avatar {
+            width: 38px;
+            height: 38px;
+            background: var(--icon-color);
+            border-radius: 40%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .review-text { flex: 1; font-size: 0.9rem; line-height: 1.3; }
+        .review-stars { color: #f5b342; font-size: 0.7rem; margin-top: 3px; letter-spacing: 2px; }
+        @keyframes scrollReviews {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(calc(-100% + 160px)); }
+        }
+
+        /* 微信弹窗 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: var(--card-bg-solid);
+            border-radius: 32px;
+            padding: 30px 24px;
+            max-width: 320px;
+            width: 90%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .modal-content i { font-size: 4rem; color: #2b8635; margin-bottom: 16px; }
+        .modal-content p {
+            background: var(--wifi-bg);
+            padding: 12px;
+            border-radius: 12px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-family: monospace;
+        }
+
+        /* 浮动按钮 */
+        .float-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
+        }
+        .float-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--card-bg-solid);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            font-size: 1.2rem;
+            transition: all 0.2s;
+        }
+        .float-btn:active { transform: scale(0.9); }
+
+        /* 缓存指示器 */
+        .cache-indicator {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: var(--card-bg-solid);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .hidden-module { display: none !important; }
+        .clickable { cursor: pointer; }
+        .share-icon {
+            float: right;
+            background: var(--badge-bg);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: all 0.2s;
+        }
+        .share-icon:active { transform: scale(0.9); }
+        
+        .shop-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            clear: both;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--icon-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="theme1" id="bodyTheme">
+    <!-- 缓存指示器 -->
+    <div class="cache-indicator" id="cacheIndicator">
+        <i class="fas fa-database"></i> <span id="cacheStatus">已缓存</span>
+    </div>
+
+    <!-- 微信弹窗 -->
+    <div class="modal" id="wechatModal">
+        <div class="modal-content">
+            <i class="fab fa-weixin"></i>
+            <h3>添加店铺微信</h3>
+            <p id="wechatDisplay"></p>
+            <button class="btn-small" id="copyWechatBtn">复制微信号</button>
+            <button class="btn-small" style="margin-top:10px; background:var(--text-secondary);" id="closeModalBtn">关闭</button>
+        </div>
+    </div>
+
+    <!-- 浮动按钮组 -->
+    <div class="float-buttons">
+        <div class="float-btn" id="backToTop" title="返回顶部">
+            <i class="fas fa-arrow-up"></i>
+        </div>
+    </div>
+
+    <div class="page-card">
+        <div class="share-icon" id="shareBtn" title="分享店铺">
+            <i class="fas fa-share-alt"></i>
+        </div>
+
+        <div class="shop-header">
+            <div class="shop-avatar"><i class="fas fa-store-alt"></i></div>
+            <div class="shop-title">
+                <div class="shop-name" id="shopNameDisplay">铺名加载中</div>
+                <span class="shop-badge">
+                    <i class="far fa-clock"></i> <span id="hoursDisplay">09:00-21:00</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-row" id="descRow">
+                <div class="info-icon"><i class="fas fa-pen-fancy"></i></div>
+                <div class="info-content"><span class="info-label">简介</span> <span id="descText"></span></div>
+            </div>
+            <div class="info-row" id="addressRow">
+                <div class="info-icon"><i class="fas fa-map-pin"></i></div>
+                <div class="info-content"><span class="info-label">地址</span> <span id="addressText"></span></div>
+            </div>
+            <div class="info-row" id="phoneRow">
+                <div class="info-icon"><i class="fas fa-phone-alt"></i></div>
+                <div class="info-content"><span class="info-label">电话</span> <span id="phoneText"></span></div>
+            </div>
+        </div>
+
+        <div id="wechatBtnContainer" class="hidden-module">
+            <button class="wechat-btn" id="addWechatBtn">
+                <i class="fab fa-weixin"></i> 加本店微信
+            </button>
+        </div>
+
+        <!-- 二维码模块 (新增) -->
+        <div class="qr-section hidden-module" id="qrModule">
+            <div class="feature-header"><i class="fas fa-qrcode"></i> 店铺二维码</div>
+            <div class="qr-code-box" style="text-align:center; padding:10px;">
+                <img id="qrImage" src="" alt="店铺二维码" style="width:150px; height:150px; border-radius:16px;">
+            </div>
+        </div>
+
+        <!-- 地图模块 (全备用) -->
+        <div class="feature-card hidden-module" id="mapModule">
+            <div class="feature-header">
+                <i class="fas fa-map-marked-alt"></i> 
+                <span>店铺位置</span>
+                <span id="mapProvider" style="font-size:0.7rem; margin-left:auto; opacity:0.6; background:var(--badge-bg); padding:2px 8px; border-radius:12px;">静态地图</span>
+            </div>
+            
+            <div class="map-container" id="mapContainer" onclick="handleMapClick()">
+                <div class="loading-spinner" id="mapLoading"></div>
+                <div id="amapContainer" style="display:none;"></div>
+            </div>
+            
+            <div id="mapError" class="hidden-module"></div>
+            
+            <!-- 地图切换选项 -->
+            <div class="map-options" id="mapOptions">
+                <button class="map-option-btn active" data-type="auto" id="mapOptAuto">🔄 自动</button>
+                <button class="map-option-btn" data-type="amap" id="mapOptAmap">🗺️ 高德</button>
+                <button class="map-option-btn" data-type="baidu" id="mapOptBaidu">🌐 百度</button>
+                <button class="map-option-btn" data-type="apple" id="mapOptApple">🍎 苹果</button>
+                <button class="map-option-btn" data-type="static" id="mapOptStatic">📷 静态</button>
+            </div>
+            
+            <button class="nav-btn hidden-module" id="navigateBtn">
+                <i class="fas fa-directions"></i> 导航到店铺地址
+            </button>
+            
+            <div style="margin-top:8px; text-align:center; font-size:0.7rem; color:var(--text-secondary);">
+                <i class="fas fa-info-circle"></i> 点击地图打开导航 | 可手动切换地图源
+            </div>
+        </div>
+
+        <!-- WiFi模块 -->
+        <div class="feature-card hidden-module" id="wifiModule">
+            <div class="feature-header"><i class="fas fa-wifi"></i> 店铺Wi-Fi</div>
+            <div class="wifi-item">
+                <span class="wifi-label"><i class="fas fa-network-wired"></i> 账号</span>
+                <span class="wifi-value" id="wifiSsid">xxx</span>
+            </div>
+            <div class="wifi-item">
+                <span class="wifi-label"><i class="fas fa-key"></i> 密码</span>
+                <span id="wifiPwdSpan" class="wifi-pwd-hidden">••••••••</span>
+                <button class="btn-small" id="unlockWifiBtn">
+                    <i class="fas fa-heart"></i> 加关注领密码
+                </button>
+            </div>
+        </div>
+
+        <!-- 评论墙 -->
+        <div class="review-wall">
+            <div class="review-header">
+                <i class="far fa-comment-dots"></i> 
+                <span id="reviewTypeTitle">顾客好评</span>
+                <span style="font-size:0.8rem; margin-left:auto;">✨ 真实留言</span>
+            </div>
+            <div class="review-marquee">
+                <div class="review-track" id="reviewTrack"></div>
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-top:16px; color:var(--footer-text); font-size:0.7rem;">
+            <i class="far fa-heart"></i> 点击电话可拨打 · 地址可复制
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            // ==================== 工具函数 ====================
+            function getParam(p, def=null) {
+                let val = new URLSearchParams(location.search).get(p);
+                return (val === null || val === '') ? def : decodeURIComponent(val);
+            }
+
+            // 统计事件
+            function trackEvent(category, action, label) {
+                if (window._hmt) _hmt.push(['_trackEvent', category, action, label]);
+                if (window._czc) _czc.push(['_trackEvent', category, action, label]);
+                console.log('统计:', category, action, label);
+            }
+
+            // ==================== 页面缓存 ====================
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('data:text/javascript;charset=utf-8,' + encodeURIComponent(`
+                    const CACHE_NAME = 'shop-cache-v5';
+                    self.addEventListener('install', e => e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['.', 'index.html']))));
+                    self.addEventListener('fetch', e => e.respondWith(caches.match(e.request).then(r => r || fetch(e.request))));
+                `)).then(() => {
+                    document.getElementById('cacheStatus').innerText = '已缓存';
+                }).catch(() => {
+                    document.getElementById('cacheStatus').innerText = '缓存失败';
+                });
+            }
+
+            // ==================== 10种业态完整评论库 ====================
+            const reviewLibrary = {
+                1: { name: '☕ 咖啡店', reviews: [
+                    { name:'咖啡小白', comment:'拿铁拉花太精致了，口感绵密', stars:5 },
+                    { name:'提神专家', comment:'美式很醇厚，提神效果满分', stars:5 },
+                    { name:'甜品控', comment:'提拉米苏配咖啡绝了', stars:5 },
+                    { name:'办公族', comment:'WiFi快，插座多，适合远程办公', stars:4 },
+                    { name:'小姐姐', comment:'环境ins风，拍照超出片', stars:5 },
+                    { name:'老顾客', comment:'每天一杯，已经成习惯了', stars:5 },
+                    { name:'探店达人', comment:'手冲咖啡有果香，爱了', stars:5 },
+                    { name:'情侣', comment:'约会好去处，安静舒适', stars:4 },
+                    { name:'学生党', comment:'价格实惠，学生证还有折扣', stars:4 },
+                    { name:'咖啡师', comment:'豆子品质很好，能喝出风味', stars:5 },
+                    { name:'游客', comment:'来旅游特意打卡，没失望', stars:5 },
+                    { name:'附近居民', comment:'早餐套餐很划算', stars:4 }
+                ]},
+                2: { name: '🍽️ 餐厅', reviews: [
+                    { name:'吃货小明', comment:'红烧肉入口即化，太香了', stars:5 },
+                    { name:'美食家', comment:'食材新鲜，厨师手艺一流', stars:5 },
+                    { name:'聚餐达人', comment:'包间环境好，适合家庭聚会', stars:4 },
+                    { name:'辣妹子', comment:'毛血旺够辣够味，过瘾', stars:5 },
+                    { name:'清淡派', comment:'清蒸鲈鱼很鲜嫩', stars:4 },
+                    { name:'回头客', comment:'每周必来，从不失望', stars:5 },
+                    { name:'探店博主', comment:'隐藏的宝藏餐厅', stars:5 },
+                    { name:'情侣约会', comment:'烛光晚餐氛围感拉满', stars:5 },
+                    { name:'带娃家长', comment:'有儿童餐椅，服务贴心', stars:4 },
+                    { name:'老顾客', comment:'老板送的凉菜很好吃', stars:5 },
+                    { name:'朋友推荐', comment:'果然名不虚传', stars:5 },
+                    { name:'生日聚会', comment:'还送了长寿面，感动', stars:5 }
+                ]},
+                3: { name: '💇 美发', reviews: [
+                    { name:'Tony老师', comment:'剪发技术一流，很懂我想要的感觉', stars:5 },
+                    { name:'爱美小美', comment:'染的颜色超显白，朋友都问在哪做的', stars:5 },
+                    { name:'护理达人', comment:'头皮护理很舒服，做完头发顺滑', stars:4 },
+                    { name:'烫发体验', comment:'烫的大波浪很自然', stars:5 },
+                    { name:'老顾客', comment:'服务态度好，从不推销', stars:5 },
+                    { name:'新娘跟妆', comment:'试妆很满意，婚礼就定他家了', stars:5 },
+                    { name:'男士理容', comment:'修面很仔细，手法专业', stars:4 },
+                    { name:'姐姐推荐', comment:'环境干净卫生，用的一线产品', stars:5 },
+                    { name:'回头客', comment:'做了3年了，只信这家', stars:5 },
+                    { name:'接发体验', comment:'接发无痕，很自然', stars:4 },
+                    { name:'学生优惠', comment:'性价比超高', stars:5 },
+                    { name:'路过体验', comment:'随便进的一家，没想到这么好', stars:5 }
+                ]},
+                4: { name: '🌸 花店', reviews: [
+                    { name:'送花小哥', comment:'包装很精致，女朋友超喜欢', stars:5 },
+                    { name:'花艺爱好者', comment:'花材新鲜，插花审美在线', stars:5 },
+                    { name:'求婚成功', comment:'求婚花束太美了，成功！', stars:5 },
+                    { name:'老顾客', comment:'每周一花，按时配送', stars:4 },
+                    { name:'母亲节', comment:'妈妈收到花很开心', stars:5 },
+                    { name:'闺蜜', comment:'一起学插花，老师很耐心', stars:5 },
+                    { name:'生日惊喜', comment:'定制的生日花束很特别', stars:5 },
+                    { name:'探病问候', comment:'花篮搭配得很好看', stars:4 },
+                    { name:'情人节', comment:'玫瑰新鲜，包装高级', stars:5 },
+                    { name:'开业花篮', comment:'大气上档次，客户满意', stars:5 },
+                    { name:'路过被吸引', comment:'店门口的花墙太美了', stars:4 },
+                    { name:'干花定制', comment:'做成的干花相框很有意义', stars:5 }
+                ]},
+                5: { name: '📚 书店', reviews: [
+                    { name:'书虫小王', comment:'选书品味很好，很多小众好书', stars:5 },
+                    { name:'自习学生', comment:'环境安静，适合学习', stars:5 },
+                    { name:'文创爱好者', comment:'文具和文创都很有设计感', stars:4 },
+                    { name:'咖啡+书', comment:'书店里的咖啡也很好喝', stars:5 },
+                    { name:'亲子阅读', comment:'儿童区布置得很温馨', stars:4 },
+                    { name:'签名本', comment:'买到了作者的签名本，惊喜', stars:5 },
+                    { name:'文艺青年', comment:'每周都来淘书', stars:5 },
+                    { name:'会员', comment:'会员折扣很实惠', stars:4 },
+                    { name:'讲座活动', comment:'参加过读书会，氛围很好', stars:5 },
+                    { name:'旅游打卡', comment:'城市里的文化地标', stars:5 },
+                    { name:'礼物选购', comment:'包装精美，送礼体面', stars:4 },
+                    { name:'深夜书房', comment:'24小时营业太棒了', stars:5 }
+                ]},
+                6: { name: '💪 健身房', reviews: [
+                    { name:'健身达人', comment:'器械齐全，教练专业', stars:5 },
+                    { name:'减脂学员', comment:'一个月瘦了8斤，感谢教练', stars:5 },
+                    { name:'瑜伽爱好者', comment:'瑜伽课老师很温柔', stars:4 },
+                    { name:'撸铁大叔', comment:'深蹲架够用，不用排队', stars:5 },
+                    { name:'私教会员', comment:'一对一指导效果明显', stars:5 },
+                    { name:'团课粉丝', comment:'单车课氛围超嗨', stars:5 },
+                    { name:'康复训练', comment:'腰伤康复效果很好', stars:5 },
+                    { name:'环境控', comment:'干净卫生，更衣室宽敞', stars:4 },
+                    { name:'上班族', comment:'24小时营业，下班也能练', stars:5 },
+                    { name:'健身情侣', comment:'情侣套餐很划算', stars:4 },
+                    { name:'拉伸课', comment:'练后拉伸很舒服', stars:5 },
+                    { name:'老会员', comment:'续了第三年了', stars:5 }
+                ]},
+                7: { name: '🐾 宠物店', reviews: [
+                    { name:'铲屎官', comment:'美容师很耐心，狗狗变帅了', stars:5 },
+                    { name:'猫奴', comment:'猫咪洗澡很乖，没应激', stars:5 },
+                    { name:'宠物用品', comment:'进口粮正品，价格实惠', stars:4 },
+                    { name:'寄养体验', comment:'寄养一周，每天发视频', stars:5 },
+                    { name:'新手家长', comment:'买的小狗很健康，还教我怎么养', stars:5 },
+                    { name:'老顾客', comment:'每月都来美容，服务稳定', stars:5 },
+                    { name:'医疗咨询', comment:'老板懂很多医疗知识', stars:4 },
+                    { name:'宠物社交', comment:'还有宠物活动区，交到朋友', stars:5 },
+                    { name:'洗澡体验', comment:'香喷喷的，毛发柔顺', stars:5 },
+                    { name:'零食采购', comment:'手工零食狗狗爱吃', stars:4 },
+                    { name:'上门服务', comment:'上门接送太方便了', stars:5 },
+                    { name:'紧急求助', comment:'半夜帮我找到急诊医院', stars:5 }
+                ]},
+                8: { name: '👗 服装店', reviews: [
+                    { name:'时尚买手', comment:'款式新颖，不容易撞衫', stars:5 },
+                    { name:'上班族', comment:'通勤装很得体，质感好', stars:4 },
+                    { name:'闺蜜逛街', comment:'导购审美在线，搭配好看', stars:5 },
+                    { name:'老顾客', comment:'会员折扣很给力', stars:5 },
+                    { name:'妈妈买衣', comment:'中老年款式也很时尚', stars:4 },
+                    { name:'情侣装', comment:'买了情侣款，很搭', stars:5 },
+                    { name:'大码女生', comment:'大码款式也能穿得美', stars:5 },
+                    { name:'退换货', comment:'退换货政策很友好', stars:4 },
+                    { name:'定制西装', comment:'量体很准，版型好', stars:5 },
+                    { name:'饰品搭配', comment:'饰品搭配得很有品味', stars:5 },
+                    { name:'旅游购物', comment:'当地特色设计，很喜欢', stars:4 },
+                    { name:'生日礼物', comment:'包装精美，送礼首选', stars:5 }
+                ]},
+                9: { name: '🏨 民宿', reviews: [
+                    { name:'旅行家', comment:'房间干净，床品舒适', stars:5 },
+                    { name:'情侣出游', comment:'露台能看到星星，浪漫', stars:5 },
+                    { name:'家庭出行', comment:'亲子房布置得很用心', stars:4 },
+                    { name:'商务出差', comment:'办公桌方便，WiFi稳定', stars:5 },
+                    { name:'拍照达人', comment:'每个角落都出片', stars:5 },
+                    { name:'房东热情', comment:'老板亲自接送，很感动', stars:5 },
+                    { name:'自助入住', comment:'入住方便，隐私性好', stars:4 },
+                    { name:'早餐好吃', comment:'当地特色早餐很美味', stars:5 },
+                    { name:'交通便利', comment:'离景点很近', stars:4 },
+                    { name:'性价比高', comment:'价格实惠，超出预期', stars:5 },
+                    { name:'长住体验', comment:'住了半个月，像家一样', stars:5 },
+                    { name:'朋友推荐', comment:'果然没选错', stars:5 }
+                ]},
+                10: { name: '🍺 酒馆', reviews: [
+                    { name:'精酿爱好者', comment:'自酿啤酒口感丰富', stars:5 },
+                    { name:'调酒师', comment:'特调鸡尾酒很有创意', stars:5 },
+                    { name:'朋友聚会', comment:'氛围很好，适合聊天', stars:4 },
+                    { name:'驻唱粉丝', comment:'歌手唱得不错，音响好', stars:5 },
+                    { name:'深夜食堂', comment:'下酒菜很好吃', stars:4 },
+                    { name:'约会圣地', comment:'灯光氛围很适合约会', stars:5 },
+                    { name:'老顾客', comment:'老板很健谈，像朋友', stars:5 },
+                    { name:'威士忌控', comment:'威士忌种类多，价格公道', stars:5 },
+                    { name:'露天座位', comment:'夏天坐外面很舒服', stars:4 },
+                    { name:'团建包场', comment:'服务周到，玩得很嗨', stars:5 },
+                    { name:'网红打卡', comment:'装修很有特色', stars:4 },
+                    { name:'醒酒服务', comment:'还有代驾服务，贴心', stars:5 }
+                ]}
+            };
+
+            // ==================== 读取所有参数 ====================
+            const theme = getParam('theme', '1');              // 主题1-5
+            const shopName = getParam('name', '未命名店铺');    // 店铺名称
+            const hours = getParam('hours', '09:00–21:00');    // 营业时间
+            const desc = getParam('desc', '');                 // 简介
+            const address = getParam('address', '');           // 地址
+            const phone = getParam('phone', '');               // 电话
+            const qr = getParam('qr', '');                     // 二维码图片URL
+            const lat = getParam('lat', '');                   // 纬度
+            const lng = getParam('lng', '');                   // 经度
+            const wifiSsid = getParam('wifiSsid', '');         // WiFi账号
+            const wifiPwd = getParam('wifiPwd', '');           // WiFi密码
+            const wechatId = getParam('wechat', '');           // 微信号
+            const reviewType = getParam('review', '1');        // 评论业态1-10
+            const mapSource = getParam('map', 'auto');         // 地图源: auto, amap, baidu, apple, static
+
+            // 主题设置
+            document.body.className = `theme${theme}`;
+
+            // 基础信息填充
+            document.getElementById('shopNameDisplay').innerText = shopName;
+            document.getElementById('hoursDisplay').innerText = hours;
+            document.getElementById('descText').innerText = desc || '—';
+            document.getElementById('addressText').innerText = address || '—';
+            document.getElementById('phoneText').innerText = phone || '—';
+
+            // ==================== 二维码模块 ====================
+            const qrModule = document.getElementById('qrModule');
+            if (qr) {
+                document.getElementById('qrImage').src = qr;
+                qrModule.classList.remove('hidden-module');
+                trackEvent('二维码', '显示', '有二维码');
+            } else {
+                qrModule.classList.add('hidden-module');
+            }
+
+            // ==================== 微信弹窗 ====================
+            if (wechatId) {
+                document.getElementById('wechatBtnContainer').classList.remove('hidden-module');
+                document.getElementById('wechatDisplay').innerText = wechatId;
+                
+                document.getElementById('addWechatBtn').addEventListener('click', function(){
+                    document.getElementById('wechatModal').classList.add('active');
+                    trackEvent('微信', '点击添加', wechatId);
+                });
+            }
+
+            document.getElementById('closeModalBtn').addEventListener('click', function(){
+                document.getElementById('wechatModal').classList.remove('active');
+            });
+            
+            document.getElementById('copyWechatBtn').addEventListener('click', function(){
+                navigator.clipboard?.writeText(wechatId).then(() => {
+                    alert('微信号已复制');
+                    document.getElementById('wechatModal').classList.remove('active');
+                    trackEvent('微信', '复制成功', wechatId);
+                });
+            });
+
+            // ==================== 地图模块 ====================
+            const mapModule = document.getElementById('mapModule');
+            const mapContainer = document.getElementById('mapContainer');
+            const mapLoading = document.getElementById('mapLoading');
+            const amapContainer = document.getElementById('amapContainer');
+            const mapProvider = document.getElementById('mapProvider');
+            const navBtn = document.getElementById('navigateBtn');
+            const mapOptAuto = document.getElementById('mapOptAuto');
+            const mapOptAmap = document.getElementById('mapOptAmap');
+            const mapOptBaidu = document.getElementById('mapOptBaidu');
+            const mapOptApple = document.getElementById('mapOptApple');
+            const mapOptStatic = document.getElementById('mapOptStatic');
+            
+            let currentMapType = mapSource;
+            let amapInstance = null;
+
+            window.handleMapClick = function() {
+                if (lat && lng) {
+                    trackEvent('地图', '点击打开导航', `${lat},${lng}`);
+                    let isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    let encodeAddr = encodeURIComponent(address || '店铺');
+                    
+                    if (isIOS) {
+                        window.open(`http://maps.apple.com/?ll=${lat},${lng}&q=${encodeAddr}`, '_system');
+                    } else {
+                        window.open(`amapuri://viewMap?sourceApplication=shop&poiname=${encodeAddr}&lat=${lat}&lon=${lng}&dev=0`, '_blank');
+                        setTimeout(() => {
+                            window.open(`https://api.map.baidu.com/marker?location=${lat},${lng}&title=${encodeAddr}&content=${encodeAddr}&output=html`, '_blank');
+                        }, 300);
+                    }
+                }
+            };
+
+            function showMapError(message, showRetry = true) {
+                mapContainer.innerHTML = `
+                    <div class="map-error">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <p>${message}</p>
+                        <p>📍 ${address || '位置'}</p>
+                        <p>纬度: ${lat}, 经度: ${lng}</p>
+                        ${showRetry ? `
+                            <button class="retry-btn" onclick="handleMapClick()">
+                                <i class="fas fa-directions"></i> 直接导航
+                            </button>
+                            <button class="retry-btn" style="margin-top:10px;" onclick="switchMapType('static')">
+                                <i class="fas fa-map"></i> 切换到静态地图
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                trackEvent('地图', '加载失败', message);
+            }
+
+            window.switchMapType = function(type) {
+                currentMapType = type;
+                loadMapByType(type);
+                
+                [mapOptAuto, mapOptAmap, mapOptBaidu, mapOptApple, mapOptStatic].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                if (type === 'auto') mapOptAuto.classList.add('active');
+                else if (type === 'amap') mapOptAmap.classList.add('active');
+                else if (type === 'baidu') mapOptBaidu.classList.add('active');
+                else if (type === 'apple') mapOptApple.classList.add('active');
+                else if (type === 'static') mapOptStatic.classList.add('active');
+                
+                trackEvent('地图', '切换类型', type);
+            };
+
+            function loadMapByType(type) {
+                if (!lat || !lng) return;
+                
+                mapContainer.innerHTML = '';
+                mapContainer.appendChild(mapLoading);
+                mapLoading.style.display = 'block';
+                amapContainer.style.display = 'none';
+                
+                if (type === 'amap' || (type === 'auto' && typeof AMap !== 'undefined')) {
+                    mapProvider.innerText = '高德地图';
+                    try {
+                        setTimeout(() => {
+                            if (typeof AMap !== 'undefined') {
+                                mapContainer.innerHTML = '';
+                                amapContainer.style.display = 'block';
+                                mapContainer.appendChild(amapContainer);
+                                
+                                if (!amapInstance) {
+                                    amapInstance = new AMap.Map('amapContainer', {
+                                        zoom: 16,
+                                        center: [parseFloat(lng), parseFloat(lat)],
+                                        resizeEnable: true
+                                    });
+                                    new AMap.Marker({
+                                        position: [parseFloat(lng), parseFloat(lat)],
+                                        map: amapInstance
+                                    });
+                                }
+                                mapLoading.style.display = 'none';
+                                trackEvent('地图', '加载成功', '高德地图');
+                            } else {
+                                throw new Error('高德地图API未加载');
+                            }
+                        }, 100);
+                    } catch (e) {
+                        if (type === 'amap') {
+                            showMapError('高德地图加载失败，请检查密钥');
+                        } else {
+                            loadMapByType('static');
+                        }
+                    }
+                }
+                else if (type === 'baidu' || (type === 'auto' && /Android/i.test(navigator.userAgent))) {
+                    mapProvider.innerText = '百度地图';
+                    // 百度静态图 (无需API)
+                    const baiduMapUrl = `https://api.map.baidu.com/staticimage/v2?ak=您的百度密钥&center=${lng},${lat}&markers=${lng},${lat}&zoom=16&width=400&height=200`;
+                    
+                    const img = new Image();
+                    img.onload = function() {
+                        mapContainer.innerHTML = '';
+                        mapContainer.appendChild(img);
+                        const overlay = document.createElement('div');
+                        overlay.className = 'map-overlay';
+                        overlay.innerHTML = '<i class="fas fa-map-pin"></i> ' + (address || '点击导航');
+                        mapContainer.appendChild(overlay);
+                        mapLoading.style.display = 'none';
+                        trackEvent('地图', '加载成功', '百度地图');
+                    };
+                    img.onerror = function() {
+                        if (type === 'baidu') {
+                            loadMapByType('static');
+                        } else {
+                            loadMapByType('static');
+                        }
+                    };
+                    img.src = baiduMapUrl;
+                    img.className = 'static-map';
+                }
+                else if (type === 'apple' || (type === 'auto' && /iPhone|iPad|iPod/i.test(navigator.userAgent))) {
+                    mapProvider.innerText = '苹果地图';
+                    const appleMapUrl = `https://dev.virtualearth.net/REST/v1/Imagery/Map/Road/${lat},${lng}/16?mapSize=400,200&pp=${lat},${lng};66&key=AiTkfzKqoQJzJQqQJzJQqQJzJQqQJzJQ`;
+                    
+                    const img = new Image();
+                    img.onload = function() {
+                        mapContainer.innerHTML = '';
+                        mapContainer.appendChild(img);
+                        const overlay = document.createElement('div');
+                        overlay.className = 'map-overlay';
+                        overlay.innerHTML = '<i class="fas fa-map-pin"></i> ' + (address || '点击导航');
+                        mapContainer.appendChild(overlay);
+                        mapLoading.style.display = 'none';
+                        trackEvent('地图', '加载成功', '苹果地图');
+                    };
+                    img.onerror = function() {
+                        if (type === 'apple') {
+                            loadMapByType('static');
+                        } else {
+                            loadMapByType('static');
+                        }
+                    };
+                    img.src = appleMapUrl;
+                    img.className = 'static-map';
+                }
+                else {
+                    mapProvider.innerText = '静态地图';
+                    const staticMapUrls = [
+                        `https://staticmap.ethermap.org/?center=${lat},${lng}&zoom=16&size=400x200&markers=${lat},${lng}&key=free`,
+                        `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lng}&zoom=16&size=400x200&markers=${lat},${lng}`,
+                        `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=16&size=400x200&markers=${lat},${lng}&key=AIzaSyA1lLmX2MqHxj7wz9Z5x8v9Z5x8v9Z5x8v9`,
+                        `https://via.placeholder.com/400x200/3b5c7a/ffffff?text=📍+${encodeURIComponent(address || '店铺位置')}`
+                    ];
+
+                    let currentIndex = 0;
+                    
+                    function loadStaticMap(index) {
+                        if (index >= staticMapUrls.length) {
+                            showMapError('所有地图源都加载失败', true);
+                            return;
+                        }
+
+                        const img = new Image();
+                        img.onload = function() {
+                            mapContainer.innerHTML = '';
+                            mapContainer.appendChild(img);
+                            const overlay = document.createElement('div');
+                            overlay.className = 'map-overlay';
+                            overlay.innerHTML = '<i class="fas fa-map-pin"></i> ' + (address || '点击导航');
+                            mapContainer.appendChild(overlay);
+                            mapLoading.style.display = 'none';
+                            trackEvent('地图', '加载成功', `静态源${index + 1}`);
+                        };
+                        
+                        img.onerror = function() {
+                            loadStaticMap(index + 1);
+                        };
+                        
+                        img.src = staticMapUrls[index];
+                        img.className = 'static-map';
+                        img.alt = address || '店铺位置';
+                    }
+
+                    loadStaticMap(0);
+                }
+            }
+
+            if (lat && lng) {
+                mapModule.classList.remove('hidden-module');
+                
+                mapOptAuto.onclick = () => switchMapType('auto');
+                mapOptAmap.onclick = () => switchMapType('amap');
+                mapOptBaidu.onclick = () => switchMapType('baidu');
+                mapOptApple.onclick = () => switchMapType('apple');
+                mapOptStatic.onclick = () => switchMapType('static');
+                
+                switchMapType(mapSource);
+
+                if (address) {
+                    navBtn.classList.remove('hidden-module');
+                    navBtn.onclick = function(e){
+                        e.stopPropagation();
+                        handleMapClick();
+                    };
+                }
+            } else {
+                mapModule.classList.add('hidden-module');
+            }
+
+            // ==================== WiFi模块 ====================
+            if (wifiSsid && wifiPwd) {
+                document.getElementById('wifiModule').classList.remove('hidden-module');
+                document.getElementById('wifiSsid').innerText = wifiSsid;
+                const pwdSpan = document.getElementById('wifiPwdSpan');
+                
+                document.getElementById('unlockWifiBtn').onclick = function() {
+                    if (pwdSpan.classList.contains('wifi-pwd-hidden')) {
+                        pwdSpan.innerText = wifiPwd;
+                        pwdSpan.classList.remove('wifi-pwd-hidden');
+                        pwdSpan.classList.add('wifi-value');
+                        this.innerHTML = '<i class="fas fa-check"></i> 密码已显示';
+                        trackEvent('WiFi', '密码显示', wifiSsid);
+                    } else {
+                        pwdSpan.innerText = '********';
+                        pwdSpan.classList.add('wifi-pwd-hidden');
+                        pwdSpan.classList.remove('wifi-value');
+                        this.innerHTML = '<i class="fas fa-heart"></i> 加关注领密码';
+                    }
+                };
+            }
+
+            // ==================== 评论墙 ====================
+            const reviewData = reviewLibrary[reviewType] || reviewLibrary['1'];
+            document.getElementById('reviewTypeTitle').innerText = reviewData.name;
+            
+            const track = document.getElementById('reviewTrack');
+            track.innerHTML = '';
+            const allReviews = [...reviewData.reviews, ...reviewData.reviews.slice(0,6)];
+            allReviews.forEach(r => {
+                const stars = '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars);
+                track.innerHTML += `
+                    <div class="review-item">
+                        <div class="review-avatar">${r.name[0]}</div>
+                        <div class="review-text">
+                            <strong>${r.name}</strong>
+                            <div class="review-stars">${stars}</div>
+                            <div>${r.comment}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // ==================== 交互事件 ====================
+            if (phone) {
+                document.getElementById('phoneRow').classList.add('clickable');
+                document.getElementById('phoneRow').onclick = () => {
+                    window.location.href = `tel:${phone}`;
+                    trackEvent('电话', '点击拨打', phone);
+                };
+            }
+            
+            if (address) {
+                document.getElementById('addressRow').classList.add('clickable');
+                document.getElementById('addressRow').onclick = () => {
+                    navigator.clipboard?.writeText(address).then(() => {
+                        alert('地址已复制');
+                        trackEvent('地址', '复制', address);
+                    });
+                };
+            }
+
+            document.getElementById('shareBtn').addEventListener('click', function(){
+                if (navigator.share) {
+                    navigator.share({ 
+                        title: shopName, 
+                        text: `快来逛逛 ${shopName}${address ? ' - ' + address : ''}`, 
+                        url: location.href 
+                    }).then(() => trackEvent('分享', '成功', shopName));
+                } else { 
+                    navigator.clipboard?.writeText(location.href);
+                    alert('链接已复制: ' + location.href);
+                    trackEvent('分享', '复制链接', location.href);
+                }
+            });
+
+            document.getElementById('backToTop').addEventListener('click', function(){
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            if (!desc) document.getElementById('descText').style.opacity = '0.6';
+
+            trackEvent('页面', '访问', shopName);
+        })();
+    </script>
+
+    <!-- 优化建议卡片 -->
+    <div style="max-width:420px; margin:20px auto; background:var(--card-bg-solid); border-radius:30px; padding:16px; font-size:0.8rem;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+            <i class="fas fa-crown" style="color:var(--icon-color);"></i>
+            <span style="font-weight:600;">完整功能参数列表</span>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:1fr 2fr; gap:5px; margin:10px 0; font-size:0.7rem;">
+            <div style="font-weight:600;">theme</div><div>主题1-5 (默认1)</div>
+            <div style="font-weight:600;">review</div><div>评论业态1-10 (默认1)</div>
+            <div style="font-weight:600;">name</div><div>店铺名称 (默认"未命名店铺")</div>
+            <div style="font-weight:600;">hours</div><div>营业时间 (默认09:00-21:00)</div>
+            <div style="font-weight:600;">desc</div><div>店铺简介</div>
+            <div style="font-weight:600;">address</div><div>店铺地址</div>
+            <div style="font-weight:600;">phone</div><div>联系电话</div>
+            <div style="font-weight:600;">qr</div><div>二维码图片URL</div>
+            <div style="font-weight:600;">lat</div><div>纬度 (显示地图)</div>
+            <div style="font-weight:600;">lng</div><div>经度 (显示地图)</div>
+            <div style="font-weight:600;">wifiSsid</div><div>WiFi账号</div>
+            <div style="font-weight:600;">wifiPwd</div><div>WiFi密码</div>
+            <div style="font-weight:600;">wechat</div><div>微信号</div>
+            <div style="font-weight:600;">map</div><div>地图源: auto/amap/baidu/apple/static</div>
+        </div>
+
+        <p style="margin-top:10px; padding:8px; background:var(--wifi-bg); border-radius:12px;">
+            <i class="fas fa-key"></i> 需要配置的密钥：<br>
+            1. 高德地图Key - 替换 <code>YOUR_AMAP_KEY</code><br>
+            2. 百度地图AK - 替换 <code>您的百度密钥</code><br>
+            3. 百度统计ID<br>
+            4. 友盟统计ID
+        </p>
+        
+        <p style="margin-top:8px;">
+            <i class="fas fa-code-branch"></i> 完整功能示例：<br>
+            <code style="font-size:0.7rem; word-break:break-all;">
+            ?theme=2&review=1&name=星巴克臻选&hours=07:30-23:00&desc=北京三里屯旗舰店&address=北京市朝阳区三里屯路19号&phone=010-12345678&qr=https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=starbucks&lat=39.9345&lng=116.4543&wifiSsid=Starbucks-WiFi&wifiPwd=coffee888&wechat=starbucks_beijing&map=auto
+            </code>
+        </p>
+    </div>
+</body>
+</html>
