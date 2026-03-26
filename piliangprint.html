@@ -1,0 +1,230 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维码打印模板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* A4纸打印样式 */
+        @page {
+            size: A4;
+            margin: 10mm;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .no-print {
+                display: none;
+            }
+            .qr-page {
+                page-break-after: always;
+            }
+            .qr-grid {
+                page-break-inside: avoid;
+            }
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+
+        .no-print {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+        }
+
+        .print-btn {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 0 10px;
+        }
+
+        .qr-page {
+            background: white;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .qr-item {
+            text-align: center;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+        }
+
+        .table-info {
+            margin-top: 10px;
+        }
+
+        .table-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FF6B35;
+        }
+
+        .table-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .restaurant-name {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .qr-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <h2>📄 二维码打印模板</h2>
+        <p>点击打印按钮，使用A4纸打印后裁剪使用</p>
+        <button class="print-btn" onclick="window.print()">🖨️ 打印全部</button>
+        <button class="print-btn" onclick="generateTemplate()">🔄 重新生成</button>
+    </div>
+
+    <div id="printContent"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix@0.0.1/qrcode.min.js"></script>
+    <script>
+        // 餐厅信息配置
+        const restaurantConfig = {
+            name: '美味餐厅',
+            welcome: '欢迎扫码点餐',
+            tables: []
+        };
+
+        // 生成桌位数据
+        function generateTables() {
+            const tables = [];
+            // 生成1-20号桌
+            for (let i = 1; i <= 20; i++) {
+                tables.push({
+                    number: i.toString().padStart(3, '0'),
+                    name: `${i}号桌`,
+                    qrContent: `TABLE:${i.toString().padStart(3, '0')}`
+                });
+            }
+            // 添加包间
+            tables.push({ number: 'VIP01', name: 'VIP包间1', qrContent: 'TABLE:VIP01' });
+            tables.push({ number: 'VIP02', name: 'VIP包间2', qrContent: 'TABLE:VIP02' });
+            
+            return tables;
+        }
+
+        // 生成打印模板
+        function generateTemplate() {
+            const tables = generateTables();
+            const content = document.getElementById('printContent');
+            
+            // 每页显示9个二维码（3x3网格）
+            const itemsPerPage = 9;
+            const pages = Math.ceil(tables.length / itemsPerPage);
+            
+            let html = '';
+            
+            for (let page = 0; page < pages; page++) {
+                const start = page * itemsPerPage;
+                const end = Math.min(start + itemsPerPage, tables.length);
+                const pageTables = tables.slice(start, end);
+                
+                html += `
+                    <div class="qr-page">
+                        <div class="restaurant-name">
+                            ${restaurantConfig.name}
+                            <div style="font-size: 12px; font-weight: normal;">${restaurantConfig.welcome}</div>
+                        </div>
+                        <div class="qr-grid">
+                `;
+                
+                pageTables.forEach((table, index) => {
+                    const qrId = `qr-${page}-${index}`;
+                    html += `
+                        <div class="qr-item">
+                            <div id="${qrId}" class="qr-code"></div>
+                            <div class="table-info">
+                                <div class="table-number">${table.name}</div>
+                                <div class="table-text">扫码点餐</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                // 补全空位
+                const remaining = itemsPerPage - pageTables.length;
+                for (let i = 0; i < remaining; i++) {
+                    html += `<div class="qr-item"></div>`;
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = html;
+            
+            // 生成二维码
+            tables.forEach((table, idx) => {
+                const page = Math.floor(idx / itemsPerPage);
+                const itemIndex = idx % itemsPerPage;
+                const qrId = `qr-${page}-${itemIndex}`;
+                const qrContainer = document.getElementById(qrId);
+                if (qrContainer) {
+                    new QRCode(qrContainer, {
+                        text: table.qrContent,
+                        width: 150,
+                        height: 150,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }
+            });
+        }
+        
+        // 页面加载时生成
+        generateTemplate();
+    </script>
+</body>
+</html>

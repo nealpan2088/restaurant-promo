@@ -1,0 +1,350 @@
+﻿/**
+ * 蓝牙打印机管理器
+ * 支持德佟DP80S、芯烨、佳博、思普瑞特等主流蓝牙打印机
+ */
+
+class BluetoothPrinterManager {
+    constructor() {
+        this.device = null;
+        this.server = null;
+        this.service = null;
+        this.characteristic = null;
+        this.isConnected = false;
+        this.printerType = 'dptou80s';
+    }
+
+    // ESC/POS 指令集
+    static ESC = 0x1B;
+    static GS = 0x1D;
+    
+    // 初始化打印机
+    static initPrinter() {
+        return new Uint8Array([BluetoothPrinterManager.ESC, 0x40]);
+    }
+    
+    // 设置对齐方式
+    static setAlign(align) {
+        switch(align) {
+            case 'center': return new Uint8Array([BluetoothPrinterManager.ESC, 0x61, 0x01]);
+            case 'right': return new Uint8Array([BluetoothPrinterManager.ESC, 0x61, 0x02]);
+            default: return new Uint8Array([BluetoothPrinterManager.ESC, 0x61, 0x00]);
+        }
+    }
+    
+    // 设置加粗
+    static setBold(on) {
+        return new Uint8Array([BluetoothPrinterManager.ESC, 0x45, on ? 0x01 : 0x00]);
+    }
+    
+    // 设置字体大小
+    static setFontSize(size) {
+        // size: 0=正常, 1=2倍高, 2=2倍宽, 3=2倍高宽
+        return new Uint8Array([BluetoothPrinterManager.GS, 0x21, size]);
+    }
+    
+    // 换行
+    static lineFeed(lines = 1) {
+        return new Uint8Array(lines).fill(0x0A);
+    }
+    
+    // 切纸
+    static cutPaper() {
+        return new Uint8Array([BluetoothPrinterManager.GS, 0x56, 0x41, 0x00]);
+    }
+    
+    // 打印二维码（打印机内置功能）
+    static printQRCode(data, size = 5) {
+        // ESC/POS 二维码指令
+        const qrData = [
+            BluetoothPrinterManager.GS, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00
+        ];
+        const dataBytes = new TextEncoder().encode(data);
+        const qrSizeCmd = [
+            BluetoothPrinterManager.GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, size
+        ];
+        const printCmd = [
+            BluetoothPrinterManager.GS, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30
+        ];
+        
+        return [
+            new Uint8Array(qrSizeCmd),
+            new Uint8Array(qrData),
+            new Uint8Array(dataBytes),
+            new Uint8Array([0x00]),
+            new Uint8Array(printCmd)
+        ];
+    }
+    
+    // 扫描蓝牙设备
+    async scanDevices() {
+        try {
+            if (!navigator.bluetooth) {
+                throw new Error('当前浏览器不支持Web Bluetooth API，请使用Chrome或Edge浏览器');
+            }
+            
+            const device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: false,
+                filters: [
+                    { services: ['000018f0-0000-1000-8000-00805f9b34fb'] },
+                    { namePrefix: 'DP80S' },
+                    { namePrefix: 'XP-' },
+                    { namePrefix: 'GP-' },
+                    { namePrefix: 'SP-' },
+                    { namePrefix: 'Printer' },
+                    { namePrefix: 'POS' }
+                ],
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb']
+            });
+            
+            return device;
+        } catch (error) {
+            console.error('扫描设备失败:', error);
+            throw error;
+        }
+    }
+    
+    // 连接打印机
+    async connect(device) {
+        try {
+            this.device = device;
+            this.server = await device.gatt.connect();
+            
+            // 获取打印服务
+            this.service = await this.server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            
+            // 获取写特征值
+            const characteristics = await this.service.getCharacteristics();
+            for (const char of characteristics) {
+                if (char.properties.write || char.properties.writeWithoutResponse) {
+                    this.characteristic = char;
+                    break;
+                }
+            }
+            
+            if (!this.characteristic) {
+                throw new Error('未找到可写的特征值');
+            }
+            
+            // 初始化打印机
+            await this.characteristic.writeValue(BluetoothPrinterManager.initPrinter());
+            
+            this.isConnected = true;
+            
+            // 保存设备信息
+            localStorage.setItem('printerDevice', JSON.stringify({
+                id: device.id,
+                name: device.name,
+                type: this.printerType
+            }));
+            
+            return true;
+        } catch (error) {
+            console.error('连接失败:', error);
+            this.isConnected = false;
+            throw error;
+        }
+    }
+    
+    // 发送打印数据
+    async sendData(dataArray) {
+        if (!this.characteristic) {
+            throw new Error('打印机未连接');
+        }
+        
+        try {
+            // 合并所有数据
+            let totalLength = 0;
+            const chunks = [];
+            
+            for (const item of dataArray) {
+                if (item instanceof Uint8Array) {
+                    chunks.push(item);
+                    totalLength += item.length;
+                } else if (typeof item === 'string') {
+                    const encoded = new TextEncoder().encode(item);
+                    chunks.push(encoded);
+                    totalLength += encoded.length;
+                }
+            }
+            
+            const mergedData = new Uint8Array(totalLength);
+            let offset = 0;
+            for (const chunk of chunks) {
+                mergedData.set(chunk, offset);
+                offset += chunk.length;
+            }
+            
+            await this.characteristic.writeValue(mergedData);
+            return true;
+        } catch (error) {
+            console.error('发送数据失败:', error);
+            throw error;
+        }
+    }
+    
+    // 打印二维码标签
+    async printQRCodeLabel(tableNumber, qrContent, options = {}) {
+        const {
+            paperWidth = 80,
+            marginTop = 3,
+            marginBottom = 3,
+            marginLeft = 5,
+            marginRight = 5,
+            fontSize = 10
+        } = options;
+        
+        const printData = [];
+        
+        // 初始化
+        printData.push(BluetoothPrinterManager.initPrinter());
+        
+        // 设置对齐
+        printData.push(BluetoothPrinterManager.setAlign('center'));
+        
+        // 添加上边距
+        if (marginTop > 0) {
+            printData.push(BluetoothPrinterManager.lineFeed(Math.ceil(marginTop / 2)));
+        }
+        
+        // 设置字体大小
+        printData.push(BluetoothPrinterManager.setFontSize(1));
+        
+        // 打印桌号
+        printData.push(BluetoothPrinterManager.setBold(true));
+        printData.push(`${tableNumber}\n`);
+        printData.push(BluetoothPrinterManager.setBold(false));
+        
+        // 打印二维码
+        const qrCommands = BluetoothPrinterManager.printQRCode(qrContent, 5);
+        qrCommands.forEach(cmd => printData.push(cmd));
+        
+        // 打印提示文字
+        printData.push(BluetoothPrinterManager.setFontSize(0));
+        printData.push(`扫码点餐\n`);
+        
+        // 添加下边距
+        if (marginBottom > 0) {
+            printData.push(BluetoothPrinterManager.lineFeed(Math.ceil(marginBottom / 2)));
+        }
+        
+        // 切纸
+        printData.push(BluetoothPrinterManager.cutPaper());
+        
+        return await this.sendData(printData);
+    }
+    
+    // 打印测试页
+    async printTest() {
+        const printData = [];
+        
+        printData.push(BluetoothPrinterManager.initPrinter());
+        printData.push(BluetoothPrinterManager.setAlign('center'));
+        printData.push(BluetoothPrinterManager.setBold(true));
+        printData.push('=== 打印机测试 ===\n');
+        printData.push(BluetoothPrinterManager.setBold(false));
+        printData.push('打印机型号: ' + (this.device?.name || '未知') + '\n');
+        printData.push('连接状态: 正常\n');
+        printData.push('时间: ' + new Date().toLocaleString() + '\n');
+        printData.push('\n');
+        printData.push(BluetoothPrinterManager.setAlign('left'));
+        printData.push('二维码测试:\n');
+        
+        // 打印测试二维码
+        const qrCommands = BluetoothPrinterManager.printQRCode('TEST:123456', 4);
+        qrCommands.forEach(cmd => printData.push(cmd));
+        
+        printData.push('\n');
+        printData.push(BluetoothPrinterManager.cutPaper());
+        
+        return await this.sendData(printData);
+    }
+    
+    // 断开连接
+    disconnect() {
+        if (this.server) {
+            this.server.disconnect();
+        }
+        this.device = null;
+        this.server = null;
+        this.service = null;
+        this.characteristic = null;
+        this.isConnected = false;
+        localStorage.removeItem('printerDevice');
+    }
+    
+    // 获取已保存的打印机
+    getSavedPrinter() {
+        const saved = localStorage.getItem('printerDevice');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) {
+                return null;
+            }
+        }
+        return null;
+    }
+}
+
+// 全局打印机实例
+let printerManager = new BluetoothPrinterManager();
+
+// 连接蓝牙打印机
+async function connectBluetooth() {
+    try {
+        const device = await printerManager.scanDevices();
+        if (device) {
+            await printerManager.connect(device);
+            updatePrinterStatus(device.name, true);
+            alert(`✅ 打印机 "${device.name}" 连接成功！`);
+        }
+    } catch (error) {
+        console.error('连接失败:', error);
+        updatePrinterStatus(null, false);
+        alert('连接失败: ' + error.message);
+    }
+}
+
+// 测试打印连接
+async function testPrintConnection() {
+    if (!printerManager.isConnected) {
+        alert('请先连接打印机');
+        return;
+    }
+    
+    try {
+        await printerManager.printTest();
+        alert('✅ 测试打印成功！');
+    } catch (error) {
+        alert('测试打印失败: ' + error.message);
+    }
+}
+
+// 更新打印机状态显示
+function updatePrinterStatus(name, connected) {
+    const statusDiv = document.getElementById('printerStatusDisplay');
+    const infoDiv = document.getElementById('connectedPrinterInfo');
+    
+    if (connected && name) {
+        statusDiv.innerHTML = '🖨️ 已连接: ' + name;
+        statusDiv.style.background = 'rgba(40,167,69,0.2)';
+        infoDiv.innerHTML = `已连接: ${name} | 状态: 就绪`;
+    } else {
+        statusDiv.innerHTML = '🔌 未连接打印机';
+        statusDiv.style.background = 'rgba(220,53,69,0.2)';
+        infoDiv.innerHTML = '未连接，请点击"连接蓝牙打印机"';
+    }
+}
+
+// 检查已保存的打印机
+async function checkSavedPrinter() {
+    const saved = printerManager.getSavedPrinter();
+    if (saved) {
+        updatePrinterStatus(saved.name, false);
+        // 尝试重新连接（需要用户授权）
+        // 为了安全，不自动连接，让用户手动点击
+    }
+}
+
+// 页面加载时检查
+setTimeout(checkSavedPrinter, 1000);

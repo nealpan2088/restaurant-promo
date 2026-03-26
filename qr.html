@@ -1,0 +1,672 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桌位二维码生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        /* 左侧配置面板 */
+        .config-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .config-section {
+            margin-bottom: 25px;
+        }
+
+        .config-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        .table-range {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .btn-generate {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: transform 0.3s;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-print {
+            background: #FF6B35;
+            margin-top: 10px;
+        }
+
+        /* 右侧二维码展示 */
+        .qrcode-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .qrcode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .qrcard {
+            background: #f9f9f9;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+            transition: transform 0.3s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .qrcard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .qrcard.selected {
+            background: #fff5e8;
+            border: 2px solid #FF6B35;
+        }
+
+        .qrcode-image {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .table-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #FF6B35;
+            margin: 10px 0 5px;
+        }
+
+        .table-url {
+            font-size: 10px;
+            color: #999;
+            word-break: break-all;
+        }
+
+        .checkbox-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .qrcard.selected .checkbox-overlay {
+            background: #FF6B35;
+            border-color: #FF6B35;
+        }
+
+        .qrcard.selected .checkbox-overlay::after {
+            content: '✓';
+            color: white;
+            display: block;
+            text-align: center;
+            line-height: 20px;
+            font-size: 14px;
+        }
+
+        /* 工具栏 */
+        .toolbar {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #FF6B35;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* 打印样式 */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .config-panel, .toolbar, .header button, .btn-print, .btn-print-all {
+                display: none;
+            }
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .qrcode-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .qrcard {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .qrcode-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 桌位二维码生成器</h1>
+            <p>批量生成桌位二维码，支持自定义样式和批量打印</p>
+        </div>
+
+        <div class="main-content">
+            <!-- 左侧配置面板 -->
+            <div class="config-panel">
+                <div class="config-section">
+                    <h3>📝 基础配置</h3>
+                    <div class="input-group">
+                        <label>二维码内容格式：</label>
+                        <select id="urlFormat">
+                            <option value="table">TABLE:桌号 (例如: TABLE:001)</option>
+                            <option value="url">完整URL (例如: https://example.com?table=001)</option>
+                            <option value="custom">自定义格式</option>
+                        </select>
+                    </div>
+                    <div class="input-group" id="customFormatGroup" style="display: none;">
+                        <label>自定义格式：</label>
+                        <input type="text" id="customFormat" placeholder="例如: 点餐系统-桌号{number}" value="桌号{number}">
+                        <small>使用 {number} 作为桌号占位符</small>
+                    </div>
+                    <div class="input-group">
+                        <label>基础URL（URL格式时使用）：</label>
+                        <input type="text" id="baseUrl" placeholder="https://example.com/order.html?table=" value="order.html?table=">
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3>🎨 样式配置</h3>
+                    <div class="input-group">
+                        <label>二维码尺寸（像素）：</label>
+                        <input type="number" id="qrSize" value="150" min="100" max="300" step="10">
+                    </div>
+                    <div class="input-group">
+                        <label>二维码颜色：</label>
+                        <input type="color" id="qrColor" value="#000000">
+                    </div>
+                    <div class="input-group">
+                        <label>背景颜色：</label>
+                        <input type="color" id="bgColor" value="#FFFFFF">
+                    </div>
+                    <div class="input-group">
+                        <label>显示文字：</label>
+                        <select id="showText">
+                            <option value="both">显示桌号和二维码内容</option>
+                            <option value="number">仅显示桌号</option>
+                            <option value="none">不显示文字</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3>🔢 桌号配置</h3>
+                    <div class="input-group">
+                        <label>桌号范围：</label>
+                        <div class="table-range">
+                            <input type="number" id="startTable" placeholder="起始桌号" value="1">
+                            <input type="number" id="endTable" placeholder="结束桌号" value="20">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>桌号格式：</label>
+                        <select id="tableFormat">
+                            <option value="number">数字 (1, 2, 3...)</option>
+                            <option value="pad3">3位数字 (001, 002...)</option>
+                            <option value="prefix">带前缀 (A01, A02...)</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                    <div class="input-group" id="prefixGroup" style="display: none;">
+                        <label>前缀：</label>
+                        <input type="text" id="tablePrefix" placeholder="例如: A" value="A">
+                    </div>
+                    <div class="input-group" id="customTableFormatGroup" style="display: none;">
+                        <label>自定义桌号列表（用逗号分隔）：</label>
+                        <input type="text" id="customTables" placeholder="例如: 包间1,包间2,大厅1,大厅2">
+                    </div>
+                </div>
+
+                <button class="btn-generate" onclick="generateQRCodes()">生成二维码</button>
+            </div>
+
+            <!-- 右侧二维码展示 -->
+            <div class="qrcode-panel">
+                <div class="toolbar">
+                    <button class="btn btn-primary" onclick="selectAll()">全选</button>
+                    <button class="btn btn-secondary" onclick="deselectAll()">取消全选</button>
+                    <button class="btn btn-success" onclick="printSelected()">打印选中</button>
+                    <button class="btn btn-info" onclick="printAll()">打印全部</button>
+                    <button class="btn btn-primary" onclick="downloadSelected()">下载选中(ZIP)</button>
+                </div>
+                <div id="qrcodeGrid" class="qrcode-grid">
+                    <div style="text-align: center; padding: 50px; color: #999;">
+                        点击"生成二维码"按钮开始
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix@0.0.1/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+    <script>
+        let qrCodes = [];
+        let selectedIndices = new Set();
+
+        // 格式化桌号
+        function formatTableNumber(number, format, prefix) {
+            switch(format) {
+                case 'number':
+                    return number.toString();
+                case 'pad3':
+                    return number.toString().padStart(3, '0');
+                case 'prefix':
+                    return prefix + number.toString().padStart(2, '0');
+                default:
+                    return number.toString();
+            }
+        }
+
+        // 生成二维码内容
+        function generateQRContent(tableNumber, format, baseUrl, customFormat) {
+            const urlFormat = document.getElementById('urlFormat').value;
+            
+            switch(urlFormat) {
+                case 'table':
+                    return `TABLE:${tableNumber}`;
+                case 'url':
+                    return `${baseUrl}${tableNumber}`;
+                case 'custom':
+                    return customFormat.replace('{number}', tableNumber);
+                default:
+                    return `TABLE:${tableNumber}`;
+            }
+        }
+
+        // 生成二维码
+        function generateQRCodes() {
+            const start = parseInt(document.getElementById('startTable').value);
+            const end = parseInt(document.getElementById('endTable').value);
+            const tableFormat = document.getElementById('tableFormat').value;
+            const prefix = document.getElementById('tablePrefix').value;
+            const qrSize = parseInt(document.getElementById('qrSize').value);
+            const qrColor = document.getElementById('qrColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const showText = document.getElementById('showText').value;
+            const baseUrl = document.getElementById('baseUrl').value;
+            const customFormat = document.getElementById('customFormat').value;
+            
+            qrCodes = [];
+            const container = document.getElementById('qrcodeGrid');
+            container.innerHTML = '';
+            
+            // 生成桌号列表
+            let tables = [];
+            if (tableFormat === 'custom') {
+                const customTables = document.getElementById('customTables').value;
+                tables = customTables.split(',').map(t => t.trim());
+            } else {
+                for (let i = start; i <= end; i++) {
+                    tables.push(formatTableNumber(i, tableFormat, prefix));
+                }
+            }
+            
+            // 为每个桌号生成二维码
+            tables.forEach((table, index) => {
+                const qrContent = generateQRContent(table, tableFormat, baseUrl, customFormat);
+                const qrDiv = document.createElement('div');
+                qrDiv.className = 'qrcard';
+                qrDiv.onclick = (e) => {
+                    if (e.target.tagName !== 'BUTTON') {
+                        toggleSelect(index);
+                    }
+                };
+                
+                // 创建二维码容器
+                const qrContainer = document.createElement('div');
+                qrContainer.id = `qr-${index}`;
+                qrContainer.style.width = `${qrSize}px`;
+                qrContainer.style.height = `${qrSize}px`;
+                qrContainer.style.margin = '0 auto';
+                
+                // 生成二维码
+                new QRCode(qrContainer, {
+                    text: qrContent,
+                    width: qrSize,
+                    height: qrSize,
+                    colorDark: qrColor,
+                    colorLight: bgColor,
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                
+                qrDiv.appendChild(qrContainer);
+                
+                // 添加文字
+                if (showText !== 'none') {
+                    const tableNum = document.createElement('div');
+                    tableNum.className = 'table-number';
+                    tableNum.textContent = showText === 'both' ? `桌号：${table}` : table;
+                    qrDiv.appendChild(tableNum);
+                    
+                    if (showText === 'both') {
+                        const qrUrl = document.createElement('div');
+                        qrUrl.className = 'table-url';
+                        qrUrl.textContent = qrContent.length > 30 ? qrContent.substring(0, 27) + '...' : qrContent;
+                        qrDiv.appendChild(qrUrl);
+                    }
+                }
+                
+                // 添加选择框
+                const checkbox = document.createElement('div');
+                checkbox.className = 'checkbox-overlay';
+                qrDiv.appendChild(checkbox);
+                
+                container.appendChild(qrDiv);
+                
+                qrCodes.push({
+                    index: index,
+                    table: table,
+                    content: qrContent,
+                    element: qrDiv
+                });
+            });
+            
+            selectedIndices.clear();
+            updateSelection();
+        }
+
+        // 切换选择状态
+        function toggleSelect(index) {
+            if (selectedIndices.has(index)) {
+                selectedIndices.delete(index);
+            } else {
+                selectedIndices.add(index);
+            }
+            updateSelection();
+        }
+
+        // 全选
+        function selectAll() {
+            qrCodes.forEach(qr => {
+                selectedIndices.add(qr.index);
+            });
+            updateSelection();
+        }
+
+        // 取消全选
+        function deselectAll() {
+            selectedIndices.clear();
+            updateSelection();
+        }
+
+        // 更新选择状态显示
+        function updateSelection() {
+            qrCodes.forEach(qr => {
+                if (selectedIndices.has(qr.index)) {
+                    qr.element.classList.add('selected');
+                } else {
+                    qr.element.classList.remove('selected');
+                }
+            });
+        }
+
+        // 打印选中的二维码
+        function printSelected() {
+            if (selectedIndices.size === 0) {
+                alert('请先选择要打印的二维码');
+                return;
+            }
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>桌位二维码打印</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                            margin: 0;
+                        }
+                        .print-grid {
+                            display: grid;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 20px;
+                        }
+                        .qrcard {
+                            text-align: center;
+                            padding: 15px;
+                            border: 1px solid #ddd;
+                            border-radius: 10px;
+                            page-break-inside: avoid;
+                        }
+                        .qrcard img {
+                            max-width: 150px;
+                            height: auto;
+                        }
+                        .table-number {
+                            font-size: 16px;
+                            font-weight: bold;
+                            margin-top: 10px;
+                            color: #FF6B35;
+                        }
+                        @media print {
+                            .print-grid {
+                                grid-template-columns: repeat(3, 1fr);
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-grid">
+            `);
+            
+            // 只打印选中的二维码
+            qrCodes.forEach(qr => {
+                if (selectedIndices.has(qr.index)) {
+                    const qrImg = qr.element.querySelector('img');
+                    if (qrImg) {
+                        printWindow.document.write(`
+                            <div class="qrcard">
+                                ${qrImg.outerHTML}
+                                <div class="table-number">${qr.table}</div>
+                            </div>
+                        `);
+                    }
+                }
+            });
+            
+            printWindow.document.write(`
+                    </div>
+                    <script>
+                        window.onload = () => {
+                            window.print();
+                            setTimeout(() => window.close(), 1000);
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        // 打印全部
+        function printAll() {
+            selectAll();
+            printSelected();
+        }
+
+        // 下载选中的二维码（ZIP格式）
+        async function downloadSelected() {
+            if (selectedIndices.size === 0) {
+                alert('请先选择要下载的二维码');
+                return;
+            }
+            
+            const zip = new JSZip();
+            const folder = zip.folder("qrcodes");
+            
+            qrCodes.forEach(qr => {
+                if (selectedIndices.has(qr.index)) {
+                    const qrImg = qr.element.querySelector('img');
+                    if (qrImg && qrImg.src) {
+                        const imgData = qrImg.src.split(',')[1];
+                        folder.file(`table_${qr.table}.png`, imgData, { base64: true });
+                    }
+                }
+            });
+            
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(content);
+            link.download = "qrcodes.zip";
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        // 显示/隐藏自定义格式输入框
+        document.getElementById('urlFormat').addEventListener('change', function() {
+            const customFormatGroup = document.getElementById('customFormatGroup');
+            customFormatGroup.style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+        
+        document.getElementById('tableFormat').addEventListener('change', function() {
+            const prefixGroup = document.getElementById('prefixGroup');
+            const customGroup = document.getElementById('customTableFormatGroup');
+            prefixGroup.style.display = this.value === 'prefix' ? 'block' : 'none';
+            customGroup.style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1011 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>德佟DP80S - 二维码打印系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 头部 */
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        /* 打印机信息 */
+        .printer-info {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .printer-spec {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .spec-item {
+            background: #f8f9fa;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .spec-item strong {
+            color: #2a5298;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 20px;
+        }
+
+        /* 控制面板 */
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .section {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1e3c72;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        /* 边距滑块 */
+        .margin-slider {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .margin-item {
+            flex: 1;
+            min-width: 70px;
+        }
+
+        .margin-item input {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .margin-value {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        /* 预设按钮 */
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            padding: 6px 12px;
+            background: #f0f2f5;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preset-btn:hover {
+            background: #2a5298;
+            color: white;
+        }
+
+        /* 操作按钮 */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* 预览区域 */
+        .preview-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .preview-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .preview-controls button {
+            padding: 5px 12px;
+            background: #f0f2f5;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .print-preview {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 500px;
+            display: flex;
+            justify-content: center;
+            overflow: auto;
+        }
+
+        /* 二维码列表 */
+        .qrcode-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .qrcode-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .qrcode-item:hover {
+            border-color: #2a5298;
+            box-shadow: 0 2px 8px rgba(42,82,152,0.1);
+        }
+
+        .qrcode-item.selected {
+            border-color: #2a5298;
+            background: #f0f7ff;
+        }
+
+        .qrcode-img {
+            width: 60px;
+            height: 60px;
+        }
+
+        .qrcode-info {
+            flex: 1;
+        }
+
+        .qrcode-table {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .qrcode-content {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qrcode-item.selected .checkbox {
+            background: #2a5298;
+            border-color: #2a5298;
+            color: white;
+        }
+
+        /* 打印样式 - 德佟DP80S专用 */
+        @media print {
+            @page {
+                size: 80mm auto;
+                margin: 0;
+            }
+            body * {
+                visibility: hidden;
+            }
+            .print-area, .print-area * {
+                visibility: visible;
+            }
+            .print-area {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .control-panel {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🖨️ 德佟DP80S 二维码打印系统</h1>
+            <p>专业热敏打印机 · 批量生成桌位二维码 · 精确边距控制</p>
+        </div>
+
+        <!-- 打印机信息 -->
+        <div class="printer-info">
+            <div>
+                <strong>德佟DP80S 热敏打印机</strong>
+                <div style="font-size: 12px; color: #666; margin-top: 5px;">支持纸张宽度: 58mm / 80mm | 分辨率: 203DPI</div>
+            </div>
+            <div class="printer-spec">
+                <div class="spec-item"><strong>推荐边距:</strong> 上3mm 下3mm 左5mm 右5mm</div>
+                <div class="spec-item"><strong>最大打印宽度:</strong> 72mm (80mm纸)</div>
+                <div class="spec-item"><strong>二维码尺寸:</strong> 40x40mm 最佳</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <!-- 左侧控制面板 -->
+            <div class="control-panel">
+                <div class="section">
+                    <div class="section-title">📝 桌号配置</div>
+                    <div class="form-group">
+                        <label>桌号范围 / 列表</label>
+                        <textarea id="tableList" rows="3" placeholder="支持格式：&#10;1-20 (连续)&#10;1,2,3,5,8 (列表)&#10;VIP01,VIP02 (自定义)&#10;包间1,包间2,大厅1"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>桌号显示格式</label>
+                        <select id="tableFormat">
+                            <option value="number">数字 (1, 2, 3)</option>
+                            <option value="pad3">三位数字 (001, 002)</option>
+                            <option value="prefix">带前缀 (A01, A02)</option>
+                            <option value="chinese">中文 (1号桌, 2号桌)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="prefixGroup" style="display: none;">
+                        <label>前缀</label>
+                        <input type="text" id="tablePrefix" value="A" placeholder="例如: A, VIP">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🎨 二维码样式</div>
+                    <div class="form-group">
+                        <label>二维码尺寸 (mm)</label>
+                        <input type="range" id="qrSize" min="20" max="60" step="1" value="40">
+                        <div class="margin-value"><span id="qrSizeVal">40</span> mm</div>
+                    </div>
+                    <div class="form-group">
+                        <label>二维码颜色</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="color" id="qrColor" value="#000000">
+                            <input type="color" id="bgColor" value="#FFFFFF">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>二维码容错率</label>
+                        <select id="qrCorrectLevel">
+                            <option value="L">L - 7% 容错</option>
+                            <option value="M" selected>M - 15% 容错 (推荐)</option>
+                            <option value="Q">Q - 25% 容错</option>
+                            <option value="H">H - 30% 容错</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📐 打印边距设置 (德佟DP80S)</div>
+                    <div class="preset-buttons">
+                        <button class="preset-btn" onclick="applyMarginPreset('standard')">标准 (上3/下3/左5/右5)</button>
+                        <button class="preset-btn" onclick="applyMarginPreset('narrow')">窄边距 (上2/下2/左3/右3)</button>
+                        <button class="preset-btn" onclick="applyMarginPreset('wide')">宽边距 (上5/下5/左8/右8)</button>
+                    </div>
+                    <div class="margin-slider">
+                        <div class="margin-item">
+                            <label>上边距 (mm)</label>
+                            <input type="range" id="marginTop" min="0" max="20" step="0.5" value="3">
+                            <div class="margin-value"><span id="marginTopVal">3</span> mm</div>
+                        </div>
+                        <div class="margin-item">
+                            <label>下边距 (mm)</label>
+                            <input type="range" id="marginBottom" min="0" max="20" step="0.5" value="3">
+                            <div class="margin-value"><span id="marginBottomVal">3</span> mm</div>
+                        </div>
+                        <div class="margin-item">
+                            <label>左边距 (mm)</label>
+                            <input type="range" id="marginLeft" min="0" max="20" step="0.5" value="5">
+                            <div class="margin-value"><span id="marginLeftVal">5</span> mm</div>
+                        </div>
+                        <div class="margin-item">
+                            <label>右边距 (mm)</label>
+                            <input type="range" id="marginRight" min="0" max="20" step="0.5" value="5">
+                            <div class="margin-value"><span id="marginRightVal">5</span> mm</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">📄 纸张设置</div>
+                    <div class="form-group">
+                        <label>纸张宽度</label>
+                        <select id="paperWidth">
+                            <option value="58">58mm (便携票据)</option>
+                            <option value="80" selected>80mm (标准热敏纸)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>每行显示数量</label>
+                        <select id="columnsPerRow">
+                            <option value="1" selected>单列打印 (每行1个)</option>
+                            <option value="2">双列打印 (每行2个)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">🏷️ 标签文字</div>
+                    <div class="form-group">
+                        <label>显示文字</label>
+                        <select id="showText">
+                            <option value="both">显示桌号 + 提示语</option>
+                            <option value="number">仅显示桌号</option>
+                            <option value="none">不显示文字</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customTextGroup">
+                        <label>自定义提示语</label>
+                        <input type="text" id="customMessage" value="扫码点餐" placeholder="扫码点餐">
+                    </div>
+                    <div class="form-group">
+                        <label>字体大小 (pt)</label>
+                        <input type="number" id="fontSize" value="10" step="1" min="8" max="16">
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="generateQRCodes()">🔨 生成二维码</button>
+                    <button class="btn btn-success" onclick="printSelected()">🖨️ 打印选中</button>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" onclick="selectAll()">全选</button>
+                    <button class="btn btn-secondary" onclick="deselectAll()">取消全选</button>
+                    <button class="btn btn-warning" onclick="exportAsImage()">📥 导出图片</button>
+                </div>
+            </div>
+
+            <!-- 右侧预览区域 -->
+            <div class="preview-panel">
+                <div class="preview-header">
+                    <span class="section-title" style="margin-bottom: 0;">📋 二维码列表</span>
+                    <div class="preview-controls">
+                        <button onclick="zoomIn()">🔍 +</button>
+                        <span id="zoomLevel">100%</span>
+                        <button onclick="zoomOut()">🔍 -</button>
+                    </div>
+                </div>
+                <div id="qrcodeList" class="qrcode-list" style="max-height: 500px;">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        点击"生成二维码"开始
+                    </div>
+                </div>
+                <div class="preview-header" style="margin-top: 20px;">
+                    <span class="section-title" style="margin-bottom: 0;">🖨️ 打印预览 (德佟DP80S)</span>
+                </div>
+                <div id="printPreview" class="print-preview">
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        预览区域
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏的打印区域 -->
+    <div id="printArea" style="position: fixed; left: -9999px; top: 0;"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix@0.0.1/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
+    <script>
+        let qrCodes = [];
+        let selectedIndices = new Set();
+        let currentZoom = 100;
+        
+        // 解析桌号列表
+        function parseTableList(input) {
+            const tables = [];
+            const lines = input.split('\n');
+            
+            for (const line of lines) {
+                if (line.includes('-')) {
+                    // 连续范围
+                    const [start, end] = line.split('-');
+                    for (let i = parseInt(start); i <= parseInt(end); i++) {
+                        tables.push(i.toString());
+                    }
+                } else if (line.includes(',')) {
+                    // 列表
+                    const items = line.split(',');
+                    items.forEach(item => tables.push(item.trim()));
+                } else if (line.trim()) {
+                    tables.push(line.trim());
+                }
+            }
+            return tables;
+        }
+        
+        // 格式化桌号显示
+        function formatTableDisplay(table, format, prefix) {
+            switch(format) {
+                case 'number':
+                    return table;
+                case 'pad3':
+                    return table.toString().padStart(3, '0');
+                case 'prefix':
+                    return prefix + table.toString().padStart(2, '0');
+                case 'chinese':
+                    return `${table}号桌`;
+                default:
+                    return table;
+            }
+        }
+        
+        // 生成二维码内容
+        function generateQRContent(table) {
+            return `TABLE:${table}`;
+        }
+        
+        // 应用边距预设
+        function applyMarginPreset(type) {
+            switch(type) {
+                case 'standard':
+                    document.getElementById('marginTop').value = 3;
+                    document.getElementById('marginBottom').value = 3;
+                    document.getElementById('marginLeft').value = 5;
+                    document.getElementById('marginRight').value = 5;
+                    break;
+                case 'narrow':
+                    document.getElementById('marginTop').value = 2;
+                    document.getElementById('marginBottom').value = 2;
+                    document.getElementById('marginLeft').value = 3;
+                    document.getElementById('marginRight').value = 3;
+                    break;
+                case 'wide':
+                    document.getElementById('marginTop').value = 5;
+                    document.getElementById('marginBottom').value = 5;
+                    document.getElementById('marginLeft').value = 8;
+                    document.getElementById('marginRight').value = 8;
+                    break;
+            }
+            updateMarginValues();
+            updatePreview();
+        }
+        
+        // 更新边距显示
+        function updateMarginValues() {
+            document.getElementById('marginTopVal').textContent = document.getElementById('marginTop').value;
+            document.getElementById('marginBottomVal').textContent = document.getElementById('marginBottom').value;
+            document.getElementById('marginLeftVal').textContent = document.getElementById('marginLeft').value;
+            document.getElementById('marginRightVal').textContent = document.getElementById('marginRight').value;
+            document.getElementById('qrSizeVal').textContent = document.getElementById('qrSize').value;
+        }
+        
+        // 生成二维码
+        function generateQRCodes() {
+            const tableInput = document.getElementById('tableList').value;
+            const tables = parseTableList(tableInput);
+            
+            if (tables.length === 0) {
+                alert('请输入桌号');
+                return;
+            }
+            
+            const tableFormat = document.getElementById('tableFormat').value;
+            const prefix = document.getElementById('tablePrefix').value;
+            const qrSize = parseInt(document.getElementById('qrSize').value);
+            const qrColor = document.getElementById('qrColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const showText = document.getElementById('showText').value;
+            const customMessage = document.getElementById('customMessage').value;
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            
+            qrCodes = [];
+            const container = document.getElementById('qrcodeList');
+            container.innerHTML = '';
+            
+            tables.forEach((table, index) => {
+                const displayTable = formatTableDisplay(table, tableFormat, prefix);
+                const qrContent = generateQRContent(table);
+                
+                // 创建二维码容器
+                const qrContainer = document.createElement('div');
+                qrContainer.id = `qr-temp-${index}`;
+                qrContainer.style.width = `${qrSize}mm`;
+                qrContainer.style.height = `${qrSize}mm`;
+                qrContainer.style.margin = '0 auto';
+                
+                // 临时添加到body生成二维码
+                document.body.appendChild(qrContainer);
+                new QRCode(qrContainer, {
+                    text: qrContent,
+                    width: qrSize * 3.78, // mm转px
+                    height: qrSize * 3.78,
+                    colorDark: qrColor,
+                    colorLight: bgColor,
+                    correctLevel: QRCode.CorrectLevel[document.getElementById('qrCorrectLevel').value]
+                });
+                
+                // 获取二维码图片
+                const qrImg = qrContainer.querySelector('img');
+                const qrImageUrl = qrImg ? qrImg.src : '';
+                
+                // 创建列表项
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'qrcode-item';
+                itemDiv.onclick = () => toggleSelect(index);
+                
+                itemDiv.innerHTML = `
+                    <div class="checkbox">${selectedIndices.has(index) ? '✓' : ''}</div>
+                    <img class="qrcode-img" src="${qrImageUrl}" alt="QR Code">
+                    <div class="qrcode-info">
+                        <div class="qrcode-table">${displayTable}</div>
+                        <div class="qrcode-content">${qrContent}</div>
+                    </div>
+                `;
+                
+                container.appendChild(itemDiv);
+                
+                qrCodes.push({
+                    index: index,
+                    table: table,
+                    displayTable: displayTable,
+                    content: qrContent,
+                    qrImageUrl: qrImageUrl,
+                    element: itemDiv
+                });
+                
+                // 清理临时元素
+                document.body.removeChild(qrContainer);
+            });
+            
+            selectedIndices.clear();
+            updateSelection();
+            updatePreview();
+        }
+        
+        // 生成打印HTML
+        function generatePrintHTML(selectedQRCodes) {
+            const marginTop = parseFloat(document.getElementById('marginTop').value);
+            const marginBottom = parseFloat(document.getElementById('marginBottom').value);
+            const marginLeft = parseFloat(document.getElementById('marginLeft').value);
+            const marginRight = parseFloat(document.getElementById('marginRight').value);
+            const paperWidth = parseInt(document.getElementById('paperWidth').value);
+            const qrSize = parseInt(document.getElementById('qrSize').value);
+            const showText = document.getElementById('showText').value;
+            const customMessage = document.getElementById('customMessage').value;
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const columnsPerRow = parseInt(document.getElementById('columnsPerRow').value);
+            
+            // 计算打印区域尺寸 (mm转px: 1mm = 3.78px)
+            const paperWidthPx = paperWidth * 3.78;
+            const marginTopPx = marginTop * 3.78;
+            const marginBottomPx = marginBottom * 3.78;
+            const marginLeftPx = marginLeft * 3.78;
+            const marginRightPx = marginRight * 3.78;
+            const qrSizePx = qrSize * 3.78;
+            
+            const contentWidth = paperWidthPx - marginLeftPx - marginRightPx;
+            const itemWidth = columnsPerRow === 1 ? contentWidth : contentWidth / 2;
+            
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>德佟DP80S打印</title>
+                    <style>
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+                        
+                        body {
+                            font-family: 'Courier New', 'Microsoft YaHei', monospace;
+                            background: white;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        
+                        .print-container {
+                            width: ${paperWidthPx}px;
+                            margin: 0 auto;
+                            padding: ${marginTopPx}px ${marginRightPx}px ${marginBottomPx}px ${marginLeftPx}px;
+                            background: white;
+                        }
+                        
+                        .qr-grid {
+                            display: grid;
+                            grid-template-columns: repeat(${columnsPerRow}, 1fr);
+                            gap: ${columnsPerRow === 1 ? '0' : '10px'};
+                            width: 100%;
+                        }
+                        
+                        .qr-item {
+                            text-align: center;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                            padding: 5px 0;
+                        }
+                        
+                        .qr-code {
+                            width: ${qrSizePx}px;
+                            height: ${qrSizePx}px;
+                            margin: 0 auto;
+                        }
+                        
+                        .qr-code img {
+                            width: 100%;
+                            height: 100%;
+                        }
+                        
+                        .table-number {
+                            font-size: ${fontSize}pt;
+                            font-weight: bold;
+                            margin-top: 6px;
+                            color: #000;
+                        }
+                        
+                        .message {
+                            font-size: ${fontSize * 0.8}pt;
+                            color: #666;
+                            margin-top: 3px;
+                        }
+                        
+                        @media print {
+                            @page {
+                                size: ${paperWidth}mm auto;
+                                margin: 0;
+                            }
+                            body {
+                                margin: 0;
+                                padding: 0;
+                            }
+                            .print-container {
+                                margin: 0;
+                                padding: ${marginTop}mm ${marginRight}mm ${marginBottom}mm ${marginLeft}mm;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-container">
+                        <div class="qr-grid">
+                            ${selectedQRCodes.map(qr => `
+                                <div class="qr-item">
+                                    <div class="qr-code">
+                                        <img src="${qr.qrImageUrl}" alt="QR Code">
+                                    </div>
+                                    ${showText !== 'none' ? `
+                                        <div class="table-number">${qr.displayTable}</div>
+                                        ${showText === 'both' ? `<div class="message">${customMessage}</div>` : ''}
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+        
+        // 更新预览
+        function updatePreview() {
+            if (qrCodes.length === 0) return;
+            
+            const toPrint = selectedIndices.size > 0 ? 
+                Array.from(selectedIndices).map(i => qrCodes[i]) : 
+                qrCodes;
+            
+            if (toPrint.length === 0) return;
+            
+            const html = generatePrintHTML(toPrint);
+            const previewDiv = document.getElementById('printPreview');
+            previewDiv.innerHTML = html;
+            
+            // 缩放预览
+            const container = previewDiv.querySelector('.print-container');
+            if (container) {
+                const scale = currentZoom / 100;
+                container.style.transform = `scale(${scale})`;
+                container.style.transformOrigin = 'top left';
+                previewDiv.style.height = `${container.offsetHeight * scale + 40}px`;
+                previewDiv.style.overflow = 'auto';
+            }
+            
+            // 同时生成打印区域
+            const printArea = document.getElementById('printArea');
+            printArea.innerHTML = html;
+        }
+        
+        // 打印选中的二维码
+        function printSelected() {
+            if (selectedIndices.size === 0) {
+                alert('请先选择要打印的二维码');
+                return;
+            }
+            
+            const toPrint = Array.from(selectedIndices).map(i => qrCodes[i]);
+            const html = generatePrintHTML(toPrint);
+            
+            const printWindow = window.open('', '_blank', 'width=400,height=600');
+            printWindow.document.write(html);
+            printWindow.document.close();
+            
+            printWindow.onload = () => {
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            };
+        }
+        
+        // 导出为图片
+        async function exportAsImage() {
+            if (selectedIndices.size === 0) {
+                alert('请先选择要导出的二维码');
+                return;
+            }
+            
+            const toPrint = Array.from(selectedIndices).map(i => qrCodes[i]);
+            const html = generatePrintHTML(toPrint);
+            
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '0';
+            document.body.appendChild(tempDiv);
+            
+            const container = tempDiv.querySelector('.print-container');
+            if (container) {
+                const canvas = await html2canvas(container, {
+                    scale: 2,
+                    backgroundColor: '#ffffff'
+                });
+                
+                const link = document.createElement('a');
+                link.download = 'qrcodes.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            }
+            
+            document.body.removeChild(tempDiv);
+        }
+        
+        // 选择操作
+        function toggleSelect(index) {
+            if (selectedIndices.has(index)) {
+                selectedIndices.delete(index);
+            } else {
+                selectedIndices.add(index);
+            }
+            updateSelection();
+            updatePreview();
+        }
+        
+        function selectAll() {
+            qrCodes.forEach(qr => selectedIndices.add(qr.index));
+            updateSelection();
+            updatePreview();
+        }
+        
+        function deselectAll() {
+            selectedIndices.clear();
+            updateSelection();
+            updatePreview();
+        }
+        
+        function updateSelection() {
+            qrCodes.forEach(qr => {
+                const isSelected = selectedIndices.has(qr.index);
+                const checkbox = qr.element.querySelector('.checkbox');
+                if (checkbox) {
+                    checkbox.textContent = isSelected ? '✓' : '';
+                }
+                if (isSelected) {
+                    qr.element.classList.add('selected');
+                } else {
+                    qr.element.classList.remove('selected');
+                }
+            });
+        }
+        
+        // 缩放功能
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 20, 200);
+            document.getElementById('zoomLevel').textContent = currentZoom + '%';
+            updatePreview();
+        }
+        
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 20, 50);
+            document.getElementById('zoomLevel').textContent = currentZoom + '%';
+            updatePreview();
+        }
+        
+        // 监听输入变化
+        function setupListeners() {
+            const ids = ['marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'qrSize', 'paperWidth', 'columnsPerRow', 'showText', 'fontSize'];
+            ids.forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    if (id.includes('margin')) updateMarginValues();
+                    if (id === 'qrSize') document.getElementById('qrSizeVal').textContent = document.getElementById('qrSize').value;
+                    updatePreview();
+                });
+            });
+            
+            document.getElementById('tableFormat').addEventListener('change', function() {
+                document.getElementById('prefixGroup').style.display = this.value === 'prefix' ? 'block' : 'none';
+            });
+        }
+        
+        // 设置默认示例
+        function setDefaultExample() {
+            document.getElementById('tableList').value = '1-12\nVIP01,VIP02\n包间1,包间2';
+        }
+        
+        // 初始化
+        function init() {
+            setupListeners();
+            updateMarginValues();
+            setDefaultExample();
+            generateQRCodes();
+        }
+        
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,772 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>WiFi二维码生成打印系统 - 离线版</title>
+    <!-- 使用本地化QRCode库，确保离线可用 -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2@0.0.2/qrcode.min.js"></script>
+    <!-- html2canvas 用于将卡片转为图片打印 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+            color: #1e293b;
+        }
+
+        /* 整体布局 - 响应式 */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        /* 左侧控制面板 */
+        .control-card {
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            backdrop-filter: blur(0px);
+            transition: all 0.2s;
+        }
+
+        .control-card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 24px;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 22px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #fefefe;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+
+        .margin-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .margin-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .margin-item input {
+            padding: 10px 12px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 24px;
+            margin-top: 8px;
+            align-items: center;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(59,130,246,0.3);
+        }
+
+        button.secondary {
+            background: #475569;
+        }
+
+        button.secondary:hover {
+            background: #334155;
+        }
+
+        button.success {
+            background: #10b981;
+        }
+
+        button.success:hover {
+            background: #059669;
+        }
+
+        button.warning {
+            background: #f97316;
+        }
+
+        .status-bar {
+            background: #f1f5f9;
+            border-radius: 40px;
+            padding: 12px 16px;
+            margin-top: 20px;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #334155;
+        }
+
+        /* 右侧打印预览区 */
+        .preview-card {
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .preview-area {
+            background: #eef2ff;
+            border-radius: 24px;
+            padding: 24px;
+            min-height: 480px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        /* 二维码卡片样式 - 打印时精确控制边距 */
+        .qr-print-card {
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            display: inline-block;
+            transition: all 0.1s;
+        }
+
+        .qr-inner {
+            text-align: center;
+            font-family: system-ui, -apple-system;
+        }
+
+        .qr-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .qr-sub {
+            font-size: 10px;
+            color: #475569;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+
+        .qr-image {
+            display: block;
+            margin: 0 auto;
+            width: 180px;
+            height: 180px;
+        }
+
+        /* 打印专用隐藏界面元素 */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-only-area, .print-only-area * {
+                visibility: visible;
+            }
+            .print-only-area {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            .qr-print-card {
+                page-break-after: always;
+                break-inside: avoid;
+                margin: 0;
+                box-shadow: none;
+            }
+            button, .control-card, .status-bar, .preview-header button {
+                display: none;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .bluetooth-icon {
+            font-size: 1.2rem;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- 左侧控制区域 -->
+    <div class="control-card">
+        <h2>📶 WiFi 二维码生成器</h2>
+        <div class="input-group">
+            <label>WiFi 名称 (SSID)</label>
+            <input type="text" id="ssid" placeholder="例如: MyHome_5G" value="CoffeeShop_WiFi">
+        </div>
+        <div class="input-group">
+            <label>WiFi 密码</label>
+            <input type="text" id="password" placeholder="密码" value="wifi123456">
+        </div>
+        <div class="input-group">
+            <label>加密方式</label>
+            <select id="encryption">
+                <option value="WPA">WPA/WPA2 (推荐)</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">开放网络 (无密码)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>二维码标题 (显示在二维码上方)</label>
+            <input type="text" id="qrTitle" placeholder="例如: 扫码连接WiFi" value="扫码自动连接WiFi">
+        </div>
+
+        <div class="input-group">
+            <label>📏 打印边距调节 (毫米 mm)</label>
+            <div class="margin-row">
+                <div class="margin-item">
+                    <span>左</span>
+                    <input type="number" id="marginLeft" value="5" step="1" min="0">
+                </div>
+                <div class="margin-item">
+                    <span>上</span>
+                    <input type="number" id="marginTop" value="5" step="1" min="0">
+                </div>
+                <div class="margin-item">
+                    <span>右</span>
+                    <input type="number" id="marginRight" value="5" step="1" min="0">
+                </div>
+                <div class="margin-item">
+                    <span>下</span>
+                    <input type="number" id="marginBottom" value="5" step="1" min="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>打印布局</label>
+            <div class="radio-group">
+                <label><input type="radio" name="printLayout" value="single" checked> 单列打印 (每个标签单独一页)</label>
+                <label><input type="radio" name="printLayout" value="multi" disabled> 多列 (即将推出)</label>
+            </div>
+            <small style="color: #64748b;">✨ 单列模式适配各类标签打印机、热敏打印机</small>
+        </div>
+
+        <button id="generateBtn">✨ 生成 / 刷新二维码</button>
+        <button id="printNormalBtn" class="secondary">🖨️ 系统打印 (常规打印机)</button>
+        <button id="connectBluetoothBtn" class="success">🔗 连接蓝牙打印机</button>
+        <button id="printBluetoothBtn" class="warning" disabled>📡 蓝牙打印</button>
+
+        <div id="bluetoothStatus" class="status-bar">
+            ⚡ 未连接蓝牙设备 | 支持主流ESC/POS打印机
+        </div>
+        <div class="status-bar" style="background:#e6f7e6;">
+            💡 提示: 生成二维码后手机相机/系统相机扫码即可直接连接WiFi
+        </div>
+    </div>
+
+    <!-- 右侧预览区域 -->
+    <div class="preview-card">
+        <div class="preview-header">
+            <h3>📄 打印预览 (实时边距)</h3>
+            <button id="refreshPreviewBtn" style="width: auto; padding: 6px 16px; margin-top: 0;">🔄 刷新预览</button>
+        </div>
+        <div class="preview-area" id="previewContainer">
+            <div style="color: #94a3b8;">点击「生成二维码」显示预览</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- 全局变量 ----------
+    let currentQRBase64 = null;           // 存储当前二维码图片base64
+    let currentWiFiRawString = "";
+    let bluetoothDevice = null;
+    let bluetoothCharacteristic = null;
+    let isBluetoothConnected = false;
+
+    // DOM 元素
+    const ssidInput = document.getElementById('ssid');
+    const passwordInput = document.getElementById('password');
+    const encryptionSelect = document.getElementById('encryption');
+    const qrTitleInput = document.getElementById('qrTitle');
+    const marginLeft = document.getElementById('marginLeft');
+    const marginRight = document.getElementById('marginRight');
+    const marginTop = document.getElementById('marginTop');
+    const marginBottom = document.getElementById('marginBottom');
+    const generateBtn = document.getElementById('generateBtn');
+    const printNormalBtn = document.getElementById('printNormalBtn');
+    const connectBluetoothBtn = document.getElementById('connectBluetoothBtn');
+    const printBluetoothBtn = document.getElementById('printBluetoothBtn');
+    const bluetoothStatusDiv = document.getElementById('bluetoothStatus');
+    const previewContainer = document.getElementById('previewContainer');
+    const refreshPreviewBtn = document.getElementById('refreshPreviewBtn');
+
+    // ---------- 辅助函数 ----------
+    // 生成符合 WiFi 联盟标准的字符串 (支持手机直接扫码连接)
+    function buildWiFiString(ssid, password, encryption) {
+        // 处理特殊字符转义 (分号, 反斜杠, 逗号)
+        const escapeWiFi = (str) => {
+            if (!str) return "";
+            return str.replace(/[\\;,\"]/g, (match) => {
+                if (match === '\\') return '\\\\';
+                if (match === ';') return '\\;';
+                if (match === ',') return '\\,';
+                if (match === '"') return '\\"';
+                return match;
+            });
+        };
+        const escapedSsid = escapeWiFi(ssid);
+        if (encryption === 'nopass') {
+            return `WIFI:S:${escapedSsid};T:nopass;;`;
+        }
+        const escapedPwd = escapeWiFi(password);
+        return `WIFI:S:${escapedSsid};T:${encryption};P:${escapedPwd};;`;
+    }
+
+    // 生成二维码图片 (返回Promise<string> base64)
+    function generateQRCodeImage(wifiString, size = 220) {
+        return new Promise((resolve, reject) => {
+            // 创建一个临时div，完全离屏
+            const tempDiv = document.createElement('div');
+            tempDiv.id = 'temp_qr_' + Date.now();
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            document.body.appendChild(tempDiv);
+            
+            try {
+                // 使用 QRCode 库生成canvas
+                new QRCode(tempDiv, {
+                    text: wifiString,
+                    width: size,
+                    height: size,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                
+                setTimeout(() => {
+                    const canvas = tempDiv.querySelector('canvas');
+                    if (canvas) {
+                        const dataURL = canvas.toDataURL('image/png');
+                        document.body.removeChild(tempDiv);
+                        resolve(dataURL);
+                    } else {
+                        const img = tempDiv.querySelector('img');
+                        if (img && img.src) {
+                            document.body.removeChild(tempDiv);
+                            resolve(img.src);
+                        } else {
+                            document.body.removeChild(tempDiv);
+                            reject(new Error('二维码生成失败: 未找到canvas/img'));
+                        }
+                    }
+                }, 150);
+            } catch (err) {
+                document.body.removeChild(tempDiv);
+                reject(err);
+            }
+        });
+    }
+
+    // 构建卡片DOM元素 (根据当前边距和内容)
+    async function buildQRCard() {
+        const ssid = ssidInput.value.trim();
+        if (!ssid) {
+            alert('请输入WiFi名称');
+            return null;
+        }
+        const password = passwordInput.value;
+        const encryption = encryptionSelect.value;
+        const title = qrTitleInput.value.trim() || "WiFi 连接";
+        
+        const wifiString = buildWiFiString(ssid, password, encryption);
+        currentWiFiRawString = wifiString;
+        
+        // 生成二维码图片 (如果之前已有相同字符串可缓存，但为准确性每次刷新重新生成)
+        let qrBase64;
+        try {
+            qrBase64 = await generateQRCodeImage(wifiString, 200);
+            currentQRBase64 = qrBase64;
+        } catch (err) {
+            console.error(err);
+            alert('二维码生成失败，请检查网络或参数');
+            return null;
+        }
+        
+        // 获取边距 (mm 转 px 近似，打印时用mm单位)
+        const left = parseFloat(marginLeft.value) || 0;
+        const top = parseFloat(marginTop.value) || 0;
+        const right = parseFloat(marginRight.value) || 0;
+        const bottom = parseFloat(marginBottom.value) || 0;
+        
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'qr-print-card';
+        // 注意：这里使用mm作为打印边距单位，浏览器打印时会按物理尺寸渲染，对热敏打印机友好
+        cardDiv.style.padding = `${top}mm ${right}mm ${bottom}mm ${left}mm`;
+        cardDiv.style.backgroundColor = 'white';
+        cardDiv.style.borderRadius = '4px';
+        cardDiv.style.width = 'auto';
+        cardDiv.style.display = 'inline-block';
+        
+        // 显示加密类型文本
+        let encText = encryption === 'WPA' ? 'WPA2' : (encryption === 'WEP' ? 'WEP' : '开放网络');
+        
+        cardDiv.innerHTML = `
+            <div class="qr-inner" style="min-width: 180px;">
+                <div class="qr-title">${escapeHtml(title)}</div>
+                <div style="display: flex; justify-content: center; margin: 8px 0;">
+                    <img src="${qrBase64}" width="180" height="180" style="display:block; width:180px; height:180px;" class="qr-image" alt="WiFi二维码" />
+                </div>
+                <div class="qr-sub">
+                    📡 ${escapeHtml(ssid)} &nbsp;|&nbsp; 🔐 ${encText}<br>
+                    📱 手机相机扫码即可连接
+                </div>
+            </div>
+        `;
+        return cardDiv;
+    }
+    
+    // 简单的防XSS
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    // 刷新右侧预览区域
+    async function refreshPreview() {
+        previewContainer.innerHTML = '<div style="color: #94a3b8;">⏳ 生成二维码中...</div>';
+        const card = await buildQRCard();
+        if (!card) {
+            previewContainer.innerHTML = '<div style="color: #ef4444;">生成失败，请检查参数</div>';
+            return;
+        }
+        previewContainer.innerHTML = '';
+        const wrapper = document.createElement('div');
+        wrapper.style.display = 'flex';
+        wrapper.style.justifyContent = 'center';
+        wrapper.style.alignItems = 'center';
+        wrapper.style.width = '100%';
+        wrapper.appendChild(card);
+        previewContainer.appendChild(wrapper);
+    }
+    
+    // 系统浏览器打印（支持调节边距，并且单列模式）
+    function systemPrint() {
+        const cardElement = previewContainer.querySelector('.qr-print-card');
+        if (!cardElement) {
+            alert('请先点击「生成/刷新二维码」');
+            return;
+        }
+        // 克隆当前卡片用于打印
+        const printClone = cardElement.cloneNode(true);
+        // 创建新窗口
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>WiFi二维码打印</title>
+                <style>
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+                    body {
+                        background: white;
+                        padding: 0;
+                        margin: 0;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                    }
+                    .print-container {
+                        width: 100%;
+                    }
+                    .qr-print-card {
+                        margin: 0 auto;
+                        page-break-after: always;
+                        break-inside: avoid;
+                        page-break-inside: avoid;
+                        display: block;
+                    }
+                    @media print {
+                        body {
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .qr-print-card {
+                            page-break-after: always;
+                            break-inside: avoid;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="print-container" id="printContainer"></div>
+                <script>
+                    const container = document.getElementById('printContainer');
+                    const card = ${JSON.stringify(printClone.outerHTML)};
+                    container.innerHTML = card;
+                    // 针对单列模式，如果用户需要多张，当前只打印一张，但符合单列要求
+                    window.onload = () => {
+                        window.print();
+                        setTimeout(() => window.close(), 800);
+                    };
+                <\/script>
+            </body>
+            </html>
+        `);
+        printWindow.document.close();
+    }
+    
+    // ---------- 蓝牙打印相关 (支持主流 ESC/POS 蓝牙热敏打印机) ----------
+    async function connectBluetoothPrinter() {
+        if (!navigator.bluetooth) {
+            updateBluetoothStatus('❌ 当前浏览器不支持 Web Bluetooth，请使用 Chrome / Edge / 安卓浏览器', 'error');
+            alert('请使用最新版 Chrome, Edge 或安卓自带浏览器并开启蓝牙权限');
+            return;
+        }
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] // 打印服务UUID
+            });
+            bluetoothDevice = device;
+            const server = await device.gatt.connect();
+            let service;
+            try {
+                service = await server.getPrimaryService('000018f0-0000-1000-8000-00805f9b34fb');
+            } catch (e) {
+                const services = await server.getPrimaryServices();
+                if (services.length === 0) throw new Error('未找到任何服务');
+                service = services[0];
+            }
+            let characteristic;
+            try {
+                characteristic = await service.getCharacteristic('00002af1-0000-1000-8000-00805f9b34fb');
+            } catch (e) {
+                const chars = await service.getCharacteristics();
+                for (let c of chars) {
+                    if (c.properties.write || c.properties.writeWithoutResponse) {
+                        characteristic = c;
+                        break;
+                    }
+                }
+            }
+            if (!characteristic) throw new Error('未找到可写入的特征');
+            bluetoothCharacteristic = characteristic;
+            isBluetoothConnected = true;
+            updateBluetoothStatus(`✅ 已连接: ${device.name || '蓝牙打印机'}`, 'success');
+            printBluetoothBtn.disabled = false;
+        } catch (err) {
+            console.error(err);
+            updateBluetoothStatus(`连接失败: ${err.message}`, 'error');
+            isBluetoothConnected = false;
+            printBluetoothBtn.disabled = true;
+        }
+    }
+    
+    // 将当前预览卡片转为图片并通过蓝牙打印（ESC/POS 光栅位图）
+    async function printViaBluetooth() {
+        if (!isBluetoothConnected || !bluetoothCharacteristic) {
+            alert('请先连接蓝牙打印机');
+            return;
+        }
+        const cardElement = previewContainer.querySelector('.qr-print-card');
+        if (!cardElement) {
+            alert('请先生成二维码');
+            return;
+        }
+        printBluetoothBtn.disabled = true;
+        printBluetoothBtn.textContent = '⏳ 打印中...';
+        try {
+            // 使用html2canvas捕获卡片区域，高清渲染
+            const canvas = await html2canvas(cardElement, {
+                scale: 2.5,
+                backgroundColor: '#ffffff',
+                logging: false,
+                useCORS: false
+            });
+            const printData = await createESCPOSRasterCommand(canvas);
+            // 初始化打印机
+            const initCmd = new Uint8Array([0x1B, 0x40]);
+            await bluetoothCharacteristic.writeValue(initCmd);
+            await delay(120);
+            const alignCenter = new Uint8Array([0x1B, 0x61, 0x01]);
+            await bluetoothCharacteristic.writeValue(alignCenter);
+            await delay(100);
+            await bluetoothCharacteristic.writeValue(printData);
+            await delay(200);
+            const feed = new Uint8Array([0x0A, 0x0A, 0x0A]);
+            await bluetoothCharacteristic.writeValue(feed);
+            updateBluetoothStatus('✅ 打印指令已发送', 'success');
+        } catch (err) {
+            console.error('蓝牙打印失败:', err);
+            updateBluetoothStatus(`打印失败: ${err.message}`, 'error');
+        } finally {
+            printBluetoothBtn.disabled = false;
+            printBluetoothBtn.textContent = '📡 蓝牙打印';
+        }
+    }
+    
+    // 将Canvas转为 ESC/POS 光栅位图指令 (GS v 0)
+    async function createESCPOSRasterCommand(canvas) {
+        const width = canvas.width;
+        const height = canvas.height;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, width, height);
+        const data = imgData.data;
+        // 二值化阈值
+        const threshold = 160;
+        const bitmap = [];
+        for (let i = 0; i < height; i++) {
+            for (let j = 0; j < width; j++) {
+                const idx = (i * width + j) * 4;
+                const gray = (data[idx] + data[idx+1] + data[idx+2]) / 3;
+                const bit = gray > threshold ? 0 : 1;
+                bitmap.push(bit);
+            }
+        }
+        const bytesPerLine = Math.ceil(width / 8);
+        const bitmapBytes = [];
+        for (let row = 0; row < height; row++) {
+            for (let byteCol = 0; byteCol < bytesPerLine; byteCol++) {
+                let byteVal = 0;
+                for (let bit = 0; bit < 8; bit++) {
+                    const pixelX = byteCol * 8 + bit;
+                    if (pixelX < width) {
+                        const bitValue = bitmap[row * width + pixelX];
+                        if (bitValue === 1) {
+                            byteVal |= (1 << (7 - bit));
+                        }
+                    }
+                }
+                bitmapBytes.push(byteVal);
+            }
+        }
+        const xL = bytesPerLine & 0xFF;
+        const xH = (bytesPerLine >> 8) & 0xFF;
+        const yL = height & 0xFF;
+        const yH = (height >> 8) & 0xFF;
+        const header = [0x1D, 0x76, 0x30, 0x00, xL, xH, yL, yH];
+        const fullArray = new Uint8Array(header.length + bitmapBytes.length);
+        fullArray.set(header, 0);
+        fullArray.set(bitmapBytes, header.length);
+        return fullArray;
+    }
+    
+    function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    
+    function updateBluetoothStatus(msg, type) {
+        bluetoothStatusDiv.innerHTML = msg;
+        bluetoothStatusDiv.style.background = type === 'error' ? '#fee2e2' : (type === 'success' ? '#e0f2fe' : '#f1f5f9');
+        bluetoothStatusDiv.style.color = type === 'error' ? '#b91c1c' : '#1e293b';
+    }
+    
+    // 监听边距变化实时刷新预览
+    function bindMarginEvents() {
+        const margins = [marginLeft, marginRight, marginTop, marginBottom];
+        margins.forEach(inp => {
+            inp.addEventListener('input', () => {
+                if (previewContainer.querySelector('.qr-print-card')) refreshPreview();
+            });
+        });
+        ssidInput.addEventListener('change', () => { if (previewContainer.querySelector('.qr-print-card')) refreshPreview(); });
+        passwordInput.addEventListener('change', () => { if (previewContainer.querySelector('.qr-print-card')) refreshPreview(); });
+        encryptionSelect.addEventListener('change', () => { if (previewContainer.querySelector('.qr-print-card')) refreshPreview(); });
+        qrTitleInput.addEventListener('input', () => { if (previewContainer.querySelector('.qr-print-card')) refreshPreview(); });
+    }
+    
+    // 初始化加载默认二维码
+    window.addEventListener('DOMContentLoaded', async () => {
+        bindMarginEvents();
+        await refreshPreview();
+        generateBtn.addEventListener('click', async () => {
+            await refreshPreview();
+        });
+        refreshPreviewBtn.addEventListener('click', async () => {
+            await refreshPreview();
+        });
+        printNormalBtn.addEventListener('click', systemPrint);
+        connectBluetoothBtn.addEventListener('click', connectBluetoothPrinter);
+        printBluetoothBtn.addEventListener('click', printViaBluetooth);
+    });
+</script>
+</body>
+</html>

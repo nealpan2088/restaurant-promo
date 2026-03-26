@@ -1,0 +1,505 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>批量打印助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            background: #FF6B35;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            background: #ff5722;
+        }
+
+        .preview {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .qr-preview {
+            display: inline-block;
+            margin: 10px;
+            text-align: center;
+        }
+
+        .label-templates {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .label-template {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .label-template.selected {
+            border-color: #FF6B35;
+            background: #fff5e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>📦 批量打印助手</h2>
+            <p>支持多种打印格式：标签纸、A4纸、不干胶贴纸等</p>
+        </div>
+
+        <div class="card">
+            <h2>1️⃣ 选择打印格式</h2>
+            <div class="label-templates" id="templates">
+                <div class="label-template" data-type="a4">
+                    <div>📄 A4纸打印</div>
+                    <small>9个/页，适合裁剪</small>
+                </div>
+                <div class="label-template" data-type="label">
+                    <div>🏷️ 标签纸打印</div>
+                    <small>30x40mm 不干胶</small>
+                </div>
+                <div class="label-template" data-type="card">
+                    <div>💳 卡片式</div>
+                    <small>85x54mm 会员卡大小</small>
+                </div>
+                <div class="label-template" data-type="sticker">
+                    <div>🔘 圆形贴纸</div>
+                    <small>直径30mm圆形</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2️⃣ 桌号配置</h2>
+            <div class="form-group">
+                <label>桌号范围（支持连续和自定义）</label>
+                <textarea id="tableList" rows="3" placeholder="例如：&#10;1-20&#10;VIP01,VIP02,VIP03&#10;包间1,包间2,包间3"></textarea>
+                <small>支持格式：1-20（连续）、1,2,3（列表）、包间1,包间2（自定义）</small>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>3️⃣ 二维码内容</h2>
+            <div class="form-group">
+                <label>二维码内容格式</label>
+                <select id="contentType">
+                    <option value="table">TABLE:桌号</option>
+                    <option value="url">URL链接</option>
+                    <option value="custom">自定义</option>
+                </select>
+            </div>
+            <div class="form-group" id="urlGroup">
+                <label>URL前缀</label>
+                <input type="text" id="urlPrefix" value="order.html?table=" placeholder="order.html?table=">
+            </div>
+            <div class="form-group" id="customGroup" style="display: none;">
+                <label>自定义内容（使用{number}作为桌号）</label>
+                <input type="text" id="customContent" value="扫码点餐-桌号{number}">
+            </div>
+        </div>
+
+        <div class="card">
+            <button onclick="generateAndPrint()">生成并打印</button>
+            <button onclick="previewOnly()">预览</button>
+            <button onclick="exportPDF()">导出PDF</button>
+        </div>
+
+        <div class="card" id="previewCard" style="display: none;">
+            <h2>预览</h2>
+            <div id="preview" class="preview"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix@0.0.1/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script>
+        let selectedTemplate = 'a4';
+        let currentQRCodes = [];
+
+        // 选择模板
+        document.querySelectorAll('.label-template').forEach(template => {
+            template.onclick = () => {
+                document.querySelectorAll('.label-template').forEach(t => t.classList.remove('selected'));
+                template.classList.add('selected');
+                selectedTemplate = template.dataset.type;
+            };
+        });
+
+        // 解析桌号列表
+        function parseTableList(input) {
+            const tables = [];
+            const lines = input.split('\n');
+            
+            for (const line of lines) {
+                if (line.includes('-')) {
+                    // 连续范围: 1-20
+                    const [start, end] = line.split('-');
+                    for (let i = parseInt(start); i <= parseInt(end); i++) {
+                        tables.push(i.toString());
+                    }
+                } else if (line.includes(',')) {
+                    // 列表: 1,2,3
+                    const items = line.split(',');
+                    items.forEach(item => tables.push(item.trim()));
+                } else if (line.trim()) {
+                    // 单个
+                    tables.push(line.trim());
+                }
+            }
+            
+            return tables;
+        }
+
+        // 生成二维码内容
+        function generateQRContent(table, type, urlPrefix, customContent) {
+            switch(type) {
+                case 'table':
+                    return `TABLE:${table}`;
+                case 'url':
+                    return `${urlPrefix}${table}`;
+                case 'custom':
+                    return customContent.replace('{number}', table);
+                default:
+                    return `TABLE:${table}`;
+            }
+        }
+
+        // 生成打印HTML
+        function generatePrintHTML(tables, template, contentType, urlPrefix, customContent) {
+            const qrSize = template === 'label' ? 80 : (template === 'card' ? 100 : 120);
+            
+            let html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>桌位二维码打印</title>
+                    <style>
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+                        body {
+                            font-family: Arial, sans-serif;
+                            padding: 20px;
+                        }
+            `;
+            
+            // 根据模板类型设置不同的CSS
+            if (template === 'a4') {
+                html += `
+                    @page {
+                        size: A4;
+                        margin: 10mm;
+                    }
+                    .qr-grid {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 20px;
+                    }
+                    .qr-item {
+                        text-align: center;
+                        padding: 15px;
+                        border: 1px solid #ddd;
+                        border-radius: 8px;
+                    }
+                `;
+            } else if (template === 'label') {
+                html += `
+                    @page {
+                        size: 30mm 40mm;
+                        margin: 0;
+                    }
+                    .qr-grid {
+                        display: grid;
+                        grid-template-columns: 1fr;
+                        gap: 0;
+                    }
+                    .qr-item {
+                        text-align: center;
+                        padding: 5px;
+                        width: 30mm;
+                        height: 40mm;
+                    }
+                    .qr-code {
+                        width: 20mm;
+                        height: 20mm;
+                        margin: 0 auto;
+                    }
+                `;
+            } else if (template === 'card') {
+                html += `
+                    @page {
+                        size: 85mm 54mm;
+                        margin: 0;
+                    }
+                    .qr-grid {
+                        display: grid;
+                        grid-template-columns: 1fr;
+                    }
+                    .qr-item {
+                        text-align: center;
+                        padding: 8px;
+                        width: 85mm;
+                        height: 54mm;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 10px;
+                    }
+                    .qr-code {
+                        width: 40mm;
+                        height: 40mm;
+                    }
+                `;
+            } else if (template === 'sticker') {
+                html += `
+                    @page {
+                        size: 30mm 30mm;
+                        margin: 0;
+                    }
+                    .qr-grid {
+                        display: grid;
+                        grid-template-columns: 1fr;
+                    }
+                    .qr-item {
+                        text-align: center;
+                        padding: 5px;
+                        width: 30mm;
+                        height: 30mm;
+                        border-radius: 50%;
+                        background: white;
+                    }
+                    .qr-code {
+                        width: 25mm;
+                        height: 25mm;
+                        margin: 0 auto;
+                    }
+                `;
+            }
+            
+            html += `
+                        .qr-code {
+                            margin: 0 auto;
+                        }
+                        .table-number {
+                            margin-top: 8px;
+                            font-weight: bold;
+                            font-size: 12px;
+                        }
+                        @media print {
+                            body {
+                                padding: 0;
+                            }
+                            .qr-item {
+                                page-break-inside: avoid;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="qr-grid">
+            `;
+            
+            tables.forEach(table => {
+                const qrContent = generateQRContent(table, contentType, urlPrefix, customContent);
+                const qrId = `qr-${table.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                
+                html += `
+                    <div class="qr-item">
+                        <div id="${qrId}" class="qr-code"></div>
+                        <div class="table-number">${table}</div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                    <script src="https://cdn.jsdelivr.net/npm/qrcodejs2-fix@0.0.1/qrcode.min.js"><\/script>
+                    <script>
+                        const qrCodes = ${JSON.stringify(tables.map(table => ({
+                            id: `qr-${table.replace(/[^a-zA-Z0-9]/g, '-')}`,
+                            content: generateQRContent(table, '${contentType}', '${urlPrefix}', '${customContent}')
+                        })))};
+                        
+                        qrCodes.forEach(qr => {
+                            const container = document.getElementById(qr.id);
+                            if (container) {
+                                new QRCode(container, {
+                                    text: qr.content,
+                                    width: ${qrSize},
+                                    height: ${qrSize},
+                                    colorDark: "#000000",
+                                    colorLight: "#ffffff"
+                                });
+                            }
+                        });
+                    <\/script>
+                </body>
+                </html>
+            `;
+            
+            return html;
+        }
+
+        // 预览
+        function previewOnly() {
+            const tableInput = document.getElementById('tableList').value;
+            const tables = parseTableList(tableInput);
+            const contentType = document.getElementById('contentType').value;
+            const urlPrefix = document.getElementById('urlPrefix').value;
+            const customContent = document.getElementById('customContent').value;
+            
+            const html = generatePrintHTML(tables, selectedTemplate, contentType, urlPrefix, customContent);
+            
+            const previewDiv = document.getElementById('preview');
+            previewDiv.innerHTML = html;
+            document.getElementById('previewCard').style.display = 'block';
+            
+            // 执行二维码生成脚本
+            const scripts = previewDiv.querySelectorAll('script');
+            scripts.forEach(script => {
+                eval(script.textContent);
+            });
+        }
+
+        // 生成并打印
+        function generateAndPrint() {
+            const tableInput = document.getElementById('tableList').value;
+            const tables = parseTableList(tableInput);
+            
+            if (tables.length === 0) {
+                alert('请输入桌号');
+                return;
+            }
+            
+            const contentType = document.getElementById('contentType').value;
+            const urlPrefix = document.getElementById('urlPrefix').value;
+            const customContent = document.getElementById('customContent').value;
+            
+            const html = generatePrintHTML(tables, selectedTemplate, contentType, urlPrefix, customContent);
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+            
+            printWindow.onload = () => {
+                setTimeout(() => {
+                    printWindow.print();
+                }, 500);
+            };
+        }
+
+        // 导出PDF
+        function exportPDF() {
+            const tableInput = document.getElementById('tableList').value;
+            const tables = parseTableList(tableInput);
+            const contentType = document.getElementById('contentType').value;
+            const urlPrefix = document.getElementById('urlPrefix').value;
+            const customContent = document.getElementById('customContent').value;
+            
+            const html = generatePrintHTML(tables, selectedTemplate, contentType, urlPrefix, customContent);
+            
+            const element = document.createElement('div');
+            element.innerHTML = html;
+            document.body.appendChild(element);
+            
+            html2pdf().from(element).set({
+                margin: 1,
+                filename: 'qrcodes.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }).save().then(() => {
+                document.body.removeChild(element);
+            });
+        }
+
+        // 显示/隐藏自定义输入框
+        document.getElementById('contentType').addEventListener('change', function() {
+            const urlGroup = document.getElementById('urlGroup');
+            const customGroup = document.getElementById('customGroup');
+            
+            if (this.value === 'url') {
+                urlGroup.style.display = 'block';
+                customGroup.style.display = 'none';
+            } else if (this.value === 'custom') {
+                urlGroup.style.display = 'none';
+                customGroup.style.display = 'block';
+            } else {
+                urlGroup.style.display = 'none';
+                customGroup.style.display = 'none';
+            }
+        });
+        
+        // 设置默认示例
+        document.getElementById('tableList').value = '1-20\nVIP01,VIP02,VIP03\n包间1,包间2';
+    </script>
+</body>
+</html>

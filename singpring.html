@@ -1,0 +1,668 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级打印配置器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+            border-left: 4px solid #FF6B35;
+            padding-left: 15px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #FF6B35;
+        }
+
+        .margin-slider {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .margin-item {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .margin-item input {
+            width: 100%;
+        }
+
+        .margin-value {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .preview-container {
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .print-preview {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 0 auto;
+            overflow: auto;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #FF6B35;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .preset-btn {
+            padding: 8px 15px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .preset-btn:hover {
+            background: #FF6B35;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .margin-slider {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h2>📐 打印边距配置器</h2>
+            
+            <div class="preset-buttons">
+                <button class="preset-btn" onclick="applyPreset('thermal')">热敏小票 (58mm)</button>
+                <button class="preset-btn" onclick="applyPreset('thermal80')">热敏小票 (80mm)</button>
+                <button class="preset-btn" onclick="applyPreset('a4')">A4纸打印</button>
+                <button class="preset-btn" onclick="applyPreset('label')">标签纸 (30x40mm)</button>
+                <button class="preset-btn" onclick="applyPreset('custom')">自定义</button>
+            </div>
+            
+            <div class="grid-2">
+                <div>
+                    <h3 style="margin-bottom: 15px;">边距设置</h3>
+                    <div class="margin-slider">
+                        <div class="margin-item">
+                            <label>上边距 (mm)</label>
+                            <input type="range" id="marginTop" min="0" max="50" step="1" value="5">
+                            <div class="margin-value"><span id="marginTopVal">5</span> mm</div>
+                        </div>
+                        <div class="margin-item">
+                            <label>下边距 (mm)</label>
+                            <input type="range" id="marginBottom" min="0" max="50" step="1" value="5">
+                            <div class="margin-value"><span id="marginBottomVal">5</span> mm</div>
+                        </div>
+                        <div class="margin-item">
+                            <label>左边距 (mm)</label>
+                            <input type="range" id="marginLeft" min="0" max="50" step="1" value="8">
+                            <div class="margin-value"><span id="marginLeftVal">8</span> mm</div>
+                        </div>
+                        <div class="margin-item">
+                            <label>右边距 (mm)</label>
+                            <input type="range" id="marginRight" min="0" max="50" step="1" value="8">
+                            <div class="margin-value"><span id="marginRightVal">8</span> mm</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 15px;">纸张设置</h3>
+                    <div class="form-group">
+                        <label>纸张宽度 (mm)</label>
+                        <input type="number" id="paperWidth" value="80" step="1" min="58" max="210">
+                    </div>
+                    <div class="form-group">
+                        <label>纸张类型</label>
+                        <select id="paperType">
+                            <option value="thermal">热敏纸 (58mm)</option>
+                            <option value="thermal80" selected>热敏纸 (80mm)</option>
+                            <option value="a4">A4纸 (210mm)</option>
+                            <option value="label">标签纸 (30x40mm)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div>
+                    <h3>字体设置</h3>
+                    <div class="form-group">
+                        <label>字体大小 (pt)</label>
+                        <input type="number" id="fontSize" value="12" step="1" min="8" max="20">
+                    </div>
+                    <div class="form-group">
+                        <label>行高</label>
+                        <input type="number" id="lineHeight" value="1.5" step="0.1" min="1" max="2">
+                    </div>
+                    <div class="form-group">
+                        <label>字体类型</label>
+                        <select id="fontFamily">
+                            <option value="monospace">等宽字体 (推荐)</option>
+                            <option value="sans-serif">无衬线字体</option>
+                            <option value="serif">衬线字体</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>高级选项</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="showBorder"> 显示边框
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="cutMark"> 显示裁切标记
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="autoCut" checked> 自动切纸
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="updatePreview()">更新预览</button>
+                <button class="btn btn-success" onclick="printNow()">立即打印</button>
+                <button class="btn btn-secondary" onclick="saveConfig()">保存配置</button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>👁️ 打印预览</h2>
+            <div id="previewContainer" class="preview-container">
+                <div id="printPreview" class="print-preview" style="min-height: 400px;">
+                    点击"更新预览"查看效果
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 预设配置
+        const presets = {
+            thermal: { top: 3, bottom: 3, left: 5, right: 5, paperWidth: 58, fontSize: 10, lineHeight: 1.3 },
+            thermal80: { top: 5, bottom: 5, left: 8, right: 8, paperWidth: 80, fontSize: 12, lineHeight: 1.5 },
+            a4: { top: 25, bottom: 25, left: 20, right: 20, paperWidth: 210, fontSize: 12, lineHeight: 1.5 },
+            label: { top: 2, bottom: 2, left: 2, right: 2, paperWidth: 30, fontSize: 8, lineHeight: 1.2 },
+            custom: { top: 10, bottom: 10, left: 15, right: 15, paperWidth: 80, fontSize: 12, lineHeight: 1.5 }
+        };
+        
+        // 测试数据
+        const testOrder = {
+            restaurantName: '美味餐厅',
+            orderNumber: '202412240001',
+            tableNumber: '001',
+            orderTime: new Date().toLocaleString(),
+            items: [
+                { name: '红烧牛肉面', quantity: 2, price: 28.00, total: 56.00 },
+                { name: '宫保鸡丁', quantity: 1, price: 38.00, total: 38.00 },
+                { name: '清炒时蔬', quantity: 1, price: 18.00, total: 18.00 },
+                { name: '米饭', quantity: 3, price: 2.00, total: 6.00 }
+            ],
+            subtotal: 118.00,
+            total: 118.00,
+            paymentMethod: '现金',
+            cashier: '张三',
+            footer: '感谢光临，欢迎下次再来！'
+        };
+        
+        // 应用预设
+        function applyPreset(type) {
+            const preset = presets[type];
+            if (preset) {
+                document.getElementById('marginTop').value = preset.top;
+                document.getElementById('marginBottom').value = preset.bottom;
+                document.getElementById('marginLeft').value = preset.left;
+                document.getElementById('marginRight').value = preset.right;
+                document.getElementById('paperWidth').value = preset.paperWidth;
+                document.getElementById('fontSize').value = preset.fontSize;
+                document.getElementById('lineHeight').value = preset.lineHeight;
+                
+                // 更新显示
+                updateMarginValues();
+                updatePreview();
+            }
+        }
+        
+        // 更新边距显示
+        function updateMarginValues() {
+            document.getElementById('marginTopVal').textContent = document.getElementById('marginTop').value;
+            document.getElementById('marginBottomVal').textContent = document.getElementById('marginBottom').value;
+            document.getElementById('marginLeftVal').textContent = document.getElementById('marginLeft').value;
+            document.getElementById('marginRightVal').textContent = document.getElementById('marginRight').value;
+        }
+        
+        // 生成打印HTML
+        function generatePrintHTML() {
+            const top = parseFloat(document.getElementById('marginTop').value);
+            const bottom = parseFloat(document.getElementById('marginBottom').value);
+            const left = parseFloat(document.getElementById('marginLeft').value);
+            const right = parseFloat(document.getElementById('marginRight').value);
+            const paperWidth = parseFloat(document.getElementById('paperWidth').value);
+            const fontSize = parseFloat(document.getElementById('fontSize').value);
+            const lineHeight = parseFloat(document.getElementById('lineHeight').value);
+            const fontFamily = document.getElementById('fontFamily').value;
+            const showBorder = document.getElementById('showBorder').checked;
+            const showCutMark = document.getElementById('cutMark').checked;
+            
+            // 转换为像素（1mm = 3.78px）
+            const topPx = top * 3.78;
+            const bottomPx = bottom * 3.78;
+            const leftPx = left * 3.78;
+            const rightPx = right * 3.78;
+            const paperWidthPx = paperWidth * 3.78;
+            const contentWidth = paperWidthPx - leftPx - rightPx;
+            
+            return `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>点餐小票</title>
+                    <style>
+                        * {
+                            margin: 0;
+                            padding: 0;
+                            box-sizing: border-box;
+                        }
+                        
+                        body {
+                            font-family: ${fontFamily === 'monospace' ? "'Courier New', monospace" : fontFamily === 'sans-serif' ? "Arial, sans-serif" : "Georgia, serif"};
+                            background: white;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        
+                        .print-container {
+                            width: ${paperWidthPx}px;
+                            margin: 0 auto;
+                            padding: ${topPx}px ${rightPx}px ${bottomPx}px ${leftPx}px;
+                            ${showBorder ? 'border: 1px solid #ccc;' : ''}
+                            position: relative;
+                        }
+                        
+                        ${showCutMark ? `
+                        .cut-mark {
+                            position: absolute;
+                            left: 0;
+                            right: 0;
+                            height: 2px;
+                            background: repeating-linear-gradient(90deg, #000, #000 5px, transparent 5px, transparent 10px);
+                        }
+                        .cut-mark-top {
+                            top: 0;
+                        }
+                        .cut-mark-bottom {
+                            bottom: 0;
+                        }
+                        ` : ''}
+                        
+                        .print-content {
+                            font-size: ${fontSize}pt;
+                            line-height: ${lineHeight};
+                            width: ${contentWidth}px;
+                            margin: 0 auto;
+                        }
+                        
+                        .order-header {
+                            text-align: center;
+                            margin-bottom: 15px;
+                        }
+                        
+                        .restaurant-name {
+                            font-size: ${fontSize * 1.5}pt;
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .divider {
+                            border-top: 1px dashed #000;
+                            margin: 10px 0;
+                        }
+                        
+                        .info-row {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .items-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin: 10px 0;
+                        }
+                        
+                        .items-table th, .items-table td {
+                            padding: 5px 0;
+                            text-align: left;
+                        }
+                        
+                        .items-table th {
+                            border-bottom: 1px dashed #000;
+                        }
+                        
+                        .text-right {
+                            text-align: right;
+                        }
+                        
+                        .total-row {
+                            margin-top: 10px;
+                            padding-top: 10px;
+                            border-top: 1px dashed #000;
+                        }
+                        
+                        .total-line {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 5px;
+                            font-weight: bold;
+                        }
+                        
+                        .footer {
+                            text-align: center;
+                            margin-top: 20px;
+                            font-size: ${fontSize * 0.9}pt;
+                            color: #666;
+                        }
+                        
+                        @media print {
+                            @page {
+                                margin: 0;
+                                size: ${paperWidth}mm auto;
+                            }
+                            body {
+                                margin: 0;
+                                padding: 0;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-container">
+                        ${showCutMark ? '<div class="cut-mark cut-mark-top"></div>' : ''}
+                        <div class="print-content">
+                            <div class="order-header">
+                                <div class="restaurant-name">${testOrder.restaurantName}</div>
+                                <div class="divider"></div>
+                                <div>点餐小票</div>
+                            </div>
+                            
+                            <div class="info-row">
+                                <span>订单号：</span>
+                                <span>${testOrder.orderNumber}</span>
+                            </div>
+                            <div class="info-row">
+                                <span>桌号：</span>
+                                <span>${testOrder.tableNumber}</span>
+                            </div>
+                            <div class="info-row">
+                                <span>时间：</span>
+                                <span>${testOrder.orderTime}</span>
+                            </div>
+                            
+                            <div class="divider"></div>
+                            
+                            <table class="items-table">
+                                <thead>
+                                    <tr>
+                                        <th>菜品</th>
+                                        <th class="text-right">数量</th>
+                                        <th class="text-right">单价</th>
+                                        <th class="text-right">小计</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${testOrder.items.map(item => `
+                                        <tr>
+                                            <td>${item.name}</td>
+                                            <td class="text-right">${item.quantity}</td>
+                                            <td class="text-right">¥${item.price.toFixed(2)}</td>
+                                            <td class="text-right">¥${item.total.toFixed(2)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                            
+                            <div class="divider"></div>
+                            
+                            <div class="total-row">
+                                <div class="total-line">
+                                    <span>合计：</span>
+                                    <span>¥${testOrder.total.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="divider"></div>
+                            
+                            <div class="info-row">
+                                <span>支付方式：</span>
+                                <span>${testOrder.paymentMethod}</span>
+                            </div>
+                            <div class="info-row">
+                                <span>收银员：</span>
+                                <span>${testOrder.cashier}</span>
+                            </div>
+                            
+                            <div class="footer">
+                                <div class="divider"></div>
+                                ${testOrder.footer}
+                            </div>
+                        </div>
+                        ${showCutMark ? '<div class="cut-mark cut-mark-bottom"></div>' : ''}
+                    </div>
+                </body>
+                </html>
+            `;
+        }
+        
+        // 更新预览
+        function updatePreview() {
+            const html = generatePrintHTML();
+            const previewDiv = document.getElementById('printPreview');
+            previewDiv.innerHTML = html;
+            
+            // 调整预览大小
+            const container = previewDiv.querySelector('.print-container');
+            if (container) {
+                const width = container.offsetWidth;
+                const scale = Math.min(1, 400 / width);
+                container.style.transform = `scale(${scale})`;
+                container.style.transformOrigin = 'top left';
+                previewDiv.style.height = `${container.offsetHeight * scale + 40}px`;
+                previewDiv.style.overflow = 'auto';
+            }
+        }
+        
+        // 打印
+        function printNow() {
+            const html = generatePrintHTML();
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(html);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        // 保存配置
+        function saveConfig() {
+            const config = {
+                margins: {
+                    top: parseFloat(document.getElementById('marginTop').value),
+                    bottom: parseFloat(document.getElementById('marginBottom').value),
+                    left: parseFloat(document.getElementById('marginLeft').value),
+                    right: parseFloat(document.getElementById('marginRight').value)
+                },
+                paperWidth: parseFloat(document.getElementById('paperWidth').value),
+                fontSize: parseFloat(document.getElementById('fontSize').value),
+                lineHeight: parseFloat(document.getElementById('lineHeight').value),
+                fontFamily: document.getElementById('fontFamily').value
+            };
+            
+            localStorage.setItem('printConfig', JSON.stringify(config));
+            alert('配置已保存！');
+        }
+        
+        // 加载保存的配置
+        function loadConfig() {
+            const saved = localStorage.getItem('printConfig');
+            if (saved) {
+                const config = JSON.parse(saved);
+                document.getElementById('marginTop').value = config.margins.top;
+                document.getElementById('marginBottom').value = config.margins.bottom;
+                document.getElementById('marginLeft').value = config.margins.left;
+                document.getElementById('marginRight').value = config.margins.right;
+                document.getElementById('paperWidth').value = config.paperWidth;
+                document.getElementById('fontSize').value = config.fontSize;
+                document.getElementById('lineHeight').value = config.lineHeight;
+                document.getElementById('fontFamily').value = config.fontFamily;
+                updateMarginValues();
+                updatePreview();
+            }
+        }
+        
+        // 监听滑块变化
+        function setupSliders() {
+            const sliders = ['marginTop', 'marginBottom', 'marginLeft', 'marginRight'];
+            sliders.forEach(id => {
+                document.getElementById(id).addEventListener('input', () => {
+                    updateMarginValues();
+                    updatePreview();
+                });
+            });
+            
+            document.getElementById('paperWidth').addEventListener('input', () => updatePreview());
+            document.getElementById('fontSize').addEventListener('input', () => updatePreview());
+            document.getElementById('lineHeight').addEventListener('input', () => updatePreview());
+            document.getElementById('fontFamily').addEventListener('change', () => updatePreview());
+            document.getElementById('showBorder').addEventListener('change', () => updatePreview());
+            document.getElementById('cutMark').addEventListener('change', () => updatePreview());
+        }
+        
+        // 纸张类型切换
+        document.getElementById('paperType').addEventListener('change', function() {
+            const type = this.value;
+            applyPreset(type);
+        });
+        
+        // 初始化
+        function init() {
+            setupSliders();
+            loadConfig();
+            updatePreview();
+        }
+        
+        init();
+    </script>
+</body>
+</html>
